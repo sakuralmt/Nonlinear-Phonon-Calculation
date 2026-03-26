@@ -1,4 +1,7 @@
-.DS_Store
-._*
-*.pyc
 __pycache__/
+*.pyc
+.pytest_cache/
+release_run/
+build/
+dist/
+*.egg-info/

@@ -1,5 +1,7 @@
 # Nonlinear Phonon Calculation
 
+[English](README.md) | [中文](README_zh.md)
+
 这是一个按阶段组织的非线性声子工作流包，目标是把“真实声子前端、机器学习筛选、QE 复核”拆开，并且让每一段都能单独运行、单独交接、单独续算。
 
 这套包默认面向两台机器协作的场景：
@@ -40,14 +42,14 @@ python3 start_release.py
 
 ### 2. 推荐机器分工
 
-- `stage1`：`159.226.208.67:33223`
-- `stage2/3`：`100.101.235.12`
+- `stage1`：适合 QE 声子前端的 Slurm 机器
+- `stage2/3`：适合 CHGNet 筛选和 QE 批量任务的机器
 
 这个分工不是随便定的。
 
-- `stage1` 里的 `ph.x` 已经在老机器的多节点 Slurm 集群上验证过
-- `stage2` 是 CHGNet 筛选，更适合放在新机器上压 CPU
-- `stage3` 是 QE 批量复核，本质上是大量独立单点任务，也更适合和 stage1 分开管理
+- `stage1` 是最重的声子前端，适合放在 `pw.x / ph.x / q2r.x / matdyn.x` 跑得稳定的 Slurm 机器上
+- `stage2` 是 CHGNet 筛选，适合放在 CPU 吞吐稳定、线程可控的机器上
+- `stage3` 是大量独立的 QE 单点复核任务，也更适合和 stage1 分开管理
 
 包内不会自动帮你 SSH 传文件。跨机接力靠 `release_run/` 里的契约文件完成。
 

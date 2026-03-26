@@ -1,5 +1,7 @@
 # Nonlinear Phonon Calculation
 
+[English](README.md) | [中文](README_zh.md)
+
 This package is a staged workflow for nonlinear phonon screening and QE recheck.
 It is built for the practical case where one machine is good at phonon frontend
 work and another machine is better suited for screening and large batches of QE
@@ -47,14 +49,15 @@ python3 start_release.py
 
 ### 2. Recommended host split
 
-- `stage1`: `159.226.208.67:33223`
-- `stage2` and `stage3`: `100.101.235.12`
+- `stage1`: a Slurm host suited for the QE phonon frontend
+- `stage2` and `stage3`: a machine suited for CHGNet screening and QE batch jobs
 
 This split is intentional.
 
-- `stage1` is the expensive phonon frontend and has been validated on the older
-  multi-node Slurm cluster.
-- `stage2` is CPU screening and benefits from the newer machine layout.
+- `stage1` is the expensive phonon frontend and is best run on a host with a
+  stable Slurm setup for `pw.x`, `ph.x`, `q2r.x`, and `matdyn.x`.
+- `stage2` is CPU screening and benefits from a machine with predictable CPU
+  throughput and thread control.
 - `stage3` is a large batch of QE single-point jobs and is easier to manage
   independently from the phonon frontend.
 

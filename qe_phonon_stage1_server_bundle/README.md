@@ -22,7 +22,7 @@ Those outputs are later handed to `stage2`.
 
 This runtime is intended for:
 
-- host: `159.226.208.67:33223`
+- host: a Slurm machine suitable for the QE phonon frontend
 - scheduler: Slurm
 
 Recommended order:

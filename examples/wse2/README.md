@@ -66,8 +66,8 @@ and then replace the contract files with the outputs from your own stage1 run.
 
 The real production split is still:
 
-- `stage1` on `159.226.208.67:33223`
-- `stage2/3` on `100.101.235.12`
+- `stage1` on a Slurm host suited for the QE phonon frontend
+- `stage2/3` on a machine suited for CHGNet screening and QE recheck
 
 The handoff is done by copying the contract files, not by automatic SSH inside
 the package.

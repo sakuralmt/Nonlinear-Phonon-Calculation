@@ -7,8 +7,8 @@ want to continue from that contract on another machine.
 
 Default host split:
 
-- `stage1`: `159.226.208.67:33223`
-- `stage2/3`: `100.101.235.12`
+- `stage1`: a Slurm host for the QE phonon frontend
+- `stage2/3`: a machine used for CHGNet screening and QE batch recheck
 
 The package does not SSH between hosts. You copy the handoff files yourself and
 resume from them.

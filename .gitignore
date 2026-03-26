@@ -5,3 +5,5 @@ release_run/
 build/
 dist/
 *.egg-info/
+!examples/wse2/contract_handoff/release_run/
+!examples/wse2/contract_handoff/release_run/**

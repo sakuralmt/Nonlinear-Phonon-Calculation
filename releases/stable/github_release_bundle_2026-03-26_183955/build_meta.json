@@ -1,0 +1,8 @@
+{
+  "built_at": "2026-03-26T18:39:56+08:00",
+  "builder_worktree": "/Users/lmtsakura/qiyan_worktrees/tui",
+  "candidate_root": "/Users/lmtsakura/qiyan/releases/candidates/github_release_bundle_2026-03-26_183955",
+  "bundle_root": "/Users/lmtsakura/qiyan/releases/candidates/github_release_bundle_2026-03-26_183955/github_release_bundle",
+  "source_branch": "test/tui",
+  "source_commit": "477bbb5cdd9b2e80a0709ec4b084c37be5f74d0a"
+}

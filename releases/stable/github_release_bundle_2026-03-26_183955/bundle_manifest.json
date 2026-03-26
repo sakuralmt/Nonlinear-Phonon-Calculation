@@ -1,0 +1,13 @@
+{
+  "bundle_name": "github_release_bundle",
+  "version": "2026-03-26_183955",
+  "source_bundle": "/Users/lmtsakura/qiyan_worktrees/tui/github_release_bundle",
+  "entrypoints": [
+    "npc",
+    "tui",
+    "start_release.py"
+  ],
+  "distribution_name": "nonlinear-phonon-calculation",
+  "source_branch": "test/tui",
+  "source_commit": "477bbb5cdd9b2e80a0709ec4b084c37be5f74d0a"
+}

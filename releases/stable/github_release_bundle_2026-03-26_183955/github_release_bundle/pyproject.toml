@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nonlinear-phonon-calculation"
+version = "0.1.0"
+description = "Operator-facing CLI for the nonlinear phonon stage1/stage2/stage3 workflow."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy>=1.24",
+  "ase>=3.22",
+  "matplotlib>=3.7",
+]
+license = "MIT"
+authors = [
+  { name = "qiyan Codex packaging workflow" }
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Environment :: Console",
+  "Operating System :: POSIX :: Linux",
+  "Topic :: Scientific/Engineering :: Physics",
+]
+
+[project.scripts]
+npc = "nonlinear_phonon_calculation.cli:main"
+
+[tool.setuptools]
+include-package-data = true
+py-modules = ["start_release"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = [
+  "nonlinear_phonon_calculation*",
+  "server_highthroughput_workflow*",
+  "qe_phonon_stage1_server_bundle*",
+  "mlff_modepair_workflow*",
+  "hex_qgamma_qpair_workflow*",
+  "qe_modepair_handoff_workflow*",
+]
+namespaces = true
+
+[tool.setuptools.package-data]
+nonlinear_phonon_calculation = ["resources/**/*"]

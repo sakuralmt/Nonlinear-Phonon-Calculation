@@ -1,0 +1,22 @@
+{
+  "kind": "chgnet_runtime_config",
+  "mode": "auto_cpu",
+  "profile_name": "portable_cpu",
+  "strategy": "coarse_to_fine",
+  "coarse_grid_size": 5,
+  "full_grid_size": 9,
+  "refine_top_k": 24,
+  "batch_size": "auto",
+  "num_workers": "auto",
+  "torch_threads": "auto",
+  "interop_threads": 1,
+  "worker_affinity": "auto",
+  "chunksize": 1,
+  "maxtasksperchild": 25,
+  "limits": {
+    "max_workers": 2,
+    "max_threads_per_worker": 16,
+    "max_batch_size": 16,
+    "min_threads_per_worker": 1
+  }
+}

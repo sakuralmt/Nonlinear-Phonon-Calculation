@@ -1,0 +1,52 @@
+&CONTROL
+calculation='scf'
+disk_io='low'
+prefix='pwscf'
+pseudo_dir='./'
+outdir='./tmp'
+verbosity='high'
+tprnfor=.true.
+tstress=.true.
+forc_conv_thr=1.0d-8
+etot_conv_thr=1.0d-10
+/
+
+&SYSTEM
+ibrav=0
+nat=3,ntyp=2
+occupations='smearing', smearing='gauss', degauss=1.0d-10
+ecutwfc=80, ecutrho=800
+/
+
+&ELECTRONS
+electron_maxstep=10000
+conv_thr=1.0d-10
+mixing_mode='plain'
+mixing_beta=0.3d0
+diagonalization='david'
+/
+
+&IONS
+ion_dynamics='bfgs'
+/
+
+&CELL
+press_conv_thr=0.1
+/
+
+ATOMIC_SPECIES
+W  183.84 W.pz-spn-rrkjus_psl.1.0.0.UPF
+Se 78.960 Se.pz-n-rrkjus_psl.0.2.UPF 
+
+CELL_PARAMETERS (angstrom)
+   3.249297436  -0.000004197   0.000000000
+  -1.624652353   2.813972025   0.000000000
+   0.000000000   0.000000000  19.053366518
+
+ATOMIC_POSITIONS (crystal)
+W                0.0000000000        0.0000000000        0.0000000000    0   0   0
+Se               0.3333300050        0.6666700240        0.0874233315    0   0   1
+Se               0.3333300050        0.6666700240        0.9125766985    0   0   1
+
+K_POINTS {automatic}
+12 12 1 0 0 0

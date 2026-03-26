@@ -1,0 +1,2 @@
+[console_scripts]
+npc = nonlinear_phonon_calculation.cli:main

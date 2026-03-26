@@ -1,0 +1,26 @@
+{
+  "kind": "wse2_stage2_manifest",
+  "version": 1,
+  "created_at": "2026-03-25T01:15:07+08:00",
+  "run_root": "examples/wse2/contract_handoff/release_run",
+  "stage1_manifest": "stage1_manifest.json",
+  "input_files": {
+    "mode_pairs_json": "stage1_inputs/mode_pairs/selected_mode_pairs.json",
+    "structure": "stage1_inputs/structure/scf.inp"
+  },
+  "pseudo_dir": "stage1_inputs/pseudos",
+  "pseudo_files": [
+    "stage1_inputs/pseudos/Se.pz-n-rrkjus_psl.0.2.UPF",
+    "stage1_inputs/pseudos/W.pz-spn-rrkjus_psl.1.0.0.UPF"
+  ],
+  "output_files": {
+    "ranking_csv": "stage2_outputs/chgnet/screening/pair_ranking.csv",
+    "ranking_json": "stage2_outputs/chgnet/screening/single_backend_ranking.json"
+  },
+  "runtime_files": {
+    "runtime_config_used": "stage2_outputs/chgnet/screening/runtime_config_used.json",
+    "run_meta": "stage2_outputs/chgnet/screening/run_meta.json",
+    "pair_ranking_json": "stage2_outputs/chgnet/screening/pair_ranking.json"
+  },
+  "next_stage": "wse2_stage3_manifest"
+}

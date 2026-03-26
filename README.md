@@ -1,21 +1,47 @@
-# Qiyan Stable Release Manager
+# Nonlinear Phonon Calculation Stable Releases
 
-This repository tracks promoted stable bundle snapshots for the nonlinear phonon workflow.
+This repository tracks promoted stable snapshots of the `Nonlinear Phonon Calculation` bundle.
 
-Current policy:
+Development does not happen here. This repository is the release ledger:
 
-- release source development happens elsewhere
-- only promoted stable snapshots are tracked here
-- the current stable pointer lives in `releases/stable/github_release_bundle_current.json`
-- archived or experimental outputs are not committed here by default
+- source development happens in the working repository
+- only promoted stable bundle snapshots are committed here
+- the current stable pointer is stored in `releases/stable/github_release_bundle_current.json`
 
-The first tracked complete release is:
+## Current Stable
 
-- `releases/stable/github_release_bundle_2026-03-26_175753`
+Current promoted version:
 
-That release contains:
+- `github_release_bundle_2026-03-26_183955`
+
+Current pointer:
+
+- `releases/stable/github_release_bundle_current.json`
+
+Current stable directory:
+
+- `releases/stable/github_release_bundle_2026-03-26_183955/`
+
+That snapshot contains:
 
 - the uncompressed stable bundle
+- the bundle tarball
 - build metadata
-- source branch / source commit markers
-- the current pointer JSON
+- source branch and source commit markers
+- the operator-facing README set
+- the bundled WSe2 example and contract sample
+
+## Layout
+
+```text
+releases/
+  stable/
+    github_release_bundle_current.json
+    github_release_bundle_<version>/
+```
+
+## Notes
+
+- This repository is updated by promoting a new stable snapshot and committing that promoted result.
+- Older incorrect or superseded snapshots are not kept as the active stable here.
+- If you want the actual runnable bundle, go into the latest directory under `releases/stable/`.

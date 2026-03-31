@@ -44,6 +44,12 @@ DEFAULT_QE_MAX_RUNNING_JOBS = 5
 DEFAULT_QE_POLL_SECONDS = 20
 DEFAULT_STAGE2_BACKEND = "gptff"
 DEFAULT_STAGE2_MODEL = "auto"
+DEFAULT_STAGE2_MODEL_PRESET = "gptff_v2"
+STAGE2_MODEL_PRESETS = {
+    "gptff_v1": {"backend": "gptff", "model": "gptff_v1"},
+    "gptff_v2": {"backend": "gptff", "model": "gptff_v2"},
+    "chgnet": {"backend": "chgnet", "model": "0.3.0"},
+}
 
 
 def _pipeline():
@@ -62,6 +68,12 @@ def parse_args():
     p.add_argument("--system-dir", type=str, default=None)
     p.add_argument("--qe-relax", choices=["yes", "no"], default="yes")
 
+    p.add_argument(
+        "--stage2-model",
+        choices=sorted(STAGE2_MODEL_PRESETS),
+        default=DEFAULT_STAGE2_MODEL_PRESET,
+        help="Stage2 ML model preset.",
+    )
     p.add_argument("--backend", type=str, default=DEFAULT_STAGE2_BACKEND)
     p.add_argument("--model", type=str, default=DEFAULT_STAGE2_MODEL)
     p.add_argument("--runtime-config", type=str, default=None)
@@ -87,7 +99,12 @@ def parse_args():
     p.add_argument("--qe-max-running-jobs", type=int, default=DEFAULT_QE_MAX_RUNNING_JOBS)
     p.add_argument("--qe-poll-seconds", type=int, default=DEFAULT_QE_POLL_SECONDS)
     p.add_argument("--scheduler", type=str, default="auto", choices=["auto", "slurm", "local"])
-    return p.parse_args()
+    args = p.parse_args()
+    preset = STAGE2_MODEL_PRESETS[args.stage2_model]
+    if args.backend == DEFAULT_STAGE2_BACKEND and args.model == DEFAULT_STAGE2_MODEL:
+        args.backend = preset["backend"]
+        args.model = preset["model"]
+    return args
 
 
 def _resolve_system_spec(args):

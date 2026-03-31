@@ -18,6 +18,11 @@ CONV_TO_CM1 = 521.4708983725064
 MASS_DICT = {"W": 183.84, "Se": 78.960}
 RY_TO_EV = 13.605693009
 DEFAULT_GPTFF_MODEL_NAME = "gptff_v2.pth"
+GPTFF_MODEL_ALIASES = {
+    "gptff": "gptff_v2.pth",
+    "gptff_v1": "gptff_v1.pth",
+    "gptff_v2": "gptff_v2.pth",
+}
 
 RUNTIME_CONFIG_KEYS = {
     "strategy",
@@ -762,10 +767,14 @@ def choose_device(device_hint: str = "auto"):
 
 def resolve_gptff_model_path(model: str | Path | None = None) -> Path:
     if model not in {None, "", "auto"}:
-        path = Path(model).expanduser().resolve()
-        if not path.exists():
-            raise FileNotFoundError(f"GPTFF model file not found: {path}")
-        return path
+        alias = GPTFF_MODEL_ALIASES.get(str(model).strip().lower())
+        if alias is not None:
+            model = alias
+        else:
+            path = Path(model).expanduser().resolve()
+            if not path.exists():
+                raise FileNotFoundError(f"GPTFF model file not found: {path}")
+            return path
 
     env_model = os.environ.get("GPTFF_MODEL_PATH")
     if env_model:
@@ -777,7 +786,8 @@ def resolve_gptff_model_path(model: str | Path | None = None) -> Path:
     if spec is not None:
         for location in spec.submodule_search_locations or []:
             candidate_root = Path(str(location)).expanduser().resolve().parent
-            candidate = candidate_root / "pretrained" / DEFAULT_GPTFF_MODEL_NAME
+            candidate_name = str(model).strip() if model not in {None, "", "auto"} else DEFAULT_GPTFF_MODEL_NAME
+            candidate = candidate_root / "pretrained" / candidate_name
             if candidate.exists():
                 return candidate
 

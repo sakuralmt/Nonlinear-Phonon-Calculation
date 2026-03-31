@@ -18,6 +18,7 @@ LOG_FILE_NAME = "launcher.log"
 DEFAULT_QE_RELAX = True
 DEFAULT_STAGE = "all"
 VALID_STAGES = ("all", "tune", "stage1", "stage2", "stage3")
+VALID_STAGE2_MODELS = ("gptff_v1", "gptff_v2", "chgnet")
 DRIVER_HEARTBEAT_SECONDS = 60
 STAGE_LABELS = {
     "all": "Full workflow",
@@ -62,6 +63,12 @@ def parse_args():
     parser.add_argument("--run-root", type=str, default=None)
     parser.add_argument("--qe-relax", choices=["yes", "no"], default=None)
     parser.add_argument("--qe-mode", choices=["prepare_only", "submit_collect"], default="submit_collect")
+    parser.add_argument(
+        "--stage2-model",
+        choices=VALID_STAGE2_MODELS,
+        default="gptff_v2",
+        help="Stage2 model preset.",
+    )
     parser.add_argument("--status", action="store_true")
     parser.add_argument("--handoff-export", choices=["stage1", "stage2"], default=None)
     parser.add_argument("--handoff-import", action="store_true")
@@ -212,6 +219,7 @@ def build_modular_command(
     system_id: str,
     qe_relax: bool,
     qe_mode: str,
+    stage2_model: str,
 ) -> list[str]:
     command = [
         sys.executable,
@@ -227,6 +235,8 @@ def build_modular_command(
         system_id,
         "--qe-relax",
         "yes" if qe_relax else "no",
+        "--stage2-model",
+        stage2_model,
     ]
     if stage in {"stage3", "all"}:
         command.extend(["--qe-mode", qe_mode])
@@ -597,10 +607,11 @@ def main() -> int:
         log_line(log_path, f"Run root: {run_root}")
         log_line(log_path, f"Selected stage: {STAGE_LABELS[stage]} ({stage})")
         log_line(log_path, f"QE pre-relax: {'yes' if qe_relax else 'no'}")
+        log_line(log_path, f"Stage2 model preset: {args.stage2_model}")
 
         ensure_stage_prerequisites(run_root, stage, log_path)
 
-        command = build_modular_command(stage, run_root, input_root, system_id, qe_relax, args.qe_mode)
+        command = build_modular_command(stage, run_root, input_root, system_id, qe_relax, args.qe_mode, args.stage2_model)
         run_streaming_command(command, cwd=ROOT, log_path=log_path, label=STAGE_LABELS[stage])
         print_result_summary(stage, run_root, log_path)
         log_section(log_path, "Complete")

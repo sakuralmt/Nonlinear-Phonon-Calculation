@@ -25,7 +25,9 @@ from core import (
     load_mode_pair_reference,
     load_pairs,
     make_calculator,
+    gptff_backend_meta,
     resolve_chgnet_runtime_config,
+    resolve_gptff_model_path,
     save_pair_plot,
     select_runtime_config_path,
     set_process_cpu_affinity,
@@ -46,10 +48,10 @@ _WORKER_PRIM_ATOMS = None
 
 
 def parse_args():
-    p = argparse.ArgumentParser(description="Optimized CHGNet screening over selected Gamma-q mode pairs.")
-    p.add_argument("--backend", type=str, default="chgnet")
+    p = argparse.ArgumentParser(description="Optimized MLFF screening over selected Gamma-q mode pairs.")
+    p.add_argument("--backend", type=str, default="gptff")
     p.add_argument("--device", type=str, default="auto")
-    p.add_argument("--model", type=str, default="r2scan")
+    p.add_argument("--model", type=str, default="auto")
     p.add_argument("--run-tag", type=str, default=None, help="Optional output subdirectory tag")
     p.add_argument("--mode-pairs-json", type=str, required=True)
     p.add_argument("--structure", type=str, required=True)
@@ -136,9 +138,14 @@ def evaluate_task(payload: tuple[int, dict, list[float], list[float], int, float
 
 
 def build_backend_meta(args):
+    backend = args.backend.lower()
+    device = choose_device(args.device)
+    if backend == "gptff":
+        model_path = resolve_gptff_model_path(args.model)
+        return gptff_backend_meta(model_path, device)
     return {
-        "backend": args.backend.lower(),
-        "device": choose_device(args.device),
+        "backend": backend,
+        "device": device,
         "model": args.model,
     }
 
@@ -147,11 +154,11 @@ def build_summary(result, structure: Path, backend_meta: dict, golden_pair_code:
     pair = result["pair"]
     e_grid = result["e_grid"]
     analysis = result["analysis"]
-    mode_pair_compare = None
+    pair_mode_reference = load_mode_pair_reference(pair)
+    mode_pair_compare = compare_mode_frequency_metrics(analysis, pair_mode_reference)
     golden_compare = None
     ref_compare = None
     if golden_pair_code is not None and golden_reference is not None and mode_pair_reference is not None and golden_ref_grid is not None and pair["pair_code"] == golden_pair_code:
-        mode_pair_compare = compare_mode_frequency_metrics(analysis, mode_pair_reference)
         golden_compare = compare_golden_metrics(analysis, golden_reference)
         ref_compare = compare_with_reference_grid(golden_ref_grid, e_grid)
 
@@ -163,7 +170,7 @@ def build_summary(result, structure: Path, backend_meta: dict, golden_pair_code:
         "elapsed_sec": result["elapsed_sec"],
         "builder": result["builder_meta"],
         "analysis": analysis,
-        "mode_pair_reference": mode_pair_reference if golden_pair_code is not None and pair["pair_code"] == golden_pair_code else None,
+        "mode_pair_reference": pair_mode_reference,
         "mode_pair_frequency_compare": mode_pair_compare,
         "golden_pes_reference": golden_reference if golden_pair_code is not None and pair["pair_code"] == golden_pair_code else None,
         "golden_pes_compare": golden_compare,
@@ -177,6 +184,12 @@ def ranking_row_from_result(result, stage_name: str):
     analysis = result["analysis"]
     gamma_axis = analysis["axis_checks"]["mode1_axis_fit"]["freq"]
     target_axis = analysis["axis_checks"]["mode2_axis_fit"]["freq"]
+    gamma_fit = gamma_axis.get("thz")
+    target_fit = target_axis.get("thz")
+    gamma_ref = pair["gamma_mode"]["freq_thz"]
+    target_ref = pair["target_mode"]["freq_thz"]
+    gamma_abs_err = None if gamma_fit is None else abs(float(gamma_fit) - float(gamma_ref))
+    target_abs_err = None if target_fit is None else abs(float(target_fit) - float(target_ref))
     return {
         "pair_code": pair["pair_code"],
         "coupling_type": pair["coupling_type"],
@@ -185,12 +198,14 @@ def ranking_row_from_result(result, stage_name: str):
         "n_super": result["builder_meta"]["n_super"],
         "gamma_mode_code": pair["gamma_mode"]["mode_code"],
         "gamma_mode_number": pair["gamma_mode"]["mode_number_one_based"],
-        "gamma_freq_ref_thz": pair["gamma_mode"]["freq_thz"],
-        "gamma_freq_fit_thz": gamma_axis.get("thz"),
+        "gamma_freq_ref_thz": gamma_ref,
+        "gamma_freq_fit_thz": gamma_fit,
+        "gamma_freq_abs_err_thz": gamma_abs_err,
         "target_mode_code": pair["target_mode"]["mode_code"],
         "target_mode_number": pair["target_mode"]["mode_number_one_based"],
-        "target_freq_ref_thz": pair["target_mode"]["freq_thz"],
-        "target_freq_fit_thz": target_axis.get("thz"),
+        "target_freq_ref_thz": target_ref,
+        "target_freq_fit_thz": target_fit,
+        "target_freq_abs_err_thz": target_abs_err,
         "phi122_mev": analysis["physics"]["phi_122_mev_per_A3amu32"],
         "phi112_mev": analysis["physics"]["phi_112_mev_per_A3amu32"],
         "r2": analysis["r2"],
@@ -307,10 +322,12 @@ def write_final_ranking(output_dir: Path, ranking: list[dict]):
                 "gamma_mode_number",
                 "gamma_freq_ref_thz",
                 "gamma_freq_fit_thz",
+                "gamma_freq_abs_err_thz",
                 "target_mode_code",
                 "target_mode_number",
                 "target_freq_ref_thz",
                 "target_freq_fit_thz",
+                "target_freq_abs_err_thz",
                 "phi122_mev",
                 "phi112_mev",
                 "r2",
@@ -335,10 +352,12 @@ def write_final_ranking(output_dir: Path, ranking: list[dict]):
                     item["gamma_mode_number"],
                     f"{item['gamma_freq_ref_thz']:.6f}",
                     f"{item['gamma_freq_fit_thz']:.6f}" if item["gamma_freq_fit_thz"] is not None else "",
+                    f"{item['gamma_freq_abs_err_thz']:.6f}" if item["gamma_freq_abs_err_thz"] is not None else "",
                     item["target_mode_code"],
                     item["target_mode_number"],
                     f"{item['target_freq_ref_thz']:.6f}",
                     f"{item['target_freq_fit_thz']:.6f}" if item["target_freq_fit_thz"] is not None else "",
+                    f"{item['target_freq_abs_err_thz']:.6f}" if item["target_freq_abs_err_thz"] is not None else "",
                     f"{item['phi122_mev']:.6f}",
                     f"{item['phi112_mev']:.6f}",
                     f"{item['r2']:.6f}",

@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import importlib.util
 from pathlib import Path
 
 import numpy as np
@@ -16,6 +17,7 @@ CONV_TO_THZ = 15.63330423985619
 CONV_TO_CM1 = 521.4708983725064
 MASS_DICT = {"W": 183.84, "Se": 78.960}
 RY_TO_EV = 13.605693009
+DEFAULT_GPTFF_MODEL_NAME = "gptff_v2.pth"
 
 RUNTIME_CONFIG_KEYS = {
     "strategy",
@@ -758,6 +760,50 @@ def choose_device(device_hint: str = "auto"):
     return "cpu"
 
 
+def resolve_gptff_model_path(model: str | Path | None = None) -> Path:
+    if model not in {None, "", "auto"}:
+        path = Path(model).expanduser().resolve()
+        if not path.exists():
+            raise FileNotFoundError(f"GPTFF model file not found: {path}")
+        return path
+
+    env_model = os.environ.get("GPTFF_MODEL_PATH")
+    if env_model:
+        path = Path(env_model).expanduser().resolve()
+        if path.exists():
+            return path
+
+    spec = importlib.util.find_spec("gptff")
+    if spec is not None:
+        for location in spec.submodule_search_locations or []:
+            candidate_root = Path(str(location)).expanduser().resolve().parent
+            candidate = candidate_root / "pretrained" / DEFAULT_GPTFF_MODEL_NAME
+            if candidate.exists():
+                return candidate
+
+    raise FileNotFoundError(
+        "Could not resolve a GPTFF model path. Provide --model or set GPTFF_MODEL_PATH."
+    )
+
+
+def gptff_backend_meta(model_path: Path, device: str) -> dict:
+    return {
+        "backend": "gptff",
+        "device": device,
+        "model": str(model_path),
+        "model_version": model_path.stem,
+        "published_error_metrics": {
+            "energy_mae_mev_per_atom": 32.0,
+            "force_mae_mev_per_angstrom": 71.0,
+            "stress_mae_gpa": 0.365,
+        },
+        "error_source_urls": [
+            "https://github.com/atomly-materials-research-lab/GPTFF",
+            "https://doi.org/10.1016/j.scib.2024.08.039",
+        ],
+    }
+
+
 def make_calculator(backend: str, device: str = "auto", model: str | None = None, default_dtype: str | None = None):
     backend = backend.lower()
     chosen_device = choose_device(device)
@@ -787,10 +833,9 @@ def make_calculator(backend: str, device: str = "auto", model: str | None = None
     if backend == "gptff":
         from gptff.model.mpredict import ASECalculator
 
-        if model is None:
-            raise ValueError("GPTFF backend requires --model / model path.")
-        calc = ASECalculator(str(Path(model).expanduser().resolve()), chosen_device)
-        return calc, {"backend": backend, "device": chosen_device, "model": str(Path(model).expanduser().resolve())}
+        model_path = resolve_gptff_model_path(model)
+        calc = ASECalculator(str(model_path), chosen_device)
+        return calc, gptff_backend_meta(model_path, chosen_device)
 
     raise ValueError(f"Unsupported backend: {backend}")
 

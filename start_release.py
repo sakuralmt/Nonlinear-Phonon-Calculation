@@ -342,8 +342,13 @@ def _summarize_stage2_row(row: dict) -> str:
     parts = [str(row.get("pair_code", "(unknown)"))]
     if row.get("point_label"):
         parts.append(f"point={row['point_label']}")
-    if row.get("phi122_mev") is not None:
-        parts.append(f"|phi122|={abs(float(row['phi122_mev'])):.3f} meV")
+    phi_value = row.get("phi122_mev", row.get("phi122_mean_mev"))
+    if phi_value is not None:
+        parts.append(f"|phi122|={abs(float(phi_value)):.3f} meV")
+    if row.get("gamma_freq_abs_err_thz") is not None:
+        parts.append(f"gamma_err={_format_float(row['gamma_freq_abs_err_thz'])} THz")
+    if row.get("target_freq_abs_err_thz") is not None:
+        parts.append(f"target_err={_format_float(row['target_freq_abs_err_thz'])} THz")
     if row.get("rmse_ev_supercell") is not None:
         parts.append(f"rmse={_format_float(row['rmse_ev_supercell'])} eV")
     return ", ".join(parts)

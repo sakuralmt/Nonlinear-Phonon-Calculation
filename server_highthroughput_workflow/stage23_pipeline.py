@@ -519,6 +519,10 @@ def normalize_ranking_csv(ranking_csv: Path, backend_tag: str):
     rows = []
     for idx, row in enumerate(raw_rows, start=1):
         phi122 = float(row["phi122_mev"])
+        gamma_fit = float(row["gamma_freq_fit_thz"]) if row.get("gamma_freq_fit_thz") else None
+        target_fit = float(row["target_freq_fit_thz"]) if row.get("target_freq_fit_thz") else None
+        gamma_err = float(row["gamma_freq_abs_err_thz"]) if row.get("gamma_freq_abs_err_thz") else None
+        target_err = float(row["target_freq_abs_err_thz"]) if row.get("target_freq_abs_err_thz") else None
         rows.append(
             {
                 "pair_code": row["pair_code"],
@@ -529,6 +533,13 @@ def normalize_ranking_csv(ranking_csv: Path, backend_tag: str):
                 "qz": float(row["qz"]),
                 "gamma_mode_code": row["gamma_mode_code"],
                 "target_mode_code": row["target_mode_code"],
+                "gamma_freq_ref_thz": float(row["gamma_freq_ref_thz"]) if row.get("gamma_freq_ref_thz") else None,
+                "gamma_freq_fit_thz": gamma_fit,
+                "gamma_freq_abs_err_thz": gamma_err,
+                "target_freq_ref_thz": float(row["target_freq_ref_thz"]) if row.get("target_freq_ref_thz") else None,
+                "target_freq_fit_thz": target_fit,
+                "target_freq_abs_err_thz": target_err,
+                "rmse_ev_supercell": float(row["rmse_ev_supercell"]) if row.get("rmse_ev_supercell") else None,
                 "mean_norm_rank": float(idx) / float(total),
                 "max_norm_rank": float(idx) / float(total),
                 "phi122_mean_mev": phi122,
@@ -539,6 +550,10 @@ def normalize_ranking_csv(ranking_csv: Path, backend_tag: str):
                         "run_tag": backend_tag,
                         "rank": idx,
                         "phi122_mev": phi122,
+                        "gamma_freq_fit_thz": gamma_fit,
+                        "gamma_freq_abs_err_thz": gamma_err,
+                        "target_freq_fit_thz": target_fit,
+                        "target_freq_abs_err_thz": target_err,
                     }
                 ],
             }

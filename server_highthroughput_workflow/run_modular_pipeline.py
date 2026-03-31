@@ -42,6 +42,8 @@ DEFAULT_QE_PARTITION = "debug"
 DEFAULT_QE_WALLTIME = "72:00:00"
 DEFAULT_QE_MAX_RUNNING_JOBS = 5
 DEFAULT_QE_POLL_SECONDS = 20
+DEFAULT_STAGE2_BACKEND = "gptff"
+DEFAULT_STAGE2_MODEL = "auto"
 
 
 def _pipeline():
@@ -60,8 +62,8 @@ def parse_args():
     p.add_argument("--system-dir", type=str, default=None)
     p.add_argument("--qe-relax", choices=["yes", "no"], default="yes")
 
-    p.add_argument("--backend", type=str, default="chgnet")
-    p.add_argument("--model", type=str, default="r2scan")
+    p.add_argument("--backend", type=str, default=DEFAULT_STAGE2_BACKEND)
+    p.add_argument("--model", type=str, default=DEFAULT_STAGE2_MODEL)
     p.add_argument("--runtime-config", type=str, default=None)
     p.add_argument("--runtime-profile", type=str, default=None, choices=["default", "small", "medium", "large"])
     p.add_argument("--limit", type=int, default=None)

@@ -2,327 +2,52 @@
 
 [English](README.md) | [中文](README_zh.md)
 
-这个仓库把分阶段工作流收口到一个对操作者可见的入口：`npc`。
+`npc` 是本项目的统一操作入口，用于驱动一个分阶段工作流：
 
-整个仓库围绕三个边界组织：
+1. 声子前端生成（`stage1`）
+2. MLFF 筛选（`stage2`）
+3. QE top-5 复核（`stage3`）
 
-1. 代码树
-2. 外部输入树
-3. 运行时自动生成的运行树
+本仓库面向规范化计算流程。用户输入保存在仓库外部；运行时 contract 与阶段产物由工作流在运行目录中自动生成。
 
-如果你要看当前真实调用链和目录职责，直接看
-[ARCHITECTURE.md](ARCHITECTURE.md)。
+当前主线调用结构见：
+- [ARCHITECTURE.md](ARCHITECTURE.md)
 
-使用方式应该是：
+## 适用范围
 
-1. 在外部输入目录里准备一个体系目录
-2. 运行 `npc`
-3. 选择体系和阶段
-4. 让程序自己生成 QE 输入、内部 contract 和运行目录
+本包适用于以下场景：
 
-用户不应该在第一次运行之前就去理解 `stage1.manifest.json` 或
-`stage2.manifest.json`。这些文件仍然存在，但它们属于运行时内部交接，不再是用户主界面的一部分。
+- 结构输入以 `structure.cif` 提供
+- 赝势文件由操作者显式提供
+- `stage1`、`stage2`、`stage3` 可以部署在不同机器上
+- 跨机续算通过显式 handoff bundle 完成
 
-## 仓库结构
+本包不会隐藏跨机续算，而是将其规范化。
 
-### 1. 代码树
+## 输入规范
 
-当前这个仓库就是代码树。它只放：
-
-- 工作流代码
-- TUI 启动器
-- 文档
-- 输入样例
-- 可复用的算法模块
-
-它不应该再夹带用户真实 CIF、用户真实赝势、或历史运行目录。
-
-### 2. 外部输入树
-
-用户输入放在代码树之外，例如：
+每个体系应在外部输入根目录下准备一个独立目录：
 
 ```text
 <input_root>/
-  wse2/
+  <system_id>/
     structure.cif
     system.json
     pseudos/
-      W.pz-spn-rrkjus_psl.1.0.0.UPF
-      Se.pz-n-rrkjus_psl.0.2.UPF
+      *.UPF
 ```
 
-每个体系目录都是自洽的。
+最小必需文件：
 
-### 3. 运行树
+- `structure.cif`
+- `system.json`
+- `pseudos/*.UPF`
 
-每次运行都会在 runs 根目录下生成自己的运行树，例如：
-
-```text
-.../Nonlinear-Phonon-Calculation-runs/
-  wse2/
-    wse2_20260331_235959/
-      contracts/
-      logs/
-      stage1/
-      stage2/
-      stage3/
-```
-
-内部 contract 和阶段输出都放在这里，不再和用户输入混在一起。
-
-## Quick Start
-
-### 先准备一个体系目录
-
-直接参考自带的 WSe2 输入样例：
+输入样例见：
 
 - [examples/wse2_input_example/README_zh.md](examples/wse2_input_example/README_zh.md)
 
-一个体系目录至少需要：
-
-- `structure.cif`
-- `system.json`
-- `pseudos/*.UPF`
-
-### 启动 TUI
-
-在仓库根目录执行：
-
-```bash
-./install.sh
-./npc --input-root /path/to/Nonlinear-Phonon-Calculation-inputs --system wse2
-```
-
-如果你的用户安装目录已经在 `PATH` 里，也可以直接用：
-
-```bash
-npc --input-root /path/to/Nonlinear-Phonon-Calculation-inputs --system wse2
-```
-
-兼容入口也可以：
-
-```bash
-./tui --input-root /path/to/Nonlinear-Phonon-Calculation-inputs --system wse2
-python3 start_release.py --input-root /path/to/Nonlinear-Phonon-Calculation-inputs --system wse2
-```
-
-### 常见分阶段命令
-
-只跑 stage1：
-
-```bash
-python3 start_release.py \
-  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
-  --system wse2 \
-  --stage stage1 \
-  --qe-relax yes
-```
-
-继续最新一次 run 的 stage2：
-
-```bash
-python3 start_release.py \
-  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
-  --system wse2 \
-  --stage stage2
-```
-
-继续最新一次 run 的 stage3：
-
-```bash
-./npc \
-  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
-  --system wse2 \
-  --stage stage3
-```
-
-只做 QE top-5 复核的 prepare，不立即提交任务：
-
-```bash
-./npc \
-  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
-  --system wse2 \
-  --stage stage3 \
-  --qe-mode prepare_only
-```
-
-之后在同一个 run root 上继续 stage3：
-
-```bash
-./npc \
-  --run-root /path/to/run_root \
-  --stage stage3 \
-  --qe-mode submit_collect
-```
-
-如果没有显式给 `--run-root`，启动器会自动选择这个体系最新的一次运行目录。
-
-只读查看当前状态：
-
-```bash
-./npc --status
-```
-
-查看某个体系或某个 run root 的状态：
-
-```bash
-./npc --input-root /path/to/Nonlinear-Phonon-Calculation-inputs --system wse2 --status
-./npc --run-root /path/to/Nonlinear-Phonon-Calculation-runs/wse2/wse2_20260331_235959 --status
-```
-
-在 stage1 或 stage2 之后导出跨机器 handoff 包：
-
-```bash
-./npc --handoff-export stage1 --run-root /path/to/run_root --output /tmp/wse2_stage1_handoff.tar.gz
-./npc --handoff-export stage2 --run-root /path/to/run_root --output /tmp/wse2_stage2_handoff.tar.gz
-```
-
-在另一台机器导入 handoff 包：
-
-```bash
-./npc --handoff-import --bundle /tmp/wse2_stage1_handoff.tar.gz --run-root /path/to/new_run_root
-```
-
-做收敛性测试：
-
-```bash
-python3 start_release.py \
-  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
-  --system wse2 \
-  --stage tune \
-  --qe-relax no
-```
-
-## 工作流模型
-
-```mermaid
-flowchart LR
-    A["外部输入树\nstructure.cif + pseudos + system.json"] --> B["npc / tui"]
-    B --> C["stage1\nQE 声子前端"]
-    C --> D["contracts/stage1.manifest.json"]
-    D --> E["stage2\nCHGNet 筛选"]
-    E --> F["contracts/stage2.manifest.json"]
-    F --> G["stage3\nQE top5 复核"]
-    G --> H["contracts/stage3.manifest.json"]
-```
-
-### Stage 1
-
-`stage1` 现在从 `structure.cif` 开始，而不是从包内部藏着的 `scf.inp` 开始。
-
-stage1 当前路径是：
-
-1. 读取 `structure.cif`、`system.json` 和 `pseudos/`
-2. 在运行树里自动生成内部 QE 输入
-3. 可选执行 QE relax
-4. 跑声子前端
-5. 提取 screened eigenvectors
-6. 生成 `mode_pairs.selected.json`
-7. 写 `contracts/stage1.manifest.json`
-
-### Tuning
-
-`tune` 是一个由 TUI 驱动的收敛性测试阶段。
-
-它会根据 `system.json` 里的 `workflow_family` 选择对应的参数扫描配置，
-把筛出来的 profile 写进 stage1 runtime bundle，再由
-`qe_phonon_stage1_server_bundle/step1_frontend.py` 自动读取。
-
-### Stage 2
-
-`stage2` 从选中的运行目录里读取 `contracts/stage1.manifest.json`，然后输出 CHGNet ranking 和 `contracts/stage2.manifest.json`。
-
-### Stage 3
-
-`stage3` 从 `contracts/stage2.manifest.json` 继续，准备 QE top-5 复核任务，并在 prepare 完成后立刻写 `contracts/stage3.manifest.json`。
-
-如果 `stage3/qe/<backend>/run_manifest.json` 已经存在，重新执行 `npc`
-会直接复用已有 prepare 结果，不会重复生成 QE 输入；如果
-`results/qe_ranking.json` 已存在且 submission 已全部完成，则会直接识别为完成态并复用最终结果。
-
-`npc --status` 现在会直接打印：
-
-- QE run root
-- 已准备 job 数
-- completed / total / active 进度
-- 最终 QE 状态
-- resume mode
-- top QE ranking 行
-
-也就是说，正常监控不再要求用户自己去翻 `submission_log.json` 或 `qe_ranking.json`。
-
-## 跨机器 handoff
-
-跨机器接力现在是显式用户命令，而不是默认靠人工复制目录。
-
-推荐的真实机器拆分是：
-
-1. 在可以稳定运行 QE 声子前端的机器上跑 `stage1`
-2. 导出 `stage1` handoff bundle
-3. 在适合 `stage2/3` 的机器上导入这个 bundle
-4. 跑 `stage2`
-5. 视情况导出 `stage2` handoff bundle，或直接原地继续
-6. 跑 `stage3`
-
-handoff 包继续保持一个核心约束：manifest 内路径全部相对于导入后的 run root。
-
-## 软件环境要求
-
-这个包刻意不绑定任何站点内部环境名。真正需要被满足的是可执行程序和
-Python 模块接口，而不是某个特定的 Conda 环境名称。
-
-### 基础要求
-
-- `python3`
-- `python3 -m pip`
-- 成功执行过一次 `./install.sh`
-- 用于 clone / update 的 `git`
-
-### 分阶段运行时要求
-
-- `stage1`
-  - `PATH` 中可直接调用的 Quantum ESPRESSO 可执行程序：
-    - `pw.x`
-    - `ph.x`
-    - `q2r.x`
-    - `matdyn.x`
-  - 一套能够稳定运行 QE 声子前端的调度/运行时组合
-- `stage2`
-  - 当前 Python 解释器里可导入的模块：
-    - `chgnet`
-    - `torch`
-    - `phonopy`
-    - `pymatgen`
-- `stage3`
-  - `PATH` 中可直接调用的 Quantum ESPRESSO 可执行程序
-  - 若使用 `submit_collect`，还需要机器具备适合 QE 批量提交的调度/运行环境
-
-### 基于当前验证结果的操作建议
-
-- `stage1` 对 QE 声子前端稳定性最敏感。在现有验证里，最稳妥的做法是把
-  `stage1` 放到一台已经确认能稳定执行 `ph.x` 的机器上。
-- `stage2` 的核心依赖是 Python 材料模拟栈；一旦 `stage1` contract 自洽，
-  它通常比 `stage1` 更容易迁移。
-- `stage3` 可以分成两种模式：
-  - `--qe-mode prepare_only`：只生成 QE top-5 复核批次，不提交作业
-  - `--qe-mode submit_collect`：在具备调度器的机器上提交并监控 QE 作业
-
-### 环境激活说明
-
-本文档中的命令默认假设：当你执行 `npc` 时，所需的可执行程序和 Python
-模块已经在当前 shell 中可用。如果你所在机器依赖 Conda、module system
-或站点初始化脚本，请先完成环境激活，再执行这里的命令。本仓库不预设任何
-特定的激活命令，也不预设任何特定环境名。
-
-## 输入文件要求
-
-每个体系目录必须包含：
-
-- `structure.cif`
-- `system.json`
-- `pseudos/*.UPF`
-
-当前 `system.json` 结构刻意保持很小：
+`system.json` 的最小结构如下：
 
 ```json
 {
@@ -338,21 +63,322 @@ Python 模块接口，而不是某个特定的 Conda 环境名称。
 }
 ```
 
-## 目录怎么读
+## 运行目录结构
+
+每次运行都会在 runs 根目录下生成一个独立运行树：
+
+```text
+.../Nonlinear-Phonon-Calculation-runs/
+  <system_id>/
+    <run_tag>/
+      contracts/
+      logs/
+      stage1/
+      stage2/
+      stage3/
+```
+
+基本原则：
+
+- 用户输入始终保留在外部输入树中
+- 工作流状态始终保留在运行树中
+- 内部 contract 属于运行时产物，不是用户手工维护的输入文件
+
+## 安装
+
+在仓库根目录执行：
+
+```bash
+./install.sh
+```
+
+使用仓库内入口执行：
+
+```bash
+./npc --help
+```
+
+如果用户安装位置已经在 `PATH` 中，也可以直接使用安装后的入口：
+
+```bash
+npc --help
+```
+
+兼容入口同时保留：
+
+```bash
+./tui --help
+python3 start_release.py --help
+```
+
+## 软件环境
+
+本包不假定任何站点本地环境名。唯一要求是：启动 `npc` 的 shell 必须已经具备所需的可执行程序和 Python 模块。
+
+### 基础要求
+
+- `python3`
+- `python3 -m pip`
+- `git`
+- 可以成功执行 `./install.sh`
+
+### 分阶段要求
+
+- `stage1`
+  - `pw.x`
+  - `ph.x`
+  - `q2r.x`
+  - `matdyn.x`
+- `stage2`
+  - 可导入的 Python 模块：
+    - `chgnet`
+    - `torch`
+    - `phonopy`
+    - `pymatgen`
+- `stage3`
+  - QE 可执行文件在 `PATH` 中
+  - 若使用 `submit_collect`，还需要适合批量 QE 作业的调度环境
+
+### 运行建议
+
+- `stage1` 对 QE 声子前端的稳定性要求最高，应放在已经验证过 `ph.x` 可稳定运行的宿主上执行。
+- `stage2` 主要依赖 Python 材料模拟栈，在 `stage1` contract 已生成后更容易迁移。
+- `stage3` 支持两种模式：
+  - `prepare_only`
+  - `submit_collect`
+
+如果站点通过 Conda、module 或其他环境脚本管理软件，请先完成环境激活，再执行 `npc`。本文档不规定任何站点私有的激活命令。
+
+## 命令参考
+
+### 启动交互式入口
+
+```bash
+./npc --input-root /path/to/Nonlinear-Phonon-Calculation-inputs --system wse2
+```
+
+### 运行 `stage1`
+
+```bash
+./npc \
+  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
+  --system wse2 \
+  --stage stage1 \
+  --qe-relax yes
+```
+
+### 对体系最新 run 执行 `stage2`
+
+```bash
+./npc \
+  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
+  --system wse2 \
+  --stage stage2
+```
+
+### 运行 `stage3`
+
+```bash
+./npc \
+  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
+  --system wse2 \
+  --stage stage3
+```
+
+### 仅准备 QE 复核批次，不提交
+
+```bash
+./npc \
+  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
+  --system wse2 \
+  --stage stage3 \
+  --qe-mode prepare_only
+```
+
+### 恢复已有 `stage3` 运行
+
+```bash
+./npc \
+  --run-root /path/to/run_root \
+  --stage stage3 \
+  --qe-mode submit_collect
+```
+
+### 只读状态检查
+
+检查系统自动识别到的最新 run：
+
+```bash
+./npc --status
+```
+
+指定体系或指定 run root：
+
+```bash
+./npc --input-root /path/to/Nonlinear-Phonon-Calculation-inputs --system wse2 --status
+./npc --run-root /path/to/Nonlinear-Phonon-Calculation-runs/wse2/wse2_20260331_235959 --status
+```
+
+### 导出 handoff bundle
+
+在 `stage1` 之后导出：
+
+```bash
+./npc --handoff-export stage1 --run-root /path/to/run_root --output /tmp/wse2_stage1_handoff.tar.gz
+```
+
+在 `stage2` 之后导出：
+
+```bash
+./npc --handoff-export stage2 --run-root /path/to/run_root --output /tmp/wse2_stage2_handoff.tar.gz
+```
+
+### 导入 handoff bundle
+
+```bash
+./npc --handoff-import --bundle /tmp/wse2_stage1_handoff.tar.gz --run-root /path/to/new_run_root
+```
+
+### 运行收敛性调优
+
+```bash
+./npc \
+  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
+  --system wse2 \
+  --stage tune \
+  --qe-relax no
+```
+
+## 阶段定义
+
+### `stage1`
+
+输入：
+
+- `structure.cif`
+- `system.json`
+- `pseudos/*.UPF`
+
+执行内容：
+
+1. 生成内部 QE 输入
+2. 可选执行 QE relax
+3. 执行 QE 声子前端
+4. 提取 screened eigenvectors
+5. 选择模式
+6. 生成 mode pairs
+7. 写出 `contracts/stage1.manifest.json`
+
+主要输出：
+
+- `stage1/outputs/mode_pairs.selected.json`
+- `contracts/stage1.manifest.json`
+
+### `tune`
+
+`tune` 是一个按体系族分类的收敛性测试阶段。它从 `system.json` 读取 `workflow_family`，执行相应扫描，并将可复用的 profile 选择写入 `stage1` 运行包。
+
+### `stage2`
+
+输入：
+
+- `contracts/stage1.manifest.json`
+
+执行内容：
+
+1. 读取本地生成或导入的 `stage1` contract
+2. 执行 CHGNet screening
+3. 对候选 mode pair 排名
+4. 写出 `contracts/stage2.manifest.json`
+
+主要输出：
+
+- `stage2/outputs/chgnet/screening/pair_ranking.csv`
+- `stage2/outputs/chgnet/screening/single_backend_ranking.json`
+- `contracts/stage2.manifest.json`
+
+### `stage3`
+
+输入：
+
+- `contracts/stage2.manifest.json`
+
+执行内容：
+
+1. 选取 top-5 pair
+2. 准备 QE 复核作业
+3. 可选提交并回收
+4. 写出 `contracts/stage3.manifest.json`
+
+行为约定：
+
+- 若 QE 批次已经 prepare 完成，再次运行 `npc` 会复用已有 prepare 结果
+- 若最终 QE collection 已完成，再次运行 `npc` 会复用已完成结果
+
+主要输出：
+
+- `stage3/qe/<backend>/run_manifest.json`
+- `contracts/stage3.manifest.json`
+- `stage3/qe/<backend>/results/qe_ranking.json`（回收完成后）
+
+## 监控
+
+`./npc --status` 会报告：
+
+- 已识别的阶段 contract
+- `stage1` handoff 摘要
+- `stage2` ranking 摘要
+- `stage3` QE 运行根目录
+- 已准备作业数
+- 提交进度
+- 最终 QE 状态
+- resume 模式
+
+正常使用时，`--status` 应作为首选检查命令。只有在调试时，才需要下钻到更底层的运行文件。
+
+## 跨机续算
+
+推荐操作顺序：
+
+1. 在 QE 声子前端稳定的机器上运行 `stage1`
+2. 导出 `stage1` handoff bundle
+3. 在适合执行 `stage2` 的机器上导入
+4. 运行 `stage2`
+5. 原地继续或导出 `stage2` handoff bundle
+6. 在准备用于 `stage3` 的机器上导入
+7. 运行 `stage3`
+
+handoff bundle 会在导入时按照新的 `run_root` 重写相对运行路径。因此跨机续算应使用：
+
+- `--handoff-export`
+- `--handoff-import`
+
+而不应依赖手工复制目录。
+
+## 工作流模型
+
+```mermaid
+flowchart LR
+    A["外部输入树\nstructure.cif + pseudos + system.json"] --> B["npc / tui"]
+    B --> C["stage1\nQE phonon frontend"]
+    C --> D["contracts/stage1.manifest.json"]
+    D --> E["stage2\nCHGNet screening"]
+    E --> F["contracts/stage2.manifest.json"]
+    F --> G["stage3\nQE top5 recheck"]
+    G --> H["contracts/stage3.manifest.json"]
+```
+
+## 仓库结构
 
 - `nonlinear_phonon_calculation/`
-  - CLI 入口和输入发现逻辑
+  - CLI 入口与输入发现
 - `server_highthroughput_workflow/`
-  - 阶段编排、运行时准备、manifest，以及 stage2/3 helper
+  - 编排、运行准备、manifest 与 `stage2/3` 辅助逻辑
 - `qe_phonon_stage1_server_bundle/`
-  - stage1 真实声子前端，以及收敛性测试
-- `qe_modepair_handoff_workflow/`
-  - stage3 的 QE 准备与回收
+  - `stage1` 声子前端与收敛性工具
 - `mlff_modepair_workflow/`
-  - stage2 的 CHGNet 筛选
+  - CHGNet screening 逻辑
+- `qe_modepair_handoff_workflow/`
+  - `stage3` QE 准备与回收逻辑
 - `examples/wse2_input_example/`
-  - 用户可见输入样例
-
-## 当前范围
-
-这个仓库不会假装“跨机交接已经消失”。它做的是把交接收进运行树里，并让 `npc` 来负责主流程。
+  - 面向用户的输入样例

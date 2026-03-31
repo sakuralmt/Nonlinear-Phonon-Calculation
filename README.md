@@ -1,14 +1,17 @@
-# Nonlinear Phonon Calculation Beta
+# Nonlinear Phonon Calculation
 
 [English](README.md) | [中文](README_zh.md)
 
-This beta is a structural rewrite of the staged workflow. It keeps the public
-stable release untouched and focuses on one thing: make the package operate as
-two clean trees driven by `npc`, instead of a bundle full of mixed-in sample
-inputs and hand-edited contracts.
+This repository packages the staged workflow behind one operator-facing entry
+point: `npc`.
 
-For the current call-path view of the beta tree, see
-[ARCHITECTURE.md](/Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-tui-beta/ARCHITECTURE.md).
+The repository is organized around three boundaries:
+
+1. a code tree
+2. an external input tree
+3. a runtime tree created by the workflow itself
+
+For the current call-path view, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 The intended user experience is:
 
@@ -21,9 +24,9 @@ The operator should not need to understand `stage1_manifest.json` or
 `stage2_manifest.json` before the first run. Those files still exist, but they
 are internal runtime handoff files.
 
-## What Is In This Beta
+## Repository Layout
 
-This beta separates three concerns.
+This package separates three concerns.
 
 ### 1. Code tree
 
@@ -43,7 +46,7 @@ sets, or historical run directories.
 User input lives outside the code tree, under an input root such as:
 
 ```text
-/Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs/
+<input_root>/
   wse2/
     structure.cif
     system.json
@@ -78,7 +81,7 @@ the user input tree.
 
 Use the bundled WSe2 example as a template:
 
-- [examples/wse2_input_example/README.md](/Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-tui-beta/examples/wse2_input_example/README.md)
+- [examples/wse2_input_example/README.md](examples/wse2_input_example/README.md)
 
 At minimum, each system needs:
 
@@ -88,18 +91,18 @@ At minimum, each system needs:
 
 ### Run the TUI
 
-From the beta root:
+From the repository root:
 
 ```bash
 ./install.sh
-npc --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs --system wse2
+npc --input-root /path/to/Nonlinear-Phonon-Calculation-inputs --system wse2
 ```
 
 You can also use the compatibility entrypoints:
 
 ```bash
-./tui --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs --system wse2
-python3 start_release.py --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs --system wse2
+./tui --input-root /path/to/Nonlinear-Phonon-Calculation-inputs --system wse2
+python3 start_release.py --input-root /path/to/Nonlinear-Phonon-Calculation-inputs --system wse2
 ```
 
 ### Common stage-specific commands
@@ -108,7 +111,7 @@ Run only stage1:
 
 ```bash
 python3 start_release.py \
-  --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs \
+  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
   --system wse2 \
   --stage stage1 \
   --qe-relax yes
@@ -118,7 +121,7 @@ Continue the latest run with stage2:
 
 ```bash
 python3 start_release.py \
-  --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs \
+  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
   --system wse2 \
   --stage stage2
 ```
@@ -127,7 +130,7 @@ Continue the latest run with stage3:
 
 ```bash
 python3 start_release.py \
-  --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs \
+  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
   --system wse2 \
   --stage stage3
 ```
@@ -144,8 +147,8 @@ npc --status
 Show status for a specific system or run root:
 
 ```bash
-npc --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs --system wse2 --status
-npc --run-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-runs/wse2/wse2_20260331_235959 --status
+npc --input-root /path/to/Nonlinear-Phonon-Calculation-inputs --system wse2 --status
+npc --run-root /path/to/Nonlinear-Phonon-Calculation-runs/wse2/wse2_20260331_235959 --status
 ```
 
 Export a cross-machine handoff after stage1 or stage2:
@@ -165,7 +168,7 @@ Run convergence tuning for the selected workflow family:
 
 ```bash
 python3 start_release.py \
-  --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs \
+  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
   --system wse2 \
   --stage tune \
   --qe-relax no
@@ -189,7 +192,7 @@ flowchart LR
 `stage1` now starts from `structure.cif`, not from a package-internal
 `scf.inp`.
 
-The beta path is:
+The stage1 path is:
 
 1. read `structure.cif`, `system.json`, and `pseudos/`
 2. generate an internal QE input under the runtime tree
@@ -238,20 +241,34 @@ manually for normal monitoring.
 
 ## Cross-machine handoff
 
-This beta now treats cross-machine continuation as an explicit first-class
-workflow instead of an operator-only directory copy.
+Cross-machine continuation is an explicit workflow, not an undocumented manual
+directory copy.
 
 Recommended split:
 
-1. run `stage1` on `159.226.208.67`
+1. run `stage1` on a machine with a working QE phonon frontend
 2. export a `stage1` handoff bundle
-3. import that bundle on `100.101.235.12`
+3. import that bundle on a machine prepared for `stage2/3`
 4. run `stage2`
 5. export a `stage2` handoff bundle or continue in place
-6. run `stage3` on `100.101.235.12`
+6. run `stage3`
 
-The handoff bundle preserves the beta invariant that manifest paths remain
+The handoff bundle preserves the invariant that manifest paths remain
 relative to the imported run root.
+
+## Minimum Environment
+
+The repository assumes the operator already has:
+
+- `python3`
+- `python3 -m pip`
+- a working `npc` install from `./install.sh`
+
+For actual stage execution, additional runtime tools are required:
+
+- `stage1`: `pw.x`, `ph.x`, `q2r.x`, `matdyn.x`
+- `stage2`: a working CHGNet Python environment
+- `stage3`: QE executables plus the scheduler/runtime expected by your site
 
 ## Required Input Files
 
@@ -294,8 +311,5 @@ The current `system.json` schema is intentionally small:
 
 ## Current Scope
 
-This beta does not try to hide that cross-machine handoff still exists. It only
-moves that handoff into the runtime tree and puts `npc` in charge of it.
-
-It also does not replace the public stable release. This is the restructuring
-surface where the cleaner input model is being validated.
+This repository does not try to hide that cross-machine handoff still exists.
+It moves that handoff into the runtime tree and puts `npc` in charge of it.

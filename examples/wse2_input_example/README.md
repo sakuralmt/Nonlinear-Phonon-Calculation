@@ -1,6 +1,6 @@
 # WSe2 Input Example
 
-This is the user-facing example for the beta workflow.
+This is the user-facing example for the staged workflow.
 
 It shows what one system directory should look like under the external input
 root. Nothing here is a runtime artifact. Nothing here is a hand-edited stage

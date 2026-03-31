@@ -1,11 +1,17 @@
-# Nonlinear Phonon Calculation Beta
+# Nonlinear Phonon Calculation
 
 [English](README.md) | [中文](README_zh.md)
 
-这个 beta 版本的目标很直接：把旧版里“历史路径、样例输入、手工 contract 理解”这些混在一起的结构拆开，改成一套真正清楚的两棵树。
+这个仓库把分阶段工作流收口到一个对操作者可见的入口：`npc`。
 
-如果你要看当前 beta 的真实调用链和目录职责，直接看
-[ARCHITECTURE.md](/Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-tui-beta/ARCHITECTURE.md)。
+整个仓库围绕三个边界组织：
+
+1. 代码树
+2. 外部输入树
+3. 运行时自动生成的运行树
+
+如果你要看当前真实调用链和目录职责，直接看
+[ARCHITECTURE.md](ARCHITECTURE.md)。
 
 使用方式应该是：
 
@@ -17,7 +23,7 @@
 用户不应该在第一次运行之前就去理解 `stage1.manifest.json` 或
 `stage2.manifest.json`。这些文件仍然存在，但它们属于运行时内部交接，不再是用户主界面的一部分。
 
-## 这个 Beta 现在是什么结构
+## 仓库结构
 
 ### 1. 代码树
 
@@ -36,7 +42,7 @@
 用户输入放在代码树之外，例如：
 
 ```text
-/Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs/
+<input_root>/
   wse2/
     structure.cif
     system.json
@@ -70,7 +76,7 @@
 
 直接参考自带的 WSe2 输入样例：
 
-- [examples/wse2_input_example/README_zh.md](/Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-tui-beta/examples/wse2_input_example/README_zh.md)
+- [examples/wse2_input_example/README_zh.md](examples/wse2_input_example/README_zh.md)
 
 一个体系目录至少需要：
 
@@ -80,18 +86,18 @@
 
 ### 启动 TUI
 
-在 beta 根目录执行：
+在仓库根目录执行：
 
 ```bash
 ./install.sh
-npc --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs --system wse2
+npc --input-root /path/to/Nonlinear-Phonon-Calculation-inputs --system wse2
 ```
 
 兼容入口也可以：
 
 ```bash
-./tui --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs --system wse2
-python3 start_release.py --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs --system wse2
+./tui --input-root /path/to/Nonlinear-Phonon-Calculation-inputs --system wse2
+python3 start_release.py --input-root /path/to/Nonlinear-Phonon-Calculation-inputs --system wse2
 ```
 
 ### 常见分阶段命令
@@ -100,7 +106,7 @@ python3 start_release.py --input-root /Users/lmtsakura/qiyan_shared/testing/Nonl
 
 ```bash
 python3 start_release.py \
-  --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs \
+  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
   --system wse2 \
   --stage stage1 \
   --qe-relax yes
@@ -110,7 +116,7 @@ python3 start_release.py \
 
 ```bash
 python3 start_release.py \
-  --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs \
+  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
   --system wse2 \
   --stage stage2
 ```
@@ -119,7 +125,7 @@ python3 start_release.py \
 
 ```bash
 python3 start_release.py \
-  --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs \
+  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
   --system wse2 \
   --stage stage3
 ```
@@ -135,8 +141,8 @@ npc --status
 查看某个体系或某个 run root 的状态：
 
 ```bash
-npc --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs --system wse2 --status
-npc --run-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-runs/wse2/wse2_20260331_235959 --status
+npc --input-root /path/to/Nonlinear-Phonon-Calculation-inputs --system wse2 --status
+npc --run-root /path/to/Nonlinear-Phonon-Calculation-runs/wse2/wse2_20260331_235959 --status
 ```
 
 在 stage1 或 stage2 之后导出跨机器 handoff 包：
@@ -156,7 +162,7 @@ npc --handoff-import --bundle /tmp/wse2_stage1_handoff.tar.gz --run-root /path/t
 
 ```bash
 python3 start_release.py \
-  --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs \
+  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
   --system wse2 \
   --stage tune \
   --qe-relax no
@@ -179,7 +185,7 @@ flowchart LR
 
 `stage1` 现在从 `structure.cif` 开始，而不是从包内部藏着的 `scf.inp` 开始。
 
-beta 当前路径是：
+stage1 当前路径是：
 
 1. 读取 `structure.cif`、`system.json` 和 `pseudos/`
 2. 在运行树里自动生成内部 QE 输入
@@ -222,18 +228,32 @@ beta 当前路径是：
 
 ## 跨机器 handoff
 
-这个 beta 现在把跨机器接力做成了显式用户命令，而不是默认靠人工复制目录。
+跨机器接力现在是显式用户命令，而不是默认靠人工复制目录。
 
 推荐的真实机器拆分是：
 
-1. 在 `159.226.208.67` 跑 `stage1`
+1. 在可以稳定运行 QE 声子前端的机器上跑 `stage1`
 2. 导出 `stage1` handoff bundle
-3. 在 `100.101.235.12` 导入这个 bundle
+3. 在适合 `stage2/3` 的机器上导入这个 bundle
 4. 跑 `stage2`
 5. 视情况导出 `stage2` handoff bundle，或直接原地继续
-6. 在 `100.101.235.12` 跑 `stage3`
+6. 跑 `stage3`
 
-handoff 包继续保持 beta 的核心约束：manifest 内路径全部相对于导入后的 run root。
+handoff 包继续保持一个核心约束：manifest 内路径全部相对于导入后的 run root。
+
+## 最小环境要求
+
+仓库默认假设操作者已经具备：
+
+- `python3`
+- `python3 -m pip`
+- 通过 `./install.sh` 安装好的 `npc`
+
+实际阶段运行还需要这些运行时工具：
+
+- `stage1`：`pw.x`、`ph.x`、`q2r.x`、`matdyn.x`
+- `stage2`：可用的 CHGNet Python 环境
+- `stage3`：QE 可执行程序，以及你所在机器可用的调度/运行环境
 
 ## 输入文件要求
 
@@ -276,6 +296,4 @@ handoff 包继续保持 beta 的核心约束：manifest 内路径全部相对于
 
 ## 当前范围
 
-这个 beta 不会假装“跨机交接已经消失”。它做的是把交接收进运行树里，并让 `npc` 来负责主流程。
-
-它也不会覆盖当前 GitHub 上的正式稳定版。这个 beta 是为了验证一套更干净的输入模型和目录结构。
+这个仓库不会假装“跨机交接已经消失”。它做的是把交接收进运行树里，并让 `npc` 来负责主流程。

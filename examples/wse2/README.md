@@ -8,7 +8,7 @@ real production run.
 
 ## What Is Included
 
-Under `contract_handoff/release_run/` the example ships:
+Under `contract_handoff/sample_run/` the example ships:
 
 - `stage1_inputs/structure/scf.inp`
 - `stage1_inputs/pseudos/*.UPF`

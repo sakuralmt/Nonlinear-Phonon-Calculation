@@ -53,6 +53,27 @@ python3 start_release.py
 
 包内不会自动帮你 SSH 传文件。跨机接力靠 `release_run/` 里的契约文件完成。
 
+### 封装目标：面向用户的跨机 handoff
+
+下一版封装后的 `tui/npc` 目标命令面，已经在 beta 树里做过真实验证。目标用户命令是：
+
+```bash
+npc --handoff-export stage1 --run-root <run_root> --output <stage1_bundle.tar.gz>
+npc --handoff-export stage2 --run-root <run_root> --output <stage2_bundle.tar.gz>
+npc --handoff-import --bundle <bundle.tar.gz> --run-root <new_run_root>
+npc --run-root <new_run_root> --status
+```
+
+已经验证过的机器拆分：
+
+- `stage1`：`159.226.208.67:33223`
+- `stage2/3`：`100.101.235.12`
+- `100.101.235.12` 推荐运行环境：`qiyan-ht`
+
+完整的集成与封装交接说明在这里：
+
+- [packaging/TUI_CROSS_MACHINE_BUILD_SPEC_2026-03-31.md](packaging/TUI_CROSS_MACHINE_BUILD_SPEC_2026-03-31.md)
+
 ### 3. 一条真实可用的跑法
 
 先在 `stage1` 机器上：

@@ -64,6 +64,28 @@ This split is intentional.
 The bundle does not automate SSH handoff. Machines are joined by copying the
 contract files under `release_run/`.
 
+### Packaging target: user-facing cross-machine handoff
+
+The next packaged `tui/npc` target has already been validated in the beta tree
+as a user-facing command flow. The intended commands are:
+
+```bash
+npc --handoff-export stage1 --run-root <run_root> --output <stage1_bundle.tar.gz>
+npc --handoff-export stage2 --run-root <run_root> --output <stage2_bundle.tar.gz>
+npc --handoff-import --bundle <bundle.tar.gz> --run-root <new_run_root>
+npc --run-root <new_run_root> --status
+```
+
+Validated machine split:
+
+- `stage1`: `159.226.208.67:33223`
+- `stage2/3`: `100.101.235.12`
+- recommended runtime env on `100.101.235.12`: `qiyan-ht`
+
+The full integration and packaging handoff spec is recorded in:
+
+- [packaging/TUI_CROSS_MACHINE_BUILD_SPEC_2026-03-31.md](packaging/TUI_CROSS_MACHINE_BUILD_SPEC_2026-03-31.md)
+
 ### 3. Fastest path to a real run
 
 On the stage1 machine:

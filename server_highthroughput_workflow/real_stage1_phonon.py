@@ -13,15 +13,14 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from nonlinear_phonon_calculation.workflow_families import resolve_workflow_family
 from server_highthroughput_workflow.stage_contracts import create_stage1_manifest, dump_json
 
 
 STAGE1_SOURCE = ROOT / "qe_phonon_stage1_server_bundle"
-QPAIR_ROOT_NAME = "stage1_qgamma_qpair_run"
-PHONON_RUNTIME_NAME = "stage1_phonon_runtime"
-GRID_N = 6
-
-
+QPAIR_TOOLS = STAGE1_SOURCE / "qpair_tools"
+QPAIR_ROOT_NAME = "stage1/runtime/qgamma_qpair"
+PHONON_RUNTIME_NAME = "stage1/runtime/phonon_bundle"
 def _run_python(script: Path, *args: str, cwd: Path | None = None):
     cmd = [sys.executable, str(script), *args]
     subprocess.run(cmd, cwd=None if cwd is None else str(cwd), check=True, text=True)
@@ -98,6 +97,12 @@ def run_real_stage1(
     run_root: Path,
     structure: Path,
     pseudo_dir: Path,
+    *,
+    system_id: str | None = None,
+    system_dir: Path | None = None,
+    source_cif: Path | None = None,
+    system_meta: Path | None = None,
+    workflow_family: str = "tmd_monolayer_hex",
 ):
     run_root = Path(run_root).expanduser().resolve()
     structure = Path(structure).expanduser().resolve()
@@ -110,15 +115,16 @@ def run_real_stage1(
     mode_selection_root = qpair_root / "mode_selection"
     mode_pairs_root = qpair_root / "mode_pairs"
 
+    family = resolve_workflow_family(workflow_family)
     if phonon_runtime.exists():
         shutil.rmtree(phonon_runtime)
     _copytree_clean(STAGE1_SOURCE, phonon_runtime)
     _sync_stage1_inputs(phonon_runtime, structure, pseudo_dir)
 
-    screen_script = ROOT / "hex_qgamma_qpair_workflow" / "screen_hex_qgamma_qpair_points.py"
-    extract_script = ROOT / "hex_qgamma_qpair_workflow" / "extract_screened_eigs.py"
-    select_script = ROOT / "hex_qgamma_qpair_workflow" / "select_modes_qgamma_qpair.py"
-    pair_script = ROOT / "hex_qgamma_qpair_workflow" / "generate_mode_pairs_qgamma_qpair.py"
+    screen_script = QPAIR_TOOLS / "screen_hex_qgamma_qpair_points.py"
+    extract_script = QPAIR_TOOLS / "extract_screened_eigs.py"
+    select_script = QPAIR_TOOLS / "select_modes_qgamma_qpair.py"
+    pair_script = QPAIR_TOOLS / "generate_mode_pairs_qgamma_qpair.py"
 
     screening_root.mkdir(parents=True, exist_ok=True)
     _run_python(
@@ -128,7 +134,7 @@ def run_real_stage1(
         "--scf-template",
         "scf.inp",
         "--grid-n",
-        str(GRID_N),
+        str(family.stage1_screen_grid_n),
         "--output-dir",
         str(screening_root),
     )
@@ -153,7 +159,7 @@ def run_real_stage1(
         "--q-format",
         "auto",
         "--grid-n",
-        str(GRID_N),
+        str(family.stage1_screen_grid_n),
         "--output-dir",
         str(extracted_root),
     )
@@ -182,6 +188,10 @@ def run_real_stage1(
         mode_pairs_json=mode_pairs_root / "selected_mode_pairs.json",
         structure=structure,
         pseudo_dir=pseudo_dir,
+        system_id=system_id,
+        system_dir=system_dir,
+        source_cif=source_cif,
+        system_meta=system_meta,
     )
 
     summary = {
@@ -197,6 +207,42 @@ def run_real_stage1(
         "request_count": len(requests),
         "selected_qpoint_count": len(requests),
         "stage1_manifest": str(manifest),
+        "workflow_family": family.name,
     }
-    dump_json(run_root / "stage1_runtime_summary.json", summary)
+    dump_json(run_root / "stage1" / "summary.json", summary)
     return manifest
+
+
+def run_stage1_tuning(
+    run_root: Path,
+    structure: Path,
+    pseudo_dir: Path,
+    *,
+    workflow_family: str,
+):
+    run_root = Path(run_root).expanduser().resolve()
+    structure = Path(structure).expanduser().resolve()
+    pseudo_dir = Path(pseudo_dir).expanduser().resolve()
+    phonon_runtime = run_root / PHONON_RUNTIME_NAME / "qe_phonon_stage1_server_bundle"
+    if phonon_runtime.exists():
+        shutil.rmtree(phonon_runtime)
+    _copytree_clean(STAGE1_SOURCE, phonon_runtime)
+    _sync_stage1_inputs(phonon_runtime, structure, pseudo_dir)
+    tuning_script = phonon_runtime / "convergence" / "autotune.py"
+    _run_python(
+        tuning_script,
+        "--workflow-family",
+        workflow_family,
+        "--branch",
+        "all",
+        cwd=phonon_runtime,
+    )
+    summary = {
+        "kind": "stage1_convergence_summary",
+        "workflow_family": workflow_family,
+        "phonon_runtime_root": str(phonon_runtime),
+        "combined_curve_summary": str(phonon_runtime / "qe_phonon_pes_run" / "param_tuning" / "combined_curve_summary.json"),
+        "selected_profiles_json": str(phonon_runtime / "qe_phonon_pes_run" / "results" / "selected_profiles.json"),
+    }
+    dump_json(run_root / "stage1" / "convergence_summary.json", summary)
+    return summary

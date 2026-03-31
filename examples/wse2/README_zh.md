@@ -6,7 +6,7 @@
 
 ## 包含什么
 
-在 `contract_handoff/release_run/` 下面，这个样例带了：
+在 `contract_handoff/sample_run/` 下面，这个样例带了：
 
 - `stage1_inputs/structure/scf.inp`
 - `stage1_inputs/pseudos/*.UPF`

@@ -7,10 +7,10 @@ from datetime import datetime
 from pathlib import Path
 
 
-MANIFEST_VERSION = 1
-STAGE1_KIND = "wse2_stage1_manifest"
-STAGE2_KIND = "wse2_stage2_manifest"
-STAGE3_KIND = "wse2_stage3_manifest"
+MANIFEST_VERSION = 2
+STAGE1_KIND = "stage1_manifest"
+STAGE2_KIND = "stage2_manifest"
+STAGE3_KIND = "stage3_manifest"
 
 
 def timestamp_now():
@@ -19,7 +19,7 @@ def timestamp_now():
 
 def dump_json(path: Path, payload: dict):
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2, ensure_ascii=False))
+    path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n")
 
 
 def load_json(path: Path):
@@ -28,11 +28,11 @@ def load_json(path: Path):
 
 def manifest_path(run_root: Path, stage_kind: str):
     name = {
-        STAGE1_KIND: "stage1_manifest.json",
-        STAGE2_KIND: "stage2_manifest.json",
-        STAGE3_KIND: "stage3_manifest.json",
+        STAGE1_KIND: "stage1.manifest.json",
+        STAGE2_KIND: "stage2.manifest.json",
+        STAGE3_KIND: "stage3.manifest.json",
     }[stage_kind]
-    return Path(run_root) / name
+    return Path(run_root) / "contracts" / name
 
 
 def _copy_file(src: Path, dst: Path):
@@ -49,20 +49,37 @@ def resolve_relative_file(run_root: Path, relative_path: str):
 
 
 def stage1_defaults(run_root: Path):
+    stage_root = Path(run_root) / "stage1"
     return {
-        "mode_pairs_json": Path(run_root) / "stage1_inputs" / "mode_pairs" / "selected_mode_pairs.json",
-        "structure": Path(run_root) / "stage1_inputs" / "structure" / "scf.inp",
-        "pseudo_dir": Path(run_root) / "stage1_inputs" / "pseudos",
+        "mode_pairs_json": stage_root / "outputs" / "mode_pairs.selected.json",
+        "structure": stage_root / "inputs" / "system.scf.inp",
+        "pseudo_dir": stage_root / "inputs" / "pseudos",
+        "system_meta": stage_root / "inputs" / "system.json",
+        "source_cif": stage_root / "inputs" / "structure.cif",
     }
 
 
-def create_stage1_manifest(run_root: Path, mode_pairs_json: Path, structure: Path, pseudo_dir: Path | None = None):
+def create_stage1_manifest(
+    run_root: Path,
+    mode_pairs_json: Path,
+    structure: Path,
+    pseudo_dir: Path | None = None,
+    *,
+    system_id: str | None = None,
+    system_dir: Path | None = None,
+    source_cif: Path | None = None,
+    system_meta: Path | None = None,
+):
     run_root = Path(run_root).expanduser().resolve()
     dsts = stage1_defaults(run_root)
     source_structure = Path(structure).expanduser().resolve()
     pseudo_source = source_structure.parent if pseudo_dir is None else Path(pseudo_dir).expanduser().resolve()
     _copy_file(Path(mode_pairs_json).expanduser().resolve(), dsts["mode_pairs_json"])
     _copy_file(source_structure, dsts["structure"])
+    if source_cif is not None and Path(source_cif).exists():
+        _copy_file(Path(source_cif).expanduser().resolve(), dsts["source_cif"])
+    if system_meta is not None and Path(system_meta).exists():
+        _copy_file(Path(system_meta).expanduser().resolve(), dsts["system_meta"])
     dsts["pseudo_dir"].mkdir(parents=True, exist_ok=True)
     copied_pseudos = []
     for pseudo in sorted(pseudo_source.glob("*.UPF")):
@@ -75,15 +92,21 @@ def create_stage1_manifest(run_root: Path, mode_pairs_json: Path, structure: Pat
         "version": MANIFEST_VERSION,
         "created_at": timestamp_now(),
         "run_root": str(run_root),
+        "system_id": system_id,
+        "system_dir": None if system_dir is None else str(Path(system_dir).expanduser().resolve()),
         "files": {
-            key: _rel(path, run_root)
-            for key, path in dsts.items()
-            if key != "pseudo_dir"
+            "mode_pairs_json": _rel(dsts["mode_pairs_json"], run_root),
+            "structure": _rel(dsts["structure"], run_root),
         },
+        "source_files": {},
         "pseudo_dir": _rel(dsts["pseudo_dir"], run_root),
         "pseudo_files": [_rel(path, run_root) for path in copied_pseudos],
         "next_stage": STAGE2_KIND,
     }
+    if source_cif is not None and dsts["source_cif"].exists():
+        payload["source_files"]["structure_cif"] = _rel(dsts["source_cif"], run_root)
+    if system_meta is not None and dsts["system_meta"].exists():
+        payload["source_files"]["system_meta"] = _rel(dsts["system_meta"], run_root)
     out = manifest_path(run_root, STAGE1_KIND)
     dump_json(out, payload)
     return out
@@ -105,6 +128,7 @@ def create_stage2_manifest(
         "version": MANIFEST_VERSION,
         "created_at": timestamp_now(),
         "run_root": str(run_root),
+        "system_id": stage1.get("system_id"),
         "stage1_manifest": _rel(Path(stage1_manifest).resolve(), run_root),
         "input_files": dict(stage1["files"]),
         "pseudo_dir": stage1.get("pseudo_dir"),
@@ -135,6 +159,7 @@ def create_stage3_manifest(run_root: Path, stage2_manifest: Path, qe_run_root: P
         "version": MANIFEST_VERSION,
         "created_at": timestamp_now(),
         "run_root": str(run_root),
+        "system_id": stage2.get("system_id"),
         "stage2_manifest": _rel(Path(stage2_manifest).resolve(), run_root),
         "input_files": dict(stage2["input_files"]),
         "screening_files": dict(stage2["output_files"]),

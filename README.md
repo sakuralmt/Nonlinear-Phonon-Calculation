@@ -136,10 +136,29 @@ python3 start_release.py \
 Continue the latest run with stage3:
 
 ```bash
-python3 start_release.py \
+./npc \
   --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
   --system wse2 \
   --stage stage3
+```
+
+Prepare the QE top-5 recheck batch without submitting jobs:
+
+```bash
+./npc \
+  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
+  --system wse2 \
+  --stage stage3 \
+  --qe-mode prepare_only
+```
+
+Resume the same stage3 run later:
+
+```bash
+./npc \
+  --run-root /path/to/run_root \
+  --stage stage3 \
+  --qe-mode submit_collect
 ```
 
 The launcher chooses the latest run root for the selected system unless

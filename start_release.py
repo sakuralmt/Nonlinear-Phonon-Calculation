@@ -61,6 +61,7 @@ def parse_args():
     parser.add_argument("--stage", choices=VALID_STAGES, default=None)
     parser.add_argument("--run-root", type=str, default=None)
     parser.add_argument("--qe-relax", choices=["yes", "no"], default=None)
+    parser.add_argument("--qe-mode", choices=["prepare_only", "submit_collect"], default="submit_collect")
     parser.add_argument("--status", action="store_true")
     parser.add_argument("--handoff-export", choices=["stage1", "stage2"], default=None)
     parser.add_argument("--handoff-import", action="store_true")
@@ -204,7 +205,14 @@ def ensure_stage_prerequisites(run_root: Path, stage: str, log_path: Path) -> No
     log_line(log_path, f"Found prerequisite for {stage}: {required}")
 
 
-def build_modular_command(stage: str, run_root: Path, input_root: Path, system_id: str, qe_relax: bool) -> list[str]:
+def build_modular_command(
+    stage: str,
+    run_root: Path,
+    input_root: Path,
+    system_id: str,
+    qe_relax: bool,
+    qe_mode: str,
+) -> list[str]:
     command = [
         sys.executable,
         "-u",
@@ -220,6 +228,8 @@ def build_modular_command(stage: str, run_root: Path, input_root: Path, system_i
         "--qe-relax",
         "yes" if qe_relax else "no",
     ]
+    if stage in {"stage3", "all"}:
+        command.extend(["--qe-mode", qe_mode])
     return command
 
 
@@ -585,7 +595,7 @@ def main() -> int:
 
         ensure_stage_prerequisites(run_root, stage, log_path)
 
-        command = build_modular_command(stage, run_root, input_root, system_id, qe_relax)
+        command = build_modular_command(stage, run_root, input_root, system_id, qe_relax, args.qe_mode)
         run_streaming_command(command, cwd=ROOT, log_path=log_path, label=STAGE_LABELS[stage])
         print_result_summary(stage, run_root, log_path)
         log_section(log_path, "Complete")

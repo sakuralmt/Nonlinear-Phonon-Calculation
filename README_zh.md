@@ -130,10 +130,29 @@ python3 start_release.py \
 继续最新一次 run 的 stage3：
 
 ```bash
-python3 start_release.py \
+./npc \
   --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
   --system wse2 \
   --stage stage3
+```
+
+只做 QE top-5 复核的 prepare，不立即提交任务：
+
+```bash
+./npc \
+  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
+  --system wse2 \
+  --stage stage3 \
+  --qe-mode prepare_only
+```
+
+之后在同一个 run root 上继续 stage3：
+
+```bash
+./npc \
+  --run-root /path/to/run_root \
+  --stage stage3 \
+  --qe-mode submit_collect
 ```
 
 如果没有显式给 `--run-root`，启动器会自动选择这个体系最新的一次运行目录。

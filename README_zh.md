@@ -90,6 +90,12 @@
 
 ```bash
 ./install.sh
+./npc --input-root /path/to/Nonlinear-Phonon-Calculation-inputs --system wse2
+```
+
+如果你的用户安装目录已经在 `PATH` 里，也可以直接用：
+
+```bash
 npc --input-root /path/to/Nonlinear-Phonon-Calculation-inputs --system wse2
 ```
 
@@ -135,27 +141,27 @@ python3 start_release.py \
 只读查看当前状态：
 
 ```bash
-npc --status
+./npc --status
 ```
 
 查看某个体系或某个 run root 的状态：
 
 ```bash
-npc --input-root /path/to/Nonlinear-Phonon-Calculation-inputs --system wse2 --status
-npc --run-root /path/to/Nonlinear-Phonon-Calculation-runs/wse2/wse2_20260331_235959 --status
+./npc --input-root /path/to/Nonlinear-Phonon-Calculation-inputs --system wse2 --status
+./npc --run-root /path/to/Nonlinear-Phonon-Calculation-runs/wse2/wse2_20260331_235959 --status
 ```
 
 在 stage1 或 stage2 之后导出跨机器 handoff 包：
 
 ```bash
-npc --handoff-export stage1 --run-root /path/to/run_root --output /tmp/wse2_stage1_handoff.tar.gz
-npc --handoff-export stage2 --run-root /path/to/run_root --output /tmp/wse2_stage2_handoff.tar.gz
+./npc --handoff-export stage1 --run-root /path/to/run_root --output /tmp/wse2_stage1_handoff.tar.gz
+./npc --handoff-export stage2 --run-root /path/to/run_root --output /tmp/wse2_stage2_handoff.tar.gz
 ```
 
 在另一台机器导入 handoff 包：
 
 ```bash
-npc --handoff-import --bundle /tmp/wse2_stage1_handoff.tar.gz --run-root /path/to/new_run_root
+./npc --handoff-import --bundle /tmp/wse2_stage1_handoff.tar.gz --run-root /path/to/new_run_root
 ```
 
 做收敛性测试：

@@ -95,6 +95,13 @@ From the repository root:
 
 ```bash
 ./install.sh
+./npc --input-root /path/to/Nonlinear-Phonon-Calculation-inputs --system wse2
+```
+
+If your user-level install location is already on `PATH`, the same command also
+works as:
+
+```bash
 npc --input-root /path/to/Nonlinear-Phonon-Calculation-inputs --system wse2
 ```
 
@@ -141,27 +148,27 @@ The launcher chooses the latest run root for the selected system unless
 Show read-only status for the latest detected run:
 
 ```bash
-npc --status
+./npc --status
 ```
 
 Show status for a specific system or run root:
 
 ```bash
-npc --input-root /path/to/Nonlinear-Phonon-Calculation-inputs --system wse2 --status
-npc --run-root /path/to/Nonlinear-Phonon-Calculation-runs/wse2/wse2_20260331_235959 --status
+./npc --input-root /path/to/Nonlinear-Phonon-Calculation-inputs --system wse2 --status
+./npc --run-root /path/to/Nonlinear-Phonon-Calculation-runs/wse2/wse2_20260331_235959 --status
 ```
 
 Export a cross-machine handoff after stage1 or stage2:
 
 ```bash
-npc --handoff-export stage1 --run-root /path/to/run_root --output /tmp/wse2_stage1_handoff.tar.gz
-npc --handoff-export stage2 --run-root /path/to/run_root --output /tmp/wse2_stage2_handoff.tar.gz
+./npc --handoff-export stage1 --run-root /path/to/run_root --output /tmp/wse2_stage1_handoff.tar.gz
+./npc --handoff-export stage2 --run-root /path/to/run_root --output /tmp/wse2_stage2_handoff.tar.gz
 ```
 
 Import a handoff bundle on another machine:
 
 ```bash
-npc --handoff-import --bundle /tmp/wse2_stage1_handoff.tar.gz --run-root /path/to/new_run_root
+./npc --handoff-import --bundle /tmp/wse2_stage1_handoff.tar.gz --run-root /path/to/new_run_root
 ```
 
 Run convergence tuning for the selected workflow family:

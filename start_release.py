@@ -52,7 +52,10 @@ MODULAR_RUNNER = ROOT / "server_highthroughput_workflow" / "run_modular_pipeline
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Interactive TUI launcher for the staged nonlinear phonon workflow.")
+    parser = argparse.ArgumentParser(
+        prog="npc",
+        description="Interactive TUI launcher for the staged nonlinear phonon workflow.",
+    )
     parser.add_argument("--input-root", type=str, default=str(DEFAULT_INPUT_ROOT))
     parser.add_argument("--system", type=str, default=None)
     parser.add_argument("--stage", choices=VALID_STAGES, default=None)

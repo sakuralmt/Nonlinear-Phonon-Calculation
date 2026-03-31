@@ -135,6 +135,7 @@ that launches `npc`.
   - `matdyn.x`
 - `stage2`
   - importable Python modules:
+    - `gptff`
     - `chgnet`
     - `torch`
     - `phonopy`
@@ -149,6 +150,11 @@ that launches `npc`.
   stability. Run it on a host already known to execute `ph.x` reliably.
 - `stage2` is primarily a Python materials-stack workload and is comparatively
   easy to migrate once `stage1` has produced a valid contract.
+- `stage2` supports three model presets:
+  - `gptff_v1`
+  - `gptff_v2`
+  - `chgnet`
+- The default `stage2` model preset is `gptff_v2`.
 - `stage3` supports two modes:
   - `prepare_only`
   - `submit_collect`
@@ -182,6 +188,34 @@ prescribe a site-local activation command.
   --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
   --system wse2 \
   --stage stage2
+```
+
+This command uses `gptff_v2` by default.
+
+### Select the `stage2` model preset
+
+Available presets:
+
+- `gptff_v1`
+- `gptff_v2`
+- `chgnet`
+
+Examples:
+
+```bash
+./npc \
+  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
+  --system wse2 \
+  --stage stage2 \
+  --stage2-model gptff_v1
+```
+
+```bash
+./npc \
+  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
+  --system wse2 \
+  --stage stage2 \
+  --stage2-model chgnet
 ```
 
 ### Run `stage3`
@@ -297,14 +331,14 @@ Input:
 Actions:
 
 1. load the imported or locally generated stage1 contract
-2. run CHGNet screening
+2. run stage2 MLFF screening with the selected model preset
 3. rank candidate mode pairs
 4. write `contracts/stage2.manifest.json`
 
 Primary outputs:
 
-- `stage2/outputs/chgnet/screening/pair_ranking.csv`
-- `stage2/outputs/chgnet/screening/single_backend_ranking.json`
+- `stage2/outputs/<backend>/screening/pair_ranking.csv`
+- `stage2/outputs/<backend>/screening/single_backend_ranking.json`
 - `contracts/stage2.manifest.json`
 
 ### `stage3`
@@ -370,7 +404,7 @@ flowchart LR
     A["External input tree\nstructure.cif + pseudos + system.json"] --> B["npc / tui"]
     B --> C["stage1\nQE phonon frontend"]
     C --> D["contracts/stage1.manifest.json"]
-    D --> E["stage2\nCHGNet screening"]
+    D --> E["stage2\nMLFF screening\n(default: GPTFF v2)"]
     E --> F["contracts/stage2.manifest.json"]
     F --> G["stage3\nQE top5 recheck"]
     G --> H["contracts/stage3.manifest.json"]
@@ -385,7 +419,7 @@ flowchart LR
 - `qe_phonon_stage1_server_bundle/`
   - stage1 phonon frontend and convergence tooling
 - `mlff_modepair_workflow/`
-  - CHGNet screening logic
+  - stage2 MLFF screening logic for GPTFF and CHGNet backends
 - `qe_modepair_handoff_workflow/`
   - stage3 QE preparation and collection helpers
 - `examples/wse2_input_example/`

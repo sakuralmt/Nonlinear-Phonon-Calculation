@@ -131,6 +131,7 @@ python3 start_release.py --help
   - `matdyn.x`
 - `stage2`
   - 可导入的 Python 模块：
+    - `gptff`
     - `chgnet`
     - `torch`
     - `phonopy`
@@ -143,6 +144,11 @@ python3 start_release.py --help
 
 - `stage1` 对 QE 声子前端的稳定性要求最高，应放在已经验证过 `ph.x` 可稳定运行的宿主上执行。
 - `stage2` 主要依赖 Python 材料模拟栈，在 `stage1` contract 已生成后更容易迁移。
+- `stage2` 支持三种模型预设：
+  - `gptff_v1`
+  - `gptff_v2`
+  - `chgnet`
+- `stage2` 的默认模型预设是 `gptff_v2`。
 - `stage3` 支持两种模式：
   - `prepare_only`
   - `submit_collect`
@@ -174,6 +180,34 @@ python3 start_release.py --help
   --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
   --system wse2 \
   --stage stage2
+```
+
+该命令默认使用 `gptff_v2`。
+
+### 选择 `stage2` 模型预设
+
+可选预设：
+
+- `gptff_v1`
+- `gptff_v2`
+- `chgnet`
+
+示例：
+
+```bash
+./npc \
+  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
+  --system wse2 \
+  --stage stage2 \
+  --stage2-model gptff_v1
+```
+
+```bash
+./npc \
+  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
+  --system wse2 \
+  --stage stage2 \
+  --stage2-model chgnet
 ```
 
 ### 运行 `stage3`
@@ -287,14 +321,14 @@ python3 start_release.py --help
 执行内容：
 
 1. 读取本地生成或导入的 `stage1` contract
-2. 执行 CHGNet screening
+2. 使用所选模型预设执行 stage2 MLFF 筛选
 3. 对候选 mode pair 排名
 4. 写出 `contracts/stage2.manifest.json`
 
 主要输出：
 
-- `stage2/outputs/chgnet/screening/pair_ranking.csv`
-- `stage2/outputs/chgnet/screening/single_backend_ranking.json`
+- `stage2/outputs/<backend>/screening/pair_ranking.csv`
+- `stage2/outputs/<backend>/screening/single_backend_ranking.json`
 - `contracts/stage2.manifest.json`
 
 ### `stage3`
@@ -362,7 +396,7 @@ flowchart LR
     A["外部输入树\nstructure.cif + pseudos + system.json"] --> B["npc / tui"]
     B --> C["stage1\nQE phonon frontend"]
     C --> D["contracts/stage1.manifest.json"]
-    D --> E["stage2\nCHGNet screening"]
+    D --> E["stage2\nMLFF 筛选\n(默认: GPTFF v2)"]
     E --> F["contracts/stage2.manifest.json"]
     F --> G["stage3\nQE top5 recheck"]
     G --> H["contracts/stage3.manifest.json"]
@@ -377,7 +411,7 @@ flowchart LR
 - `qe_phonon_stage1_server_bundle/`
   - `stage1` 声子前端与收敛性工具
 - `mlff_modepair_workflow/`
-  - CHGNet screening 逻辑
+  - 面向 GPTFF 与 CHGNet 后端的 stage2 MLFF 筛选逻辑
 - `qe_modepair_handoff_workflow/`
   - `stage3` QE 准备与回收逻辑
 - `examples/wse2_input_example/`

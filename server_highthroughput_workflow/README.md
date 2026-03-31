@@ -66,7 +66,7 @@ normal `npc` path.
 The screening layer writes under:
 
 ```text
-stage2/outputs/chgnet/screening/
+stage2/outputs/<backend>/screening/
 ```
 
 Important files:
@@ -83,7 +83,7 @@ Important files:
 The QE recheck layer writes under:
 
 ```text
-stage3/qe/chgnet/
+stage3/qe/<backend>/
 ```
 
 Important files:

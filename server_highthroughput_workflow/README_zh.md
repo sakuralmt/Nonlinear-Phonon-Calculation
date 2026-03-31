@@ -63,7 +63,7 @@ runs/<system_id>/<run_id>/
 筛选层输出目录：
 
 ```text
-stage2/outputs/chgnet/screening/
+stage2/outputs/<backend>/screening/
 ```
 
 关键文件：
@@ -80,7 +80,7 @@ stage2/outputs/chgnet/screening/
 QE 复核层输出目录：
 
 ```text
-stage3/qe/chgnet/
+stage3/qe/<backend>/
 ```
 
 关键文件：

@@ -1,303 +1,281 @@
-# Nonlinear Phonon Calculation
+# Nonlinear Phonon Calculation Beta
 
 [English](README.md) | [中文](README_zh.md)
 
-这是一个按阶段组织的非线性声子工作流包，目标是把“真实声子前端、机器学习筛选、QE 复核”拆开，并且让每一段都能单独运行、单独交接、单独续算。
+这个 beta 版本的目标很直接：把旧版里“历史路径、样例输入、手工 contract 理解”这些混在一起的结构拆开，改成一套真正清楚的两棵树。
 
-这套包默认面向两台机器协作的场景：
+如果你要看当前 beta 的真实调用链和目录职责，直接看
+[ARCHITECTURE.md](/Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-tui-beta/ARCHITECTURE.md)。
 
-- `stage1` 在更适合跑声子前端的老机器上完成
-- `stage2` 和 `stage3` 在更适合筛选和批量单点计算的新机器上完成
+使用方式应该是：
 
-它不是一个把所有历史结果都塞进去的归档包，而是一个可以真正拿去运行、拿去交接、拿去继续维护的稳定版。
+1. 在外部输入目录里准备一个体系目录
+2. 运行 `npc`
+3. 选择体系和阶段
+4. 让程序自己生成 QE 输入、内部 contract 和运行目录
+
+用户不应该在第一次运行之前就去理解 `stage1.manifest.json` 或
+`stage2.manifest.json`。这些文件仍然存在，但它们属于运行时内部交接，不再是用户主界面的一部分。
+
+## 这个 Beta 现在是什么结构
+
+### 1. 代码树
+
+当前这个仓库就是代码树。它只放：
+
+- 工作流代码
+- TUI 启动器
+- 文档
+- 输入样例
+- 可复用的算法模块
+
+它不应该再夹带用户真实 CIF、用户真实赝势、或历史运行目录。
+
+### 2. 外部输入树
+
+用户输入放在代码树之外，例如：
+
+```text
+/Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs/
+  wse2/
+    structure.cif
+    system.json
+    pseudos/
+      W.pz-spn-rrkjus_psl.1.0.0.UPF
+      Se.pz-n-rrkjus_psl.0.2.UPF
+```
+
+每个体系目录都是自洽的。
+
+### 3. 运行树
+
+每次运行都会在 runs 根目录下生成自己的运行树，例如：
+
+```text
+.../Nonlinear-Phonon-Calculation-runs/
+  wse2/
+    wse2_20260331_235959/
+      contracts/
+      logs/
+      stage1/
+      stage2/
+      stage3/
+```
+
+内部 contract 和阶段输出都放在这里，不再和用户输入混在一起。
 
 ## Quick Start
 
-### 1. 安装
+### 先准备一个体系目录
 
-在 bundle 根目录执行：
+直接参考自带的 WSe2 输入样例：
+
+- [examples/wse2_input_example/README_zh.md](/Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-tui-beta/examples/wse2_input_example/README_zh.md)
+
+一个体系目录至少需要：
+
+- `structure.cif`
+- `system.json`
+- `pseudos/*.UPF`
+
+### 启动 TUI
+
+在 beta 根目录执行：
 
 ```bash
 ./install.sh
+npc --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs --system wse2
 ```
 
-如果你是在做打包验证，可以用：
+兼容入口也可以：
 
 ```bash
-NPC_INSTALL_MODE=wheel ./install.sh
+./tui --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs --system wse2
+python3 start_release.py --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs --system wse2
 ```
 
-安装后推荐直接使用：
+### 常见分阶段命令
+
+只跑 stage1：
 
 ```bash
-npc
+python3 start_release.py \
+  --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs \
+  --system wse2 \
+  --stage stage1 \
+  --qe-relax yes
 ```
 
-兼容入口仍保留：
+继续最新一次 run 的 stage2：
 
 ```bash
-./tui
-python3 start_release.py
+python3 start_release.py \
+  --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs \
+  --system wse2 \
+  --stage stage2
 ```
 
-### 2. 推荐机器分工
-
-- `stage1`：适合 QE 声子前端的 Slurm 机器
-- `stage2/3`：适合 CHGNet 筛选和 QE 批量任务的机器
-
-这个分工不是随便定的。
-
-- `stage1` 是最重的声子前端，适合放在 `pw.x / ph.x / q2r.x / matdyn.x` 跑得稳定的 Slurm 机器上
-- `stage2` 是 CHGNet 筛选，适合放在 CPU 吞吐稳定、线程可控的机器上
-- `stage3` 是大量独立的 QE 单点复核任务，也更适合和 stage1 分开管理
-
-包内不会自动帮你 SSH 传文件。跨机接力靠 `release_run/` 里的契约文件完成。
-
-### 封装目标：面向用户的跨机 handoff
-
-下一版封装后的 `tui/npc` 目标命令面，已经在 beta 树里做过真实验证。目标用户命令是：
+继续最新一次 run 的 stage3：
 
 ```bash
-npc --handoff-export stage1 --run-root <run_root> --output <stage1_bundle.tar.gz>
-npc --handoff-export stage2 --run-root <run_root> --output <stage2_bundle.tar.gz>
-npc --handoff-import --bundle <bundle.tar.gz> --run-root <new_run_root>
-npc --run-root <new_run_root> --status
+python3 start_release.py \
+  --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs \
+  --system wse2 \
+  --stage stage3
 ```
 
-已经验证过的机器拆分：
+如果没有显式给 `--run-root`，启动器会自动选择这个体系最新的一次运行目录。
 
-- `stage1`：`159.226.208.67:33223`
-- `stage2/3`：`100.101.235.12`
-- `100.101.235.12` 推荐运行环境：`qiyan-ht`
-
-完整的集成与封装交接说明在这里：
-
-- [packaging/TUI_CROSS_MACHINE_BUILD_SPEC_2026-03-31.md](packaging/TUI_CROSS_MACHINE_BUILD_SPEC_2026-03-31.md)
-
-### 3. 一条真实可用的跑法
-
-先在 `stage1` 机器上：
+只读查看当前状态：
 
 ```bash
-npc
+npc --status
 ```
 
-交互里选择：
-
-- `Run QE structure relaxation first?` -> `yes`
-- `Which stage to run?` -> `stage1`
-
-完成后会得到：
-
-- `release_run/stage1_manifest.json`
-- `release_run/stage1_inputs/`
-
-把这两个内容复制到 `stage2/3` 机器后，继续执行：
+查看某个体系或某个 run root 的状态：
 
 ```bash
-python3 server_highthroughput_workflow/run_modular_pipeline.py \
-  --stage stage2 \
-  --run-root /path/to/release_run \
-  --runtime-profile medium
+npc --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs --system wse2 --status
+npc --run-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-runs/wse2/wse2_20260331_235959 --status
 ```
 
-再继续：
+在 stage1 或 stage2 之后导出跨机器 handoff 包：
 
 ```bash
-python3 server_highthroughput_workflow/run_modular_pipeline.py \
-  --stage stage3 \
-  --run-root /path/to/release_run \
-  --qe-mode submit_collect
+npc --handoff-export stage1 --run-root /path/to/run_root --output /tmp/wse2_stage1_handoff.tar.gz
+npc --handoff-export stage2 --run-root /path/to/run_root --output /tmp/wse2_stage2_handoff.tar.gz
 ```
 
-如果你此时只想确认 stage3 的 QE 批任务是否准备正确，而不想真的提交整批计算：
+在另一台机器导入 handoff 包：
 
 ```bash
-python3 server_highthroughput_workflow/run_modular_pipeline.py \
-  --stage stage3 \
-  --run-root /path/to/release_run \
-  --qe-mode prepare_only
+npc --handoff-import --bundle /tmp/wse2_stage1_handoff.tar.gz --run-root /path/to/new_run_root
 ```
 
-## 这套包到底在做什么
+做收敛性测试：
 
-整个包分三层，不是因为“看起来整齐”，而是因为这三层本来就是三类完全不同的计算。
+```bash
+python3 start_release.py \
+  --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs \
+  --system wse2 \
+  --stage tune \
+  --qe-relax no
+```
+
+## 工作流模型
 
 ```mermaid
 flowchart LR
-    A["stage1\nQE 声子前端"] --> B["stage1 契约\nselected_mode_pairs.json\nscf.inp\n伪势"]
-    B --> C["stage2\nCHGNet 筛选"]
-    C --> D["stage2 契约\nranking JSON / CSV"]
-    D --> E["stage3\nQE top5 复核"]
-    E --> F["qe_ranking.json\n以及 QE 作业结果"]
+    A["外部输入树\nstructure.cif + pseudos + system.json"] --> B["npc / tui"]
+    B --> C["stage1\nQE 声子前端"]
+    C --> D["contracts/stage1.manifest.json"]
+    D --> E["stage2\nCHGNet 筛选"]
+    E --> F["contracts/stage2.manifest.json"]
+    F --> G["stage3\nQE top5 复核"]
+    G --> H["contracts/stage3.manifest.json"]
 ```
 
 ### Stage 1
 
-`stage1` 是真实的声子前端。它从 `scf.inp` 出发，跑完 QE 的声子链，再生成后续筛选需要的 mode pair 输入。
+`stage1` 现在从 `structure.cif` 开始，而不是从包内部藏着的 `scf.inp` 开始。
 
-默认流程是：
+beta 当前路径是：
 
-1. 可选 `vc-relax`
-2. 筛出这套工作流实际要用的 q 点
-3. 跑 `pw.x -> ph.x -> q2r.x -> matdyn.x`
-4. 提取本征矢量和频率
-5. 选择候选 mode pair
-6. 打包 handoff 文件
+1. 读取 `structure.cif`、`system.json` 和 `pseudos/`
+2. 在运行树里自动生成内部 QE 输入
+3. 可选执行 QE relax
+4. 跑声子前端
+5. 提取 screened eigenvectors
+6. 生成 `mode_pairs.selected.json`
+7. 写 `contracts/stage1.manifest.json`
 
-当前稳定版使用的声子参数，是前面收敛性测试收出来的 `phonon.balanced`：
+### Tuning
 
-- `ecutwfc = 100`
-- `ecutrho = 1000`
-- `primitive_k_mesh = 12x12x1`
-- `conv_thr = 1.0d-10`
-- `degauss = 1.0d-10`
-- `q-grid = 6x6x1`
+`tune` 是一个由 TUI 驱动的收敛性测试阶段。
+
+它会根据 `system.json` 里的 `workflow_family` 选择对应的参数扫描配置，
+把筛出来的 profile 写进 stage1 runtime bundle，再由
+`qe_phonon_stage1_server_bundle/step1_frontend.py` 自动读取。
 
 ### Stage 2
 
-`stage2` 读取 `stage1` 的契约文件，使用 CHGNet 对 mode pair 做排序筛选。
-
-它不依赖 stage1 的完整运行目录，只需要：
-
-- `stage1_manifest.json`
-- `stage1_inputs/`
-
-默认筛选策略是：
-
-- `strategy = coarse_to_fine`
-- `coarse_grid_size = 5`
-- `full_grid_size = 9`
-- `refine_top_k = 24`
-- `batch_size = 16`
-- `num_workers = 2`
-- `torch_threads = 16`
-
-输出是 CSV 和 JSON 两套 ranking。
+`stage2` 从选中的运行目录里读取 `contracts/stage1.manifest.json`，然后输出 CHGNet ranking 和 `contracts/stage2.manifest.json`。
 
 ### Stage 3
 
-`stage3` 读取 `stage2_manifest.json`，自动选出 top 5，生成 QE 复核目录，并可直接提交批量复核作业。
+`stage3` 从 `contracts/stage2.manifest.json` 继续，准备 QE top-5 复核任务，并在 prepare 完成后立刻写 `contracts/stage3.manifest.json`。
 
-当前默认是：
+如果 `stage3/qe/<backend>/run_manifest.json` 已经存在，重新执行 `npc`
+会直接复用已有 prepare 结果，不会重复生成 QE 输入；如果
+`results/qe_ranking.json` 已存在且 submission 已全部完成，则会直接识别为完成态并复用最终结果。
 
-- `top_n = 5`
-- QE preset `pes_fast`
+`npc --status` 现在会直接打印：
 
-现在的 `stage3_manifest.json` 会在 QE 批任务准备好之后立即写出，不再等整批收尾才落盘。
+- QE run root
+- 已准备 job 数
+- completed / total / active 进度
+- 最终 QE 状态
+- resume mode
+- top QE ranking 行
 
-## 契约文件怎么交接
+也就是说，正常监控不再要求用户自己去翻 `submission_log.json` 或 `qe_ranking.json`。
 
-这套包的核心设计是：每个阶段都把“下一阶段真正需要的最小输入”写成清晰文件，而不是让后续阶段偷偷依赖整台机器的运行上下文。
+## 跨机器 handoff
 
-### Stage 1 -> Stage 2
+这个 beta 现在把跨机器接力做成了显式用户命令，而不是默认靠人工复制目录。
 
-必须复制：
+推荐的真实机器拆分是：
 
-- `release_run/stage1_manifest.json`
-- `release_run/stage1_inputs/structure/scf.inp`
-- `release_run/stage1_inputs/pseudos/*.UPF`
-- `release_run/stage1_inputs/mode_pairs/selected_mode_pairs.json`
+1. 在 `159.226.208.67` 跑 `stage1`
+2. 导出 `stage1` handoff bundle
+3. 在 `100.101.235.12` 导入这个 bundle
+4. 跑 `stage2`
+5. 视情况导出 `stage2` handoff bundle，或直接原地继续
+6. 在 `100.101.235.12` 跑 `stage3`
 
-### Stage 2 -> Stage 3
+handoff 包继续保持 beta 的核心约束：manifest 内路径全部相对于导入后的 run root。
 
-必须复制：
+## 输入文件要求
 
-- `release_run/stage2_manifest.json`
-- `release_run/stage2_outputs/chgnet/screening/pair_ranking.csv`
-- `release_run/stage2_outputs/chgnet/screening/pair_ranking.json`
-- `release_run/stage2_outputs/chgnet/screening/single_backend_ranking.json`
+每个体系目录必须包含：
 
-这就是为什么这套包适合跨机器断点续算。
+- `structure.cif`
+- `system.json`
+- `pseudos/*.UPF`
 
-```mermaid
-flowchart TD
-    A["机器 A\nstage1"] --> B["复制\nstage1_manifest.json\nstage1_inputs/"]
-    B --> C["机器 B\nstage2"]
-    C --> D["复制\nstage2_manifest.json\nstage2_outputs/chgnet/screening/"]
-    D --> E["机器 B 或机器 C\nstage3"]
+当前 `system.json` 结构刻意保持很小：
+
+```json
+{
+  "system_id": "wse2",
+  "formula": "WSe2",
+  "workflow_family": "tmd_monolayer_hex",
+  "preferred_pseudos": {
+    "W": "W.pz-spn-rrkjus_psl.1.0.0.UPF",
+    "Se": "Se.pz-n-rrkjus_psl.0.2.UPF"
+  },
+  "already_relaxed": false,
+  "notes": "可选备注"
+}
 ```
 
-## 常用命令
+## 目录怎么读
 
-### 交互式入口
-
-```bash
-npc
-```
-
-这是默认入口，适合第一次上手或需要交互确认阶段的人。
-
-### 显式分阶段运行
-
-在 bundle 根目录执行：
-
-```bash
-python3 server_highthroughput_workflow/run_modular_pipeline.py --stage stage1 --run-root /path/to/release_run
-python3 server_highthroughput_workflow/run_modular_pipeline.py --stage stage2 --run-root /path/to/release_run --runtime-profile medium
-python3 server_highthroughput_workflow/run_modular_pipeline.py --stage stage3 --run-root /path/to/release_run --qe-mode prepare_only
-```
-
-最常用的参数：
-
-- `--runtime-profile small|medium|large|default`
-- `--runtime-config /path/to/runtime.json`
-- `--scheduler auto|slurm|local`
-- `--qe-mode prepare_only|submit_collect`
-- `--top-n 5`
-
-## 目录结构怎么读
-
-最重要的目录是：
-
-- `qe_phonon_stage1_server_bundle/`
-  - 真实 `stage1` 运行时
+- `nonlinear_phonon_calculation/`
+  - CLI 入口和输入发现逻辑
 - `server_highthroughput_workflow/`
-  - `stage2` 和 `stage3` 的编排入口
+  - 阶段编排、运行时准备、manifest，以及 stage2/3 helper
+- `qe_phonon_stage1_server_bundle/`
+  - stage1 真实声子前端，以及收敛性测试
 - `qe_modepair_handoff_workflow/`
-  - QE 批任务的准备、提交、回收
-- `examples/wse2/`
-  - WSe2 契约样例
-- `nonlocal phonon/`
-  - 默认结构和伪势
+  - stage3 的 QE 准备与回收
+- `mlff_modepair_workflow/`
+  - stage2 的 CHGNet 筛选
+- `examples/wse2_input_example/`
+  - 用户可见输入样例
 
-## WSe2 Example
+## 当前范围
 
-`examples/wse2/` 是稳定版自带的参考样例。
+这个 beta 不会假装“跨机交接已经消失”。它做的是把交接收进运行树里，并让 `npc` 来负责主流程。
 
-它包含：
-
-- 最小 `scf.inp`
-- 伪势文件
-- 小型 `stage1_manifest.json`
-- 小型 `stage2_manifest.json`
-- 一组小型 ranking 输出
-
-它的作用是：
-
-- 让你看清 handoff 文件长什么样
-- 让你知道 stage2/stage3 实际期待读取什么
-- 让你能把样例输入替换成自己的真实运行结果
-
-它不是完整生产计算结果，也不是把所有历史输出都塞进稳定版。
-
-参见：
-
-- [examples/wse2/README.md](examples/wse2/README.md)
-- [examples/wse2/README_zh.md](examples/wse2/README_zh.md)
-
-## 运行上的几个现实说明
-
-- `stage1` 默认放在老机器，是因为目前 `ph.x` 在那边更稳定。
-- `stage2` 和 `stage3` 默认只依赖契约文件，不依赖上游机器的完整运行目录。
-- 稳定版已经去掉黄金参考数据，不再把它当作运行时刚需。
-- 稳定版也不再携带本地缓存、历史 benchmark 目录和旧的 `release_run`。
-
-## 继续往下看
-
-- stage1 说明：
-  - [qe_phonon_stage1_server_bundle/README.md](qe_phonon_stage1_server_bundle/README.md)
-  - [qe_phonon_stage1_server_bundle/README_zh.md](qe_phonon_stage1_server_bundle/README_zh.md)
-- stage2/stage3 说明：
-  - [server_highthroughput_workflow/README.md](server_highthroughput_workflow/README.md)
-  - [server_highthroughput_workflow/README_zh.md](server_highthroughput_workflow/README_zh.md)
+它也不会覆盖当前 GitHub 上的正式稳定版。这个 beta 是为了验证一套更干净的输入模型和目录结构。

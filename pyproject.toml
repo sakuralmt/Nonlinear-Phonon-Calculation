@@ -42,10 +42,6 @@ include = [
   "server_highthroughput_workflow*",
   "qe_phonon_stage1_server_bundle*",
   "mlff_modepair_workflow*",
-  "hex_qgamma_qpair_workflow*",
   "qe_modepair_handoff_workflow*",
 ]
 namespaces = true
-
-[tool.setuptools.package-data]
-nonlinear_phonon_calculation = ["resources/**/*"]

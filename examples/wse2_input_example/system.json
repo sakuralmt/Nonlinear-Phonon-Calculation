@@ -1,0 +1,11 @@
+{
+  "system_id": "wse2",
+  "formula": "WSe2",
+  "workflow_family": "tmd_monolayer_hex",
+  "preferred_pseudos": {
+    "W": "W.pz-spn-rrkjus_psl.1.0.0.UPF",
+    "Se": "Se.pz-n-rrkjus_psl.0.2.UPF"
+  },
+  "already_relaxed": false,
+  "notes": "Beta input example for TUI-driven staged workflow."
+}

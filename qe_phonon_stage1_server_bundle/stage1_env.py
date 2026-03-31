@@ -223,7 +223,7 @@ def _build_stage_specs() -> dict[str, dict]:
             "binary": "q2r.x",
             "default_nodes": Q2R_NODES,
             "default_tasks_per_node": Q2R_MPI_TASKS,
-            "task_cap": 1,
+            "task_cap": max(1, int(Q2R_MPI_TASKS)),
             "allow_multi_node": False,
         },
         "matdyn": {

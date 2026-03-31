@@ -1,323 +1,301 @@
-# Nonlinear Phonon Calculation
+# Nonlinear Phonon Calculation Beta
 
 [English](README.md) | [中文](README_zh.md)
 
-This package is a staged workflow for nonlinear phonon screening and QE recheck.
-It is built for the practical case where one machine is good at phonon frontend
-work and another machine is better suited for screening and large batches of QE
-single-point jobs.
+This beta is a structural rewrite of the staged workflow. It keeps the public
+stable release untouched and focuses on one thing: make the package operate as
+two clean trees driven by `npc`, instead of a bundle full of mixed-in sample
+inputs and hand-edited contracts.
 
-The bundle is organized around three explicit stages:
+For the current call-path view of the beta tree, see
+[ARCHITECTURE.md](/Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-tui-beta/ARCHITECTURE.md).
 
-- `stage1`: start from `scf.inp`, run the QE phonon frontend, and generate
-  `selected_mode_pairs.json`
-- `stage2`: read the `stage1` handoff files and rank candidate mode pairs with
-  CHGNet
-- `stage3`: read the `stage2` handoff files and launch QE top-5 recheck jobs
+The intended user experience is:
 
-This is the stable operator-facing bundle. It does not ship local caches,
-historical run directories, or golden-reference benchmark data.
+1. prepare one system directory under an external input root
+2. run `npc`
+3. choose the system and the stage
+4. let the workflow create its own QE inputs, internal contracts, and run tree
+
+The operator should not need to understand `stage1_manifest.json` or
+`stage2_manifest.json` before the first run. Those files still exist, but they
+are internal runtime handoff files.
+
+## What Is In This Beta
+
+This beta separates three concerns.
+
+### 1. Code tree
+
+This repository is the code tree. It contains:
+
+- workflow code
+- TUI launcher
+- documentation
+- input examples
+- reusable algorithm modules
+
+It should not contain user-specific CIF files, user-specific pseudopotential
+sets, or historical run directories.
+
+### 2. External input tree
+
+User input lives outside the code tree, under an input root such as:
+
+```text
+/Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs/
+  wse2/
+    structure.cif
+    system.json
+    pseudos/
+      W.pz-spn-rrkjus_psl.1.0.0.UPF
+      Se.pz-n-rrkjus_psl.0.2.UPF
+```
+
+Each system directory is self-contained.
+
+### 3. Runtime tree
+
+Each run creates its own runtime tree under a runs root, for example:
+
+```text
+.../Nonlinear-Phonon-Calculation-runs/
+  wse2/
+    wse2_20260331_235959/
+      contracts/
+      logs/
+      stage1/
+      stage2/
+      stage3/
+```
+
+The runtime tree is where internal contracts and stage outputs live. It is not
+the user input tree.
 
 ## Quick Start
 
-### 1. Install the bundle
+### Prepare one system directory
 
-From the bundle root:
+Use the bundled WSe2 example as a template:
+
+- [examples/wse2_input_example/README.md](/Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-tui-beta/examples/wse2_input_example/README.md)
+
+At minimum, each system needs:
+
+- `structure.cif`
+- `system.json`
+- `pseudos/*.UPF`
+
+### Run the TUI
+
+From the beta root:
 
 ```bash
 ./install.sh
+npc --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs --system wse2
 ```
 
-For a packaging-validation install:
+You can also use the compatibility entrypoints:
 
 ```bash
-NPC_INSTALL_MODE=wheel ./install.sh
+./tui --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs --system wse2
+python3 start_release.py --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs --system wse2
 ```
 
-The operator-facing command is:
+### Common stage-specific commands
+
+Run only stage1:
 
 ```bash
-npc
+python3 start_release.py \
+  --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs \
+  --system wse2 \
+  --stage stage1 \
+  --qe-relax yes
 ```
 
-Compatibility entrypoints are still present:
+Continue the latest run with stage2:
 
 ```bash
-./tui
-python3 start_release.py
+python3 start_release.py \
+  --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs \
+  --system wse2 \
+  --stage stage2
 ```
 
-### 2. Recommended host split
-
-- `stage1`: a Slurm host suited for the QE phonon frontend
-- `stage2` and `stage3`: a machine suited for CHGNet screening and QE batch jobs
-
-This split is intentional.
-
-- `stage1` is the expensive phonon frontend and is best run on a host with a
-  stable Slurm setup for `pw.x`, `ph.x`, `q2r.x`, and `matdyn.x`.
-- `stage2` is CPU screening and benefits from a machine with predictable CPU
-  throughput and thread control.
-- `stage3` is a large batch of QE single-point jobs and is easier to manage
-  independently from the phonon frontend.
-
-The bundle does not automate SSH handoff. Machines are joined by copying the
-contract files under `release_run/`.
-
-### Packaging target: user-facing cross-machine handoff
-
-The next packaged `tui/npc` target has already been validated in the beta tree
-as a user-facing command flow. The intended commands are:
+Continue the latest run with stage3:
 
 ```bash
-npc --handoff-export stage1 --run-root <run_root> --output <stage1_bundle.tar.gz>
-npc --handoff-export stage2 --run-root <run_root> --output <stage2_bundle.tar.gz>
-npc --handoff-import --bundle <bundle.tar.gz> --run-root <new_run_root>
-npc --run-root <new_run_root> --status
+python3 start_release.py \
+  --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs \
+  --system wse2 \
+  --stage stage3
 ```
 
-Validated machine split:
+The launcher chooses the latest run root for the selected system unless
+`--run-root` is provided explicitly.
 
-- `stage1`: `159.226.208.67:33223`
-- `stage2/3`: `100.101.235.12`
-- recommended runtime env on `100.101.235.12`: `qiyan-ht`
-
-The full integration and packaging handoff spec is recorded in:
-
-- [packaging/TUI_CROSS_MACHINE_BUILD_SPEC_2026-03-31.md](packaging/TUI_CROSS_MACHINE_BUILD_SPEC_2026-03-31.md)
-
-### 3. Fastest path to a real run
-
-On the stage1 machine:
+Show read-only status for the latest detected run:
 
 ```bash
-npc
+npc --status
 ```
 
-Choose:
-
-- `Run QE structure relaxation first?` -> `yes`
-- `Which stage to run?` -> `stage1`
-
-This produces:
-
-- `release_run/stage1_manifest.json`
-- `release_run/stage1_inputs/`
-
-Copy those two items to the stage2/3 machine, then run:
+Show status for a specific system or run root:
 
 ```bash
-python3 server_highthroughput_workflow/run_modular_pipeline.py \
-  --stage stage2 \
-  --run-root /path/to/release_run \
-  --runtime-profile medium
+npc --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs --system wse2 --status
+npc --run-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-runs/wse2/wse2_20260331_235959 --status
 ```
 
-Then continue with:
+Export a cross-machine handoff after stage1 or stage2:
 
 ```bash
-python3 server_highthroughput_workflow/run_modular_pipeline.py \
-  --stage stage3 \
-  --run-root /path/to/release_run \
-  --qe-mode submit_collect
+npc --handoff-export stage1 --run-root /path/to/run_root --output /tmp/wse2_stage1_handoff.tar.gz
+npc --handoff-export stage2 --run-root /path/to/run_root --output /tmp/wse2_stage2_handoff.tar.gz
 ```
 
-If you only want to confirm that stage3 prepares the QE batch correctly:
+Import a handoff bundle on another machine:
 
 ```bash
-python3 server_highthroughput_workflow/run_modular_pipeline.py \
-  --stage stage3 \
-  --run-root /path/to/release_run \
-  --qe-mode prepare_only
+npc --handoff-import --bundle /tmp/wse2_stage1_handoff.tar.gz --run-root /path/to/new_run_root
 ```
 
-## What The Package Actually Does
+Run convergence tuning for the selected workflow family:
 
-The workflow is deliberately staged because the three parts solve different
-problems.
+```bash
+python3 start_release.py \
+  --input-root /Users/lmtsakura/qiyan_shared/testing/Nonlinear-Phonon-Calculation-inputs \
+  --system wse2 \
+  --stage tune \
+  --qe-relax no
+```
+
+## Workflow Model
 
 ```mermaid
 flowchart LR
-    A["stage1\nQE phonon frontend"] --> B["stage1 manifest\nselected_mode_pairs.json\nscf.inp\npseudos"]
-    B --> C["stage2\nCHGNet screening"]
-    C --> D["stage2 manifest\nranking JSON and CSV"]
-    D --> E["stage3\nQE top5 recheck"]
-    E --> F["qe_ranking.json\nand QE job outputs"]
+    A["External input tree\nstructure.cif + pseudos + system.json"] --> B["npc / tui"]
+    B --> C["stage1\nQE phonon frontend"]
+    C --> D["contracts/stage1.manifest.json"]
+    D --> E["stage2\nCHGNet screening"]
+    E --> F["contracts/stage2.manifest.json"]
+    F --> G["stage3\nQE top5 recheck"]
+    G --> H["contracts/stage3.manifest.json"]
 ```
 
 ### Stage 1
 
-`stage1` is the phonon frontend. It takes the crystal structure, runs the QE
-phonon stack, extracts the screened eigenvectors, and produces the mode-pair
-input used by later stages.
+`stage1` now starts from `structure.cif`, not from a package-internal
+`scf.inp`.
 
-The default stage1 path is:
+The beta path is:
 
-1. optional `vc-relax`
-2. screen the q-point set used for the nonlinear workflow
-3. run `pw.x -> ph.x -> q2r.x -> matdyn.x`
-4. extract eigenvectors and frequencies
-5. select candidate mode pairs
-6. package the handoff files
+1. read `structure.cif`, `system.json`, and `pseudos/`
+2. generate an internal QE input under the runtime tree
+3. optionally run QE relax
+4. run the phonon frontend
+5. extract screened eigenvectors
+6. generate `mode_pairs.selected.json`
+7. write `contracts/stage1.manifest.json`
 
-The current stable defaults use the convergence-tested balanced phonon profile:
+### Tuning
 
-- `ecutwfc = 100`
-- `ecutrho = 1000`
-- `primitive_k_mesh = 12x12x1`
-- `conv_thr = 1.0d-10`
-- `degauss = 1.0d-10`
-- `q-grid = 6x6x1`
+`tune` is a TUI-driven helper stage for convergence testing.
+
+It uses `workflow_family` from `system.json`, runs a family-aware QE parameter
+scan, and writes reusable profile selections into the stage1 runtime bundle.
+Those selected profiles are then picked up automatically by
+`qe_phonon_stage1_server_bundle/step1_frontend.py`.
 
 ### Stage 2
 
-`stage2` reads the `stage1` handoff and runs CHGNet screening on the generated
-mode pairs. It does not need the original stage1 run directory. It only needs
-the packaged contract.
-
-The default stable path uses:
-
-- `strategy = coarse_to_fine`
-- `coarse_grid_size = 5`
-- `full_grid_size = 9`
-- `refine_top_k = 24`
-- `batch_size = 16`
-- `num_workers = 2`
-- `torch_threads = 16`
-
-The output is a ranking of mode pairs, written both as CSV and JSON.
+`stage2` reads `contracts/stage1.manifest.json` from the selected run root and
+produces CHGNet ranking outputs plus `contracts/stage2.manifest.json`.
 
 ### Stage 3
 
-`stage3` reads the `stage2` manifest, selects the top 5 candidates, generates
-QE input directories, and optionally submits the full recheck batch.
+`stage3` reads `contracts/stage2.manifest.json`, prepares QE top-5 recheck
+jobs, and writes `contracts/stage3.manifest.json` as soon as preparation is
+complete.
 
-The stable default is:
+If `stage3/qe/<backend>/run_manifest.json` already exists, rerunning `npc`
+reuses that prepared QE batch instead of regenerating inputs. If
+`results/qe_ranking.json` already exists and submission has fully completed,
+`npc` marks the stage as completed and reuses the collected QE result.
 
-- `top_n = 5`
-- QE preset `pes_fast`
+`npc --status` prints:
 
-`stage3` now writes `stage3_manifest.json` as soon as the QE batch is prepared.
-It does not wait for the whole batch to finish before recording the handoff.
+- QE run root
+- prepared job count
+- submission progress
+- final QE state
+- resume mode
+- top QE ranking rows
 
-## File Contracts
+This removes the need to inspect `submission_log.json` or `qe_ranking.json`
+manually for normal monitoring.
 
-The key design rule of this package is that each stage can hand off to the next
-one by copying a small, explicit file set.
+## Cross-machine handoff
 
-### Stage 1 -> Stage 2
+This beta now treats cross-machine continuation as an explicit first-class
+workflow instead of an operator-only directory copy.
 
-Required files:
+Recommended split:
 
-- `release_run/stage1_manifest.json`
-- `release_run/stage1_inputs/structure/scf.inp`
-- `release_run/stage1_inputs/pseudos/*.UPF`
-- `release_run/stage1_inputs/mode_pairs/selected_mode_pairs.json`
+1. run `stage1` on `159.226.208.67`
+2. export a `stage1` handoff bundle
+3. import that bundle on `100.101.235.12`
+4. run `stage2`
+5. export a `stage2` handoff bundle or continue in place
+6. run `stage3` on `100.101.235.12`
 
-### Stage 2 -> Stage 3
+The handoff bundle preserves the beta invariant that manifest paths remain
+relative to the imported run root.
 
-Required files:
+## Required Input Files
 
-- `release_run/stage2_manifest.json`
-- `release_run/stage2_outputs/chgnet/screening/pair_ranking.csv`
-- `release_run/stage2_outputs/chgnet/screening/pair_ranking.json`
-- `release_run/stage2_outputs/chgnet/screening/single_backend_ranking.json`
+Each system directory must contain:
 
-This is what makes cross-machine resume practical. You do not need to keep the
-entire previous machine state alive.
+- `structure.cif`
+- `system.json`
+- `pseudos/*.UPF`
 
-```mermaid
-flowchart TD
-    A["Machine A\nstage1"] --> B["copy\nstage1_manifest.json\nstage1_inputs/"]
-    B --> C["Machine B\nstage2"]
-    C --> D["copy\nstage2_manifest.json\nstage2_outputs/chgnet/screening/"]
-    D --> E["Machine B or C\nstage3"]
+The current `system.json` schema is intentionally small:
+
+```json
+{
+  "system_id": "wse2",
+  "formula": "WSe2",
+  "workflow_family": "tmd_monolayer_hex",
+  "preferred_pseudos": {
+    "W": "W.pz-spn-rrkjus_psl.1.0.0.UPF",
+    "Se": "Se.pz-n-rrkjus_psl.0.2.UPF"
+  },
+  "already_relaxed": false,
+  "notes": "Optional free-form note"
+}
 ```
-
-## Recommended Commands
-
-### Full interactive launcher
-
-```bash
-npc
-```
-
-Use this when you want the package to guide the run interactively.
-
-### Explicit stage execution
-
-Run from the bundle root:
-
-```bash
-python3 server_highthroughput_workflow/run_modular_pipeline.py --stage stage1 --run-root /path/to/release_run
-python3 server_highthroughput_workflow/run_modular_pipeline.py --stage stage2 --run-root /path/to/release_run --runtime-profile medium
-python3 server_highthroughput_workflow/run_modular_pipeline.py --stage stage3 --run-root /path/to/release_run --qe-mode prepare_only
-```
-
-Common useful options:
-
-- `--runtime-profile small|medium|large|default`
-- `--runtime-config /path/to/runtime.json`
-- `--scheduler auto|slurm|local`
-- `--qe-mode prepare_only|submit_collect`
-- `--top-n 5`
 
 ## Directory Layout
 
-The bundle root is meant to be readable. The most important directories are:
-
-- `qe_phonon_stage1_server_bundle/`
-  - real stage1 runtime
+- `nonlinear_phonon_calculation/`
+  - CLI entrypoints and input discovery
 - `server_highthroughput_workflow/`
-  - stage2 and stage3 orchestration
+  - stage orchestration, runtime preparation, manifests, and the stage2/3 pipeline helper
+- `qe_phonon_stage1_server_bundle/`
+  - real phonon frontend runtime used by stage1, including convergence tuning
 - `qe_modepair_handoff_workflow/`
-  - QE batch preparation, submission, and collection helpers
-- `examples/wse2/`
-  - bundled WSe2 example and contract sample
-- `nonlocal phonon/`
-  - default structure and pseudopotentials shipped with the package
+  - QE preparation and collection helpers for stage3
+- `mlff_modepair_workflow/`
+  - CHGNet screening code used by stage2
+- `examples/wse2_input_example/`
+  - user-facing example input directory
 
-## WSe2 Example
+## Current Scope
 
-`examples/wse2/` is the reference example shipped with the stable bundle.
+This beta does not try to hide that cross-machine handoff still exists. It only
+moves that handoff into the runtime tree and puts `npc` in charge of it.
 
-It includes:
-
-- a minimal `scf.inp`
-- pseudopotentials
-- a contract-style `stage1_manifest.json`
-- a contract-style `stage2_manifest.json`
-- a small set of ranking outputs for handoff inspection
-
-It is meant to show:
-
-- how the handoff files are organized
-- what later stages expect to read
-- how to replace example inputs with your own run products
-
-It is not a bundled full production run.
-
-See:
-
-- [examples/wse2/README.md](examples/wse2/README.md)
-- [examples/wse2/README_zh.md](examples/wse2/README_zh.md)
-
-## Operational Notes
-
-- `stage1` is designed for the older multi-node cluster because `ph.x` has been
-  more stable there.
-- `stage2` and `stage3` are designed to be resumable from file contracts.
-- The stable bundle does not depend on the removed golden-reference dataset.
-- The stable bundle does not include historical run caches or local benchmark
-  directories.
-
-## Where To Read Next
-
-- Stage1 details:
-  - [qe_phonon_stage1_server_bundle/README.md](qe_phonon_stage1_server_bundle/README.md)
-  - [qe_phonon_stage1_server_bundle/README_zh.md](qe_phonon_stage1_server_bundle/README_zh.md)
-- Stage2 and Stage3 details:
-  - [server_highthroughput_workflow/README.md](server_highthroughput_workflow/README.md)
-  - [server_highthroughput_workflow/README_zh.md](server_highthroughput_workflow/README_zh.md)
-- Chinese version:
-  - [README_zh.md](README_zh.md)
+It also does not replace the public stable release. This is the restructuring
+surface where the cleaner input model is being validated.

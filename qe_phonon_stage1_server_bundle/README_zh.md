@@ -1,6 +1,6 @@
 # QE 声子 Stage1 运行时
 
-这个目录就是稳定版里真实的 `stage1`。
+这个目录就是 beta 里真实的 `stage1`。
 
 它只负责声子前端，不负责 CHGNet 筛选，也不负责 QE top5 复核。
 
@@ -16,6 +16,8 @@
 
 这些东西之后会交给 `stage2`。
 
+现在 q 点筛选、本征矢提取、模式选择和 mode-pair 生成脚本已经并回这个目录下的 `qpair_tools/`，不再拆成另一个顶层工作流目录。
+
 ## Quick Start
 
 这个运行时默认对应：
@@ -26,11 +28,11 @@
 推荐顺序：
 
 ```bash
-python3 assess_stage1_env.py
+python3 ops/assess_stage1_env.py
 python3 run_all.py
 ```
 
-`assess_stage1_env.py` 会探测：
+`ops/assess_stage1_env.py` 会探测：
 
 - QE 可执行文件
 - Slurm 分区
@@ -38,6 +40,24 @@ python3 run_all.py
 - 各个 frontend 子步骤的资源布局
 
 `run_all.py` 才是真正执行 stage1 的入口。
+
+beta 启动器还额外提供了一个 tuning 路径：
+
+```bash
+python3 ../start_release.py --input-root <input_root> --system <system_id> --stage tune
+```
+
+这条路径会运行 `convergence/autotune.py`，按 `workflow_family` 选 profile，
+并写出：
+
+```text
+qe_phonon_pes_run/results/selected_profiles.json
+```
+
+`step1_frontend.py` 如果看到这个文件，会自动读取。
+
+对 TMDS 单层体系，这里的声子分支现在采用更严格的几何和受力阈值，不再沿用前一版 beta
+里偏松的口径；即使进入 fallback，也只会做有限度放宽。
 
 ## 运行流程
 
@@ -71,10 +91,10 @@ flowchart TD
 
 资源是按 frontend 子步骤拆开的，不是全程用一套 MPI：
 
-- `pw`：`1 node x 24 MPI`
-- `ph`：`4 nodes x 24 MPI`
-- `q2r`：`1 node x 1 MPI`
-- `matdyn`：`1 node x 24 MPI`
+- `pw`：`1 node x 48 MPI`
+- `ph`：`1 node x 24 MPI`
+- `q2r`：`1 node x 48 MPI`
+- `matdyn`：`1 node x 48 MPI`
 
 这样做是因为 `ph.x` 和 `matdyn.x` 的并行行为本来就不一样。
 
@@ -96,10 +116,10 @@ qe_phonon_pes_run/
 - `qe_phonon_pes_run/matdyn/qeph.eig`
 - `qe_phonon_pes_run/matdyn/qeph.freq`
 
-当这层通过稳定版 launcher 进入后续打包步骤时，会进一步生成：
+当这层通过 beta launcher 进入后续打包步骤时，会进一步生成：
 
-- `release_run/stage1_inputs/mode_pairs/selected_mode_pairs.json`
-- `release_run/stage1_manifest.json`
+- `stage1/outputs/mode_pairs.selected.json`
+- `contracts/stage1.manifest.json`
 
 ## 说明
 

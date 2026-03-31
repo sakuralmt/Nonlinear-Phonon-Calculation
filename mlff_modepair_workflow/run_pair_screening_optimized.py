@@ -36,8 +36,6 @@ from core import (
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT_DIR = Path(__file__).resolve().parent
 
-DEFAULT_MODE_PAIRS = ROOT / "hex_qgamma_qpair_workflow" / "hex_qgamma_qpair_run" / "mode_pairs" / "selected_mode_pairs.json"
-DEFAULT_STRUCTURE = ROOT / "nonlocal phonon" / "scf.inp"
 DEFAULT_OUT_ROOT = SCRIPT_DIR / "runs"
 
 A_MIN = -2.0
@@ -53,8 +51,8 @@ def parse_args():
     p.add_argument("--device", type=str, default="auto")
     p.add_argument("--model", type=str, default="r2scan")
     p.add_argument("--run-tag", type=str, default=None, help="Optional output subdirectory tag")
-    p.add_argument("--mode-pairs-json", type=str, default=str(DEFAULT_MODE_PAIRS))
-    p.add_argument("--structure", type=str, default=str(DEFAULT_STRUCTURE))
+    p.add_argument("--mode-pairs-json", type=str, required=True)
+    p.add_argument("--structure", type=str, required=True)
     p.add_argument("--golden-fit-json", type=str, default=None)
     p.add_argument("--golden-ref-grid", type=str, default=None)
     p.add_argument("--output-root", type=str, default=str(DEFAULT_OUT_ROOT))

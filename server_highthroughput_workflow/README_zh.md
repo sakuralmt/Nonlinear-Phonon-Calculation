@@ -1,187 +1,98 @@
-# 服务器高通量工作流
+# Server High-Throughput Workflow
 
-这个目录负责 `stage2` 和 `stage3`。
+这个目录是 beta TUI 背后的编排层。
 
-它的前提是：`stage1` 已经在别的地方完成，并且你已经拿到了标准 handoff 文件。接下来这层只负责继续往下跑，不负责回头重做声子前端。
+在 beta 结构里，用户应该从：
 
-当前默认机器分工是：
+- 一个外部输入根目录
+- 一个 `system_id`
+- `npc` 启动器
 
-- `stage1`：适合 QE 声子前端的 Slurm 机器
-- `stage2/3`：适合 CHGNet 筛选和 QE 批量复核的机器
+开始使用。这里的脚本是启动器背后的执行引擎，不是用户的主入口。
 
-包内不会自动 SSH 到上游机器，而是要求你把契约文件复制过来，然后继续执行。
+## 这个目录负责什么
 
-## Quick Start
+- 发现并校验一个体系目录
+- 为一次运行准备 runtime tree
+- 生成和解析内部 stage contract
+- 运行面向 stage1 的 family-aware 收敛性测试
+- 执行 `stage2` 筛选
+- 执行 `stage3` 的 QE top-5 准备与提交
 
-在 `stage2/3` 机器上的 bundle 根目录执行：
+## 运行目录结构
 
-```bash
-bash server_highthroughput_workflow/bootstrap_server_env.sh
-python3 server_highthroughput_workflow/assess_chgnet_env.py
-python3 server_highthroughput_workflow/run_modular_pipeline.py \
-  --stage stage2 \
-  --run-root /path/to/release_run \
-  --runtime-profile medium
-python3 server_highthroughput_workflow/run_modular_pipeline.py \
-  --stage stage3 \
-  --run-root /path/to/release_run \
-  --qe-mode submit_collect
+beta 的运行树固定为：
+
+```text
+runs/<system_id>/<run_id>/
+  contracts/
+    stage1.manifest.json
+    stage2.manifest.json
+    stage3.manifest.json
+  logs/
+  stage1/
+  stage2/
+  stage3/
 ```
 
-如果你此时只想确认 QE 目录和提交逻辑是否正确，不想马上交整批任务：
+`stage2` 读取 `contracts/stage1.manifest.json`。  
+`stage3` 读取 `contracts/stage2.manifest.json`。
 
-```bash
-python3 server_highthroughput_workflow/run_modular_pipeline.py \
-  --stage stage3 \
-  --run-root /path/to/release_run \
-  --qe-mode prepare_only
-```
+正常使用时，用户不需要手工把这些文件路径敲到命令行里。
 
-## 这层读取什么
+## 主要文件
 
-### Stage 2 的输入
-
-`stage2` 读取：
-
-- `stage1_manifest.json`
-- `stage1_inputs/`
-
-也就是说，`stage2` 真正需要的是：
-
-- `scf.inp`
-- 伪势
-- `selected_mode_pairs.json`
-
-### Stage 3 的输入
-
-`stage3` 读取：
-
-- `stage2_manifest.json`
-
-然后再沿着 manifest 回到 `stage1` 契约里去找结构、伪势和 mode pairs。
-
-稳定版现在的设计规则很简单：
-
-- `stage2` 只依赖 `stage1` 契约
-- `stage3` 只依赖 `stage2` 契约
-- 不靠隐藏的本地历史目录继续跑
-
-## 这层是怎么工作的
-
-```mermaid
-flowchart LR
-    A["stage1 契约"] --> B["stage2\nCHGNet 筛选"]
-    B --> C["stage2 manifest"]
-    C --> D["stage3\nQE top5 准备 / 提交"]
-```
-
-这里最重要的脚本和文件是：
-
-- `bootstrap_server_env.sh`
-  - 准备 `qiyan-ht` conda 环境
-- `assess_chgnet_env.py`
-  - 在当前机器上评估 CHGNet CPU 推理速度
-  - 识别实时 Slurm 分区配置
-- `scheduler.py`
-  - 处理 `auto | slurm | local`
 - `run_modular_pipeline.py`
-  - `stage1 | stage2 | stage3 | all` 的分阶段入口
-- `run_server_pipeline.py`
-  - screening 到 QE 的控制器
+  - `npc` 背后的分阶段驱动器
+- `system_runtime.py`
+  - 从 `structure.cif`、`system.json` 和 `pseudos/` 生成内部运行快照
+- `real_stage1_phonon.py`
+  - 把真实 stage1 声子前端和 tuning 阶段接进共享 runtime tree
+- `stage23_pipeline.py`
+  - `run_modular_pipeline.py` 在 stage2/stage3 时调用的内部 helper
 - `stage_contracts.py`
-  - handoff manifest 的结构定义
+  - contract 结构和路径处理
+- `qe_input_utils.py`
+  - CIF 到 QE 输入的生成工具
 
-## 运行时配置优先级
+`server_highthroughput_workflow/ops/` 下面的文件属于运维/诊断辅助，不是
+正常 `npc` 主线的一部分。
 
-CHGNet 筛选这层会按下面顺序选 runtime 配置：
+## Stage2 输出
 
-1. `--runtime-config`
-2. `--runtime-profile`
-3. `server_highthroughput_workflow/env_reports/chgnet_runtime_config.json`
-4. `server_highthroughput_workflow/portable_cpu_config.json`
-5. 脚本内置 CPU 推断
+筛选层输出目录：
 
-所以一台机器只要 benchmark 一次，后面就可以直接复用，不需要每次手改参数。
-
-常用覆盖项：
-
-- `--runtime-profile small|medium|large|default`
-- `--runtime-config /path/to/runtime.json`
-- `--scheduler auto|slurm|local`
-- `--qe-mode prepare_only|submit_collect`
-
-## 当前默认筛选策略
-
-稳定版默认配置是：
-
-- `backend = chgnet`
-- `strategy = coarse_to_fine`
-- `coarse_grid_size = 5`
-- `full_grid_size = 9`
-- `refine_top_k = 24`
-- `batch_size = 16`
-- `num_workers = 2`
-- `torch_threads = 16`
-
-筛选结果会写到：
-
-```bash
-release_run/stage2_outputs/chgnet/screening/
+```text
+stage2/outputs/chgnet/screening/
 ```
 
-## 当前默认 stage3 行为
+关键文件：
 
-稳定版默认是：
+- `pair_ranking.csv`
+- `pair_ranking.json`
+- `single_backend_ranking.json`
+- `runtime_config_used.json`
+- `run_meta.json`
+- `contracts/stage2.manifest.json`
 
-- `top_n = 5`
-- QE preset `pes_fast`
+## Stage3 输出
 
-关键输出是：
+QE 复核层输出目录：
 
-- `release_run/stage3_manifest.json`
-- `release_run/stage3_qe/chgnet/run_manifest.json`
-- `release_run/stage3_qe/chgnet/modular_stage3_status.json`
-
-现在 `stage3_manifest.json` 会在 QE 批任务准备完成后立即写出。
-
-## 常用命令
-
-### 只跑 stage2
-
-```bash
-python3 server_highthroughput_workflow/run_modular_pipeline.py \
-  --stage stage2 \
-  --run-root /path/to/release_run \
-  --runtime-profile medium
+```text
+stage3/qe/chgnet/
 ```
 
-### 只做 stage3 准备
+关键文件：
 
-```bash
-python3 server_highthroughput_workflow/run_modular_pipeline.py \
-  --stage stage3 \
-  --run-root /path/to/release_run \
-  --qe-mode prepare_only
-```
+- `selected_top_pairs.csv`
+- `run_manifest.json`
+- `modular_stage3_status.json`
+- `contracts/stage3.manifest.json`
 
-### stage3 直接提交并回收
+`contracts/stage3.manifest.json` 会在 prepare 完成后立即写出。
 
-```bash
-python3 server_highthroughput_workflow/run_modular_pipeline.py \
-  --stage stage3 \
-  --run-root /path/to/release_run \
-  --qe-mode submit_collect
-```
+## 说明
 
-### 手动做环境评估
-
-```bash
-python3 server_highthroughput_workflow/assess_chgnet_env.py
-source server_highthroughput_workflow/env_reports/slurm_submit_defaults.sh
-```
-
-## 几个现实说明
-
-- 如果机器没有 Slurm，`--scheduler auto` 会退化成 local screening。
-- 如果 bundle 默认 partition / walltime 不适配当前集群，运行时会先探测 Slurm，再回退到可用设置。
-- 稳定版已经去掉黄金参考数据，不再把它当运行刚需。
+- 这个 beta 仍然保留跨机器 handoff，但 handoff 已经收进 runtime tree，不再让用户去理解旧 bundle 内部目录。
+- 启动器在只给出 `system_id` 时，可以自动选这个体系最近一次的运行目录，继续跑 `stage2` 或 `stage3`。

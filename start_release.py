@@ -573,7 +573,7 @@ def main() -> int:
     try:
         show_stage_choices(log_path)
         log_section(log_path, "Release launcher")
-        log_line(log_path, "Launcher started.")
+        log_line(log_path, "Beta launcher started.")
         log_line(log_path, f"Input root: {input_root}")
         log_line(log_path, f"System: {system_id}")
         log_line(log_path, f"Run root: {run_root}")

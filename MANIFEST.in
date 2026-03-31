@@ -8,15 +8,15 @@ recursive-include nonlinear_phonon_calculation *
 recursive-include qe_phonon_stage1_server_bundle *.py *.json *.csv *.md *.inp *.UPF
 recursive-include server_highthroughput_workflow *.py *.json *.md *.sh
 recursive-include mlff_modepair_workflow *.py *.json *.csv *.md *.dat *.png
-recursive-include hex_qgamma_qpair_workflow *.py *.json *.csv *.md *.dat *.UPF *.fc *.inp
 recursive-include qe_modepair_handoff_workflow *.py *.json *.csv *.md
-recursive-include examples *.md *.json *.csv *.inp *.UPF
+recursive-include examples *.md *.json *.csv *.inp *.UPF *.cif
 prune .github
 prune build
 prune dist
 prune n7
+prune examples/wse2
+prune nonlocal phonon
 prune nonlinear_phonon_calculation.egg-info
-prune hex_qgamma_qpair_workflow/hex_qgamma_qpair_run
 prune mlff_modepair_workflow/native_dualtrack_runs
 prune mlff_modepair_workflow/runs
 prune qe_phonon_stage1_server_bundle/inputs
@@ -24,7 +24,6 @@ prune qe_phonon_stage1_server_bundle/qe_phonon_pes_run
 prune qe_phonon_stage1_server_bundle/validated_remote
 prune qe_modepair_handoff_workflow/exports
 prune nonlinear_phonon_calculation/resources/n7
-prune nonlinear_phonon_calculation/resources/hex_qgamma_qpair_workflow/hex_qgamma_qpair_run
 global-exclude __pycache__
 global-exclude *.py[cod]
 global-exclude .DS_Store

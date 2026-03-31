@@ -18,10 +18,6 @@ except ImportError:
 
 
 ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_CONSENSUS = ROOT / "mlff_modepair_workflow" / "runs" / "consensus_chgnet_0_2_relaxed_chgnet_r2scan_relaxed_chgnet_qe_mace_20231210_l0_relaxed" / "consensus_pair_ranking.json"
-DEFAULT_MODE_PAIRS = ROOT / "hex_qgamma_qpair_workflow" / "hex_qgamma_qpair_run" / "mode_pairs" / "selected_mode_pairs.json"
-DEFAULT_SCF_TEMPLATE = ROOT / "nonlocal phonon" / "scf.inp"
-DEFAULT_PSEUDO_DIR = ROOT / "nonlocal phonon"
 DEFAULT_OUT_DIR = Path(__file__).resolve().parent / "runs" / "consensus_top5_qe"
 
 
@@ -74,10 +70,10 @@ def _write_submit_script(job_dir: Path, args, rank: int, i1: int, i2: int):
 
 def parse_args():
     p = argparse.ArgumentParser(description="Prepare QE two-mode inputs for top ranked consensus pairs")
-    p.add_argument("--consensus-json", type=str, default=str(DEFAULT_CONSENSUS))
-    p.add_argument("--mode-pairs-json", type=str, default=str(DEFAULT_MODE_PAIRS))
-    p.add_argument("--scf-template", type=str, default=str(DEFAULT_SCF_TEMPLATE))
-    p.add_argument("--pseudo-dir", type=str, default=str(DEFAULT_PSEUDO_DIR))
+    p.add_argument("--consensus-json", type=str, required=True)
+    p.add_argument("--mode-pairs-json", type=str, required=True)
+    p.add_argument("--scf-template", type=str, required=True)
+    p.add_argument("--pseudo-dir", type=str, required=True)
     p.add_argument("--output-dir", type=str, default=str(DEFAULT_OUT_DIR))
     p.add_argument("--top-n", type=int, default=5)
     p.add_argument("--ntasks", type=int, default=24)

@@ -1,194 +1,104 @@
 # Server High-Throughput Workflow
 
-This directory contains the runtime used for `stage2` and `stage3`.
+This directory contains the orchestration layer used by the beta TUI.
 
-It assumes that `stage1` has already produced a contract package and that you
-want to continue from that contract on another machine.
+In the beta layout, users should start from:
 
-Default host split:
+- one external input root
+- one `system_id`
+- the `npc` launcher
 
-- `stage1`: a Slurm host for the QE phonon frontend
-- `stage2/3`: a machine used for CHGNet screening and QE batch recheck
+This directory is the engine behind that launcher. It is not the main user
+entrypoint.
 
-The package does not SSH between hosts. You copy the handoff files yourself and
-resume from them.
+## Responsibilities
 
-## Quick Start
+- discover and validate one system directory
+- prepare the runtime tree for a run
+- generate and resolve internal stage contracts
+- run family-aware convergence tuning for stage1 presets
+- run `stage2` screening
+- run `stage3` QE top-5 preparation and submission
 
-From the bundle root on the stage2/3 machine:
+## Runtime layout
 
-```bash
-bash server_highthroughput_workflow/bootstrap_server_env.sh
-python3 server_highthroughput_workflow/assess_chgnet_env.py
-python3 server_highthroughput_workflow/run_modular_pipeline.py \
-  --stage stage2 \
-  --run-root /path/to/release_run \
-  --runtime-profile medium
-python3 server_highthroughput_workflow/run_modular_pipeline.py \
-  --stage stage3 \
-  --run-root /path/to/release_run \
-  --qe-mode submit_collect
+The beta runtime tree is:
+
+```text
+runs/<system_id>/<run_id>/
+  contracts/
+    stage1.manifest.json
+    stage2.manifest.json
+    stage3.manifest.json
+  logs/
+  stage1/
+  stage2/
+  stage3/
 ```
 
-If you only want to verify the QE directory generation and submission logic:
+`stage2` reads `contracts/stage1.manifest.json`.
 
-```bash
-python3 server_highthroughput_workflow/run_modular_pipeline.py \
-  --stage stage3 \
-  --run-root /path/to/release_run \
-  --qe-mode prepare_only
-```
+`stage3` reads `contracts/stage2.manifest.json`.
 
-## What This Layer Reads
+Users should not need to point at those files manually during a normal TUI run.
 
-### Stage 2 input
+## Main files
 
-`stage2` reads:
-
-- `stage1_manifest.json`
-- `stage1_inputs/`
-
-That means:
-
-- `scf.inp`
-- pseudos
-- `selected_mode_pairs.json`
-
-must already exist inside the run root you provide.
-
-### Stage 3 input
-
-`stage3` reads:
-
-- `stage2_manifest.json`
-
-and then resolves the stage1 contract paths referenced by that manifest.
-
-This is the rule for the stable bundle:
-
-- `stage2` depends on the stage1 contract
-- `stage3` depends on the stage2 contract
-- neither stage depends on hidden local history
-
-## How The Runtime Is Organized
-
-```mermaid
-flowchart LR
-    A["stage1 contract"] --> B["stage2\nCHGNet screening"]
-    B --> C["stage2 manifest"]
-    C --> D["stage3\nQE top5 prepare / submit"]
-```
-
-The most important files here are:
-
-- `bootstrap_server_env.sh`
-  - prepares the `qiyan-ht` conda environment
-- `assess_chgnet_env.py`
-  - benchmarks CHGNet CPU inference on the current machine
-  - inspects live Slurm partition settings
-- `scheduler.py`
-  - resolves `auto | slurm | local`
 - `run_modular_pipeline.py`
-  - stage-aware runner for `stage1 | stage2 | stage3 | all`
-- `run_server_pipeline.py`
-  - controller for the screening-to-QE path
+  - stage-aware driver behind `npc`
+- `system_runtime.py`
+  - builds an internal runtime snapshot from `structure.cif`, `system.json`, and
+    `pseudos/`
+- `real_stage1_phonon.py`
+  - connects the stage1 phonon frontend and tuning stage to the shared runtime tree
+- `stage23_pipeline.py`
+  - internal helper used by `run_modular_pipeline.py` for stage2/stage3 execution
 - `stage_contracts.py`
-  - manifest schema and handoff helpers
+  - contract schema and path handling
+- `qe_input_utils.py`
+  - CIF-to-QE input generation helpers
 
-## Runtime Selection Rules
+Files under `server_highthroughput_workflow/ops/` are operator helpers, not the
+normal `npc` path.
 
-For CHGNet screening, runtime settings are resolved in this order:
+## Stage2 outputs
 
-1. `--runtime-config`
-2. `--runtime-profile`
-3. `server_highthroughput_workflow/env_reports/chgnet_runtime_config.json`
-4. `server_highthroughput_workflow/portable_cpu_config.json`
-5. built-in CPU heuristics
+The screening layer writes under:
 
-This means a machine can be tuned once and then reused without re-editing the
-workflow scripts.
-
-Useful overrides:
-
-- `--runtime-profile small|medium|large|default`
-- `--runtime-config /path/to/runtime.json`
-- `--scheduler auto|slurm|local`
-- `--qe-mode prepare_only|submit_collect`
-
-## Default Screening Behavior
-
-The stable default path is:
-
-- `backend = chgnet`
-- `strategy = coarse_to_fine`
-- `coarse_grid_size = 5`
-- `full_grid_size = 9`
-- `refine_top_k = 24`
-- `batch_size = 16`
-- `num_workers = 2`
-- `torch_threads = 16`
-
-The output ranking is written under:
-
-```bash
-release_run/stage2_outputs/chgnet/screening/
+```text
+stage2/outputs/chgnet/screening/
 ```
 
-## Default Stage3 Behavior
+Important files:
 
-The stable default path is:
+- `pair_ranking.csv`
+- `pair_ranking.json`
+- `single_backend_ranking.json`
+- `runtime_config_used.json`
+- `run_meta.json`
+- `contracts/stage2.manifest.json`
 
-- `top_n = 5`
-- QE preset `pes_fast`
+## Stage3 outputs
 
-The key outputs are:
+The QE recheck layer writes under:
 
-- `release_run/stage3_manifest.json`
-- `release_run/stage3_qe/chgnet/run_manifest.json`
-- `release_run/stage3_qe/chgnet/modular_stage3_status.json`
-
-`stage3_manifest.json` is written immediately after the QE batch is prepared.
-
-## Typical Commands
-
-### Stage 2 only
-
-```bash
-python3 server_highthroughput_workflow/run_modular_pipeline.py \
-  --stage stage2 \
-  --run-root /path/to/release_run \
-  --runtime-profile medium
+```text
+stage3/qe/chgnet/
 ```
 
-### Stage 3 prepare only
+Important files:
 
-```bash
-python3 server_highthroughput_workflow/run_modular_pipeline.py \
-  --stage stage3 \
-  --run-root /path/to/release_run \
-  --qe-mode prepare_only
-```
+- `selected_top_pairs.csv`
+- `run_manifest.json`
+- `modular_stage3_status.json`
+- `contracts/stage3.manifest.json`
 
-### Stage 3 submit and collect
-
-```bash
-python3 server_highthroughput_workflow/run_modular_pipeline.py \
-  --stage stage3 \
-  --run-root /path/to/release_run \
-  --qe-mode submit_collect
-```
-
-### Manual environment assessment
-
-```bash
-python3 server_highthroughput_workflow/assess_chgnet_env.py
-source server_highthroughput_workflow/env_reports/slurm_submit_defaults.sh
-```
+`contracts/stage3.manifest.json` is written as soon as preparation completes.
 
 ## Notes
 
-- If Slurm is unavailable and `--scheduler auto` is used, the runtime falls
-  back to local screening.
-- If the default partition or walltime is invalid for the current cluster, the
-  runtime probes the live Slurm configuration and resolves a usable fallback.
-- This stable bundle no longer depends on the removed golden-reference dataset.
+- This beta keeps cross-machine handoff, but it moves that handoff into the
+  runtime tree instead of asking users to understand old bundle-internal
+  directories.
+- The launcher can resume stage2 or stage3 by selecting the latest run root for
+  the given `system_id`.

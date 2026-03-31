@@ -1,6 +1,6 @@
 # QE Phonon Stage1 Runtime
 
-This directory is the real `stage1` runtime used by the stable bundle.
+This directory is the real `stage1` runtime used by the beta workflow.
 
 It is responsible for the phonon frontend only. It does not run CHGNet
 screening and it does not prepare QE top-5 recheck jobs.
@@ -18,6 +18,10 @@ rest of the workflow:
 
 Those outputs are later handed to `stage2`.
 
+The q-point screening, eigenvector extraction, mode selection, and mode-pair
+generation helpers now live here as `qpair_tools/`. They are no longer split
+out into a separate top-level workflow directory.
+
 ## Quick Start
 
 This runtime is intended for:
@@ -28,11 +32,11 @@ This runtime is intended for:
 Recommended order:
 
 ```bash
-python3 assess_stage1_env.py
+python3 ops/assess_stage1_env.py
 python3 run_all.py
 ```
 
-`assess_stage1_env.py` probes:
+`ops/assess_stage1_env.py` probes:
 
 - QE executables
 - Slurm partitions
@@ -40,6 +44,26 @@ python3 run_all.py
 - stage-specific node and task layout
 
 `run_all.py` executes the actual stage1 flow.
+
+The beta launcher also exposes a separate tuning path:
+
+```bash
+python3 ../start_release.py --input-root <input_root> --system <system_id> --stage tune
+```
+
+That route runs `convergence/autotune.py`, selects profiles by
+`workflow_family`, and writes:
+
+```text
+qe_phonon_pes_run/results/selected_profiles.json
+```
+
+`step1_frontend.py` will consume that file automatically when it exists.
+
+For TMDS monolayers, the phonon-side selection now uses stricter geometry and
+force thresholds than the earlier beta draft. The intent is to keep the
+phonon frontend on the tighter side and only relax thresholds modestly as a
+fallback.
 
 ## Runtime Flow
 
@@ -74,10 +98,10 @@ launcher.
 
 Resources are assigned per frontend stage, not by one global MPI setting:
 
-- `pw`: `1 node x 24 MPI`
-- `ph`: `4 nodes x 24 MPI`
-- `q2r`: `1 node x 1 MPI`
-- `matdyn`: `1 node x 24 MPI`
+- `pw`: `1 node x 48 MPI`
+- `ph`: `1 node x 24 MPI`
+- `q2r`: `1 node x 48 MPI`
+- `matdyn`: `1 node x 48 MPI`
 
 This split matters because `ph.x` and `matdyn.x` do not scale in the same way.
 
@@ -99,11 +123,11 @@ Key files:
 - `qe_phonon_pes_run/matdyn/qeph.eig`
 - `qe_phonon_pes_run/matdyn/qeph.freq`
 
-When stage1 is used through the stable release launcher, the later packaging
-step converts these frontend outputs into:
+When stage1 is used through the beta launcher, those frontend outputs are
+converted into:
 
-- `release_run/stage1_inputs/mode_pairs/selected_mode_pairs.json`
-- `release_run/stage1_manifest.json`
+- `stage1/outputs/mode_pairs.selected.json`
+- `contracts/stage1.manifest.json`
 
 ## Notes
 

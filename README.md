@@ -282,19 +282,58 @@ Recommended split:
 The handoff bundle preserves the invariant that manifest paths remain
 relative to the imported run root.
 
-## Minimum Environment
+## Software Environment
 
-The repository assumes the operator already has:
+The package is intentionally agnostic to site-local environment names. The
+required interface is a set of executables and Python modules, not a specific
+Conda environment label.
 
-- `python3`
-- `python3 -m pip`
-- a working `npc` install from `./install.sh`
+### Core requirements
 
-For actual stage execution, additional runtime tools are required:
+- `python3` and `python3 -m pip`
+- a successful `./install.sh`
+- `git` for repository checkout and update
 
-- `stage1`: `pw.x`, `ph.x`, `q2r.x`, `matdyn.x`
-- `stage2`: a working CHGNet Python environment
-- `stage3`: QE executables plus the scheduler/runtime expected by your site
+### Stage-specific runtime requirements
+
+- `stage1`
+  - Quantum ESPRESSO executables on `PATH`:
+    - `pw.x`
+    - `ph.x`
+    - `q2r.x`
+    - `matdyn.x`
+  - a scheduler/runtime combination that can run the QE phonon frontend
+- `stage2`
+  - Python modules importable in the active interpreter:
+    - `chgnet`
+    - `torch`
+    - `phonopy`
+    - `pymatgen`
+- `stage3`
+  - Quantum ESPRESSO executables on `PATH`
+  - a scheduler/runtime combination suitable for QE batch submission if
+    `submit_collect` is requested
+
+### Operational notes from the current validation runs
+
+- `stage1` is the most demanding stage with respect to QE phonon frontend
+  stability. In the validation runs, the reliable configuration was to run
+  `stage1` on a host already known to execute `ph.x` stably.
+- `stage2` depends on the Python materials stack and is comparatively easy to
+  migrate once the imported `stage1` contract is self-consistent.
+- `stage3` can be split into two modes:
+  - `--qe-mode prepare_only`: generate the QE top-5 recheck batch without job
+    submission
+  - `--qe-mode submit_collect`: submit and monitor QE jobs on a scheduler-aware
+    host
+
+### Environment activation guidance
+
+The commands in this README assume that the required executables are already
+available in the shell that launches `npc`. If your site uses Conda, modules,
+or environment scripts, activate that environment first and only then run the
+workflow commands. The repository does not assume a specific activation command
+or a specific environment name.
 
 ## Required Input Files
 

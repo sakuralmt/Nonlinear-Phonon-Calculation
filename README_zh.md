@@ -266,19 +266,53 @@ stage1 当前路径是：
 
 handoff 包继续保持一个核心约束：manifest 内路径全部相对于导入后的 run root。
 
-## 最小环境要求
+## 软件环境要求
 
-仓库默认假设操作者已经具备：
+这个包刻意不绑定任何站点内部环境名。真正需要被满足的是可执行程序和
+Python 模块接口，而不是某个特定的 Conda 环境名称。
+
+### 基础要求
 
 - `python3`
 - `python3 -m pip`
-- 通过 `./install.sh` 安装好的 `npc`
+- 成功执行过一次 `./install.sh`
+- 用于 clone / update 的 `git`
 
-实际阶段运行还需要这些运行时工具：
+### 分阶段运行时要求
 
-- `stage1`：`pw.x`、`ph.x`、`q2r.x`、`matdyn.x`
-- `stage2`：可用的 CHGNet Python 环境
-- `stage3`：QE 可执行程序，以及你所在机器可用的调度/运行环境
+- `stage1`
+  - `PATH` 中可直接调用的 Quantum ESPRESSO 可执行程序：
+    - `pw.x`
+    - `ph.x`
+    - `q2r.x`
+    - `matdyn.x`
+  - 一套能够稳定运行 QE 声子前端的调度/运行时组合
+- `stage2`
+  - 当前 Python 解释器里可导入的模块：
+    - `chgnet`
+    - `torch`
+    - `phonopy`
+    - `pymatgen`
+- `stage3`
+  - `PATH` 中可直接调用的 Quantum ESPRESSO 可执行程序
+  - 若使用 `submit_collect`，还需要机器具备适合 QE 批量提交的调度/运行环境
+
+### 基于当前验证结果的操作建议
+
+- `stage1` 对 QE 声子前端稳定性最敏感。在现有验证里，最稳妥的做法是把
+  `stage1` 放到一台已经确认能稳定执行 `ph.x` 的机器上。
+- `stage2` 的核心依赖是 Python 材料模拟栈；一旦 `stage1` contract 自洽，
+  它通常比 `stage1` 更容易迁移。
+- `stage3` 可以分成两种模式：
+  - `--qe-mode prepare_only`：只生成 QE top-5 复核批次，不提交作业
+  - `--qe-mode submit_collect`：在具备调度器的机器上提交并监控 QE 作业
+
+### 环境激活说明
+
+本文档中的命令默认假设：当你执行 `npc` 时，所需的可执行程序和 Python
+模块已经在当前 shell 中可用。如果你所在机器依赖 Conda、module system
+或站点初始化脚本，请先完成环境激活，再执行这里的命令。本仓库不预设任何
+特定的激活命令，也不预设任何特定环境名。
 
 ## 输入文件要求
 

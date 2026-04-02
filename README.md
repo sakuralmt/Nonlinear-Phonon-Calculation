@@ -119,6 +119,15 @@ This package does not assume a site-specific environment name. The required
 interface is a set of executables and Python modules available in the shell
 that launches `npc`.
 
+One-command stage environment scripts are provided under:
+
+- `ops/setup_stage1_env.sh`
+- `ops/setup_stage2_env.sh`
+- `ops/setup_stage3_env.sh`
+
+These scripts configure the Python side of the workflow in the current shell
+environment and then validate stage-specific external requirements.
+
 ### Base requirements
 
 - `python3`
@@ -129,11 +138,15 @@ that launches `npc`.
 ### Stage-specific requirements
 
 - `stage1`
+  - run `bash ops/setup_stage1_env.sh`
   - `pw.x`
   - `ph.x`
   - `q2r.x`
   - `matdyn.x`
+  - `sbatch`
+  - `squeue`
 - `stage2`
+  - run `bash ops/setup_stage2_env.sh`
   - importable Python modules:
     - `gptff`
     - `chgnet`
@@ -141,11 +154,17 @@ that launches `npc`.
     - `phonopy`
     - `pymatgen`
 - `stage3`
+  - run `bash ops/setup_stage3_env.sh`
   - QE executables on `PATH`
-  - if `submit_collect` is used, a scheduler/runtime suitable for batch QE work
+  - if `submit_collect` is used:
+    - `sbatch`
+    - `squeue`
+    - a Slurm runtime suitable for batch QE work
 
 ### Operational guidance
 
+- `stage1` depends on Slurm in the current implementation. It is not a pure
+  local frontend runner.
 - `stage1` is the most demanding stage with respect to QE phonon frontend
   stability. Run it on a host already known to execute `ph.x` reliably.
 - `stage2` is primarily a Python materials-stack workload and is comparatively
@@ -158,10 +177,38 @@ that launches `npc`.
 - `stage3` supports two modes:
   - `prepare_only`
   - `submit_collect`
+- `stage3 --qe-mode prepare_only` can be prepared without Slurm, but
+  `submit_collect` requires Slurm.
 
 If your site uses Conda, modules, or environment scripts, activate that
 environment first and only then launch `npc`. This README deliberately does not
 prescribe a site-local activation command.
+
+### Example environment setup commands
+
+Stage 1 host:
+
+```bash
+bash ops/setup_stage1_env.sh
+```
+
+Stage 2 host:
+
+```bash
+GPTFF_SOURCE=/path/to/GPTFF bash ops/setup_stage2_env.sh
+```
+
+Stage 3 host for queue submission:
+
+```bash
+bash ops/setup_stage3_env.sh
+```
+
+Stage 3 host for preparation only:
+
+```bash
+STAGE3_MODE=prepare_only bash ops/setup_stage3_env.sh
+```
 
 ## Command Reference
 

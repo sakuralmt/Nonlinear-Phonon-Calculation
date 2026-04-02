@@ -115,6 +115,14 @@ python3 start_release.py --help
 
 本包不假定任何站点本地环境名。唯一要求是：启动 `npc` 的 shell 必须已经具备所需的可执行程序和 Python 模块。
 
+仓库同时提供了按阶段划分的一键环境脚本：
+
+- `ops/setup_stage1_env.sh`
+- `ops/setup_stage2_env.sh`
+- `ops/setup_stage3_env.sh`
+
+这些脚本负责在当前 Python 环境中安装本包与所需 Python 依赖，并校验各阶段的外部条件。
+
 ### 基础要求
 
 - `python3`
@@ -125,11 +133,15 @@ python3 start_release.py --help
 ### 分阶段要求
 
 - `stage1`
+  - 建议执行：`bash ops/setup_stage1_env.sh`
   - `pw.x`
   - `ph.x`
   - `q2r.x`
   - `matdyn.x`
+  - `sbatch`
+  - `squeue`
 - `stage2`
+  - 建议执行：`bash ops/setup_stage2_env.sh`
   - 可导入的 Python 模块：
     - `gptff`
     - `chgnet`
@@ -137,11 +149,16 @@ python3 start_release.py --help
     - `phonopy`
     - `pymatgen`
 - `stage3`
+  - 建议执行：`bash ops/setup_stage3_env.sh`
   - QE 可执行文件在 `PATH` 中
-  - 若使用 `submit_collect`，还需要适合批量 QE 作业的调度环境
+  - 若使用 `submit_collect`，还需要：
+    - `sbatch`
+    - `squeue`
+    - 适合批量 QE 作业的 Slurm 调度环境
 
 ### 运行建议
 
+- 当前实现中，`stage1` 依赖 Slurm，不是纯本地前端模式。
 - `stage1` 对 QE 声子前端的稳定性要求最高，应放在已经验证过 `ph.x` 可稳定运行的宿主上执行。
 - `stage2` 主要依赖 Python 材料模拟栈，在 `stage1` contract 已生成后更容易迁移。
 - `stage2` 支持三种模型预设：
@@ -152,8 +169,35 @@ python3 start_release.py --help
 - `stage3` 支持两种模式：
   - `prepare_only`
   - `submit_collect`
+- `stage3 --qe-mode prepare_only` 可以只做准备；真正提交与回收仍依赖 Slurm。
 
 如果站点通过 Conda、module 或其他环境脚本管理软件，请先完成环境激活，再执行 `npc`。本文档不规定任何站点私有的激活命令。
+
+### 环境脚本示例
+
+Stage 1 宿主：
+
+```bash
+bash ops/setup_stage1_env.sh
+```
+
+Stage 2 宿主：
+
+```bash
+GPTFF_SOURCE=/path/to/GPTFF bash ops/setup_stage2_env.sh
+```
+
+Stage 3 宿主（提交队列作业）：
+
+```bash
+bash ops/setup_stage3_env.sh
+```
+
+Stage 3 宿主（仅 prepare，不提交）：
+
+```bash
+STAGE3_MODE=prepare_only bash ops/setup_stage3_env.sh
+```
 
 ## 命令参考
 

@@ -30,6 +30,7 @@ def parse_args():
     p.add_argument("--qe-grid", required=True)
     p.add_argument("--qe-pair-meta", required=True)
     p.add_argument("--out", required=True)
+    p.add_argument("--summary-out", default=None)
     p.add_argument("--title", default=None)
     return p.parse_args()
 
@@ -141,7 +142,9 @@ def _load_stage2(summary_path: Path, grid_path: Path, label: str) -> dict:
 def _load_qe(summary_path: Path, pair_meta_path: Path, grid_path: Path, label: str) -> dict:
     summary = json.loads(summary_path.read_text())
     pair_meta = json.loads(pair_meta_path.read_text())
-    data = np.loadtxt(grid_path, dtype=float) * RY_TO_EV
+    # QE raw grids are stored as e[a1_index, a2_index]. Transpose them into the
+    # same internal display layout used by the stage2 grids: e[a2_index, a1_index].
+    data = np.loadtxt(grid_path, dtype=float).T * RY_TO_EV
     a1 = np.array(pair_meta["a1_vals"], dtype=float)
     a2 = np.array(pair_meta["a2_vals"], dtype=float)
     e_shift = data - np.nanmin(data)
@@ -233,6 +236,30 @@ def main():
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=220, bbox_inches="tight")
     print(out)
+    if args.summary_out:
+        summary_path = Path(args.summary_out).expanduser().resolve()
+        summary_path.parent.mkdir(parents=True, exist_ok=True)
+        summary_path.write_text(
+            json.dumps(
+                {
+                    "pair_code": args.pair_code,
+                    "panels": [
+                        {
+                            "label": p["label"],
+                            "phi122_mev": p["phi122_mev"],
+                            "r2": p["r2"],
+                            "rmse_ev": p["rmse_ev"],
+                            "c10": p["c10"],
+                            "c01": p["c01"],
+                        }
+                        for p in payloads
+                    ],
+                    "artifact": str(out),
+                },
+                indent=2,
+            )
+        )
+        print(summary_path)
 
 
 if __name__ == "__main__":

@@ -20,6 +20,7 @@ def parse_args():
     p.add_argument("--summary", required=True)
     p.add_argument("--grid", required=True)
     p.add_argument("--out", required=True)
+    p.add_argument("--summary-out", default=None)
     return p.parse_args()
 
 
@@ -129,11 +130,31 @@ def main():
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=220, bbox_inches="tight")
     print(out)
+    delta_phi = quintic["phi122_mev"] - quartic["phi122_mev"]
     print(
         f"quartic phi122={quartic['phi122_mev']:.6f} meV, quintic phi122={quintic['phi122_mev']:.6f} meV, "
-        f"delta={quintic['phi122_mev']-quartic['phi122_mev']:.6f} meV; quartic rmse={quartic['rmse']:.6f} eV, "
+        f"delta={delta_phi:.6f} meV; quartic rmse={quartic['rmse']:.6f} eV, "
         f"quintic rmse={quintic['rmse']:.6f} eV"
     )
+    if args.summary_out:
+        summary_path = Path(args.summary_out).expanduser().resolve()
+        summary_path.parent.mkdir(parents=True, exist_ok=True)
+        quartic_summary = {k: v for k, v in quartic.items() if k != "fit_grid"}
+        quintic_summary = {k: v for k, v in quintic.items() if k != "fit_grid"}
+        summary_path.write_text(
+            json.dumps(
+                {
+                    "label": args.label,
+                    "pair_code": args.pair_code,
+                    "quartic": quartic_summary,
+                    "quintic": quintic_summary,
+                    "phi122_delta_mev": delta_phi,
+                    "artifact": str(out),
+                },
+                indent=2,
+            )
+        )
+        print(summary_path)
 
 
 if __name__ == "__main__":

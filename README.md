@@ -447,14 +447,19 @@ the imported run root. Cross-machine continuation should therefore use
 ## Workflow Model
 
 ```mermaid
-flowchart LR
-    A["External input tree\nstructure.cif + pseudos + system.json"] --> B["npc / tui"]
-    B --> C["stage1\nQE phonon frontend"]
-    C --> D["contracts/stage1.manifest.json"]
-    D --> E["stage2\nMLFF screening\n(default: GPTFF v2)"]
-    E --> F["contracts/stage2.manifest.json"]
-    F --> G["stage3\nQE top5 recheck"]
-    G --> H["contracts/stage3.manifest.json"]
+flowchart TB
+    A["External input tree\nstructure.cif + pseudos + system.json"] --> B["npc / tui\noperator entrypoint"]
+    B --> C["Create or reuse run root"]
+    C --> D["stage1\nQE phonon frontend"]
+    D --> E["contracts/stage1.manifest.json"]
+    E --> F["stage2\nMLFF screening\n(default: GPTFF v2)"]
+    F --> G["contracts/stage2.manifest.json"]
+    G --> H["stage3\nQE top5 recheck"]
+    H --> I["contracts/stage3.manifest.json"]
+    B --> J["Read-only status\n./npc --status"]
+    B --> K["Cross-machine handoff\nexport / import bundle"]
+    E --> K
+    G --> K
 ```
 
 ## Repository Layout

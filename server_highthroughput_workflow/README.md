@@ -94,6 +94,13 @@ Important files:
 - `contracts/stage3.manifest.json`
 
 `contracts/stage3.manifest.json` is written as soon as preparation completes.
+`run_manifest.json` now records whether the QE SCF settings came from:
+
+- `stage1_autotune`
+- `static_fallback`
+- `legacy_static`
+
+It also records the extra k-mesh scale applied after supercell reduction.
 
 ## Notes
 

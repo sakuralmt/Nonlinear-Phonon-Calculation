@@ -28,6 +28,10 @@ DEFAULT_INPUT_STRUCTURE_ALREADY_RELAXED = False
 
 PHONON_Q_GRID = (6, 6, 1)
 PRIMITIVE_K_MESH = (8, 8, 1)
+# NOTE:
+# - The stage1 frontend currently consumes only the phonon branch from selected_profiles.json.
+# - The PES branch is still produced during autotune, but it is consumed downstream by stage3.
+# - These PES constants remain here as schema/documentation hints for the autotune output.
 PES_SCF_PRESET_NAME = 'pes_balanced'
 RELAX_STRICT_PRESET_NAME = 'relax_strict'
 PHONON_STRICT_PRESET_NAME = 'phonon_strict'

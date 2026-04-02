@@ -12,9 +12,11 @@ import numpy as np
 from common import build_pair_structure_generator, dump_json, write_scf_input
 
 try:
-    from .scf_settings import DEFAULT_PRESET_NAME, compact_settings_summary, preset_names, resolve_scf_settings, scale_k_mesh
+    from .scf_profile_resolver import resolve_stage3_scf_profile
+    from .scf_settings import DEFAULT_PRESET_NAME, preset_names, scale_k_mesh
 except ImportError:
-    from scf_settings import DEFAULT_PRESET_NAME, compact_settings_summary, preset_names, resolve_scf_settings, scale_k_mesh
+    from scf_profile_resolver import resolve_stage3_scf_profile
+    from scf_settings import DEFAULT_PRESET_NAME, preset_names, scale_k_mesh
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -23,10 +25,6 @@ DEFAULT_OUT_DIR = Path(__file__).resolve().parent / "runs" / "consensus_top5_qe"
 
 A1_VALS = np.linspace(-2.0, 2.0, 9)
 A2_VALS = np.linspace(-2.0, 2.0, 9)
-PSEUDOS = [
-    "W.pz-spn-rrkjus_psl.1.0.0.UPF",
-    "Se.pz-n-rrkjus_psl.0.2.UPF",
-]
 
 
 def _job_name(i1: int, i2: int):
@@ -80,7 +78,11 @@ def parse_args():
     p.add_argument("--partition", type=str, default="debug")
     p.add_argument("--qos", type=str, default=None)
     p.add_argument("--walltime", type=str, default="72:00:00")
-    p.add_argument("--scf-preset", type=str, default=DEFAULT_PRESET_NAME, choices=preset_names())
+    p.add_argument("--convergence-summary", type=str, default=None)
+    p.add_argument("--selected-profiles-json", type=str, default=None)
+    p.add_argument("--qe-scf-profile-level", type=str, default="balanced", choices=["balanced", "fast"])
+    p.add_argument("--qe-static-preset", type=str, default=DEFAULT_PRESET_NAME, choices=preset_names())
+    p.add_argument("--scf-preset", type=str, default=None, choices=preset_names())
     p.add_argument("--slurm-job-prefix", type=str, default="qe")
     p.add_argument("--omp-num-threads", type=int, default=1)
     p.add_argument("--launcher-command", type=str, default="mpirun -np {ntasks} pw.x < scf.inp > scf.out")
@@ -96,7 +98,19 @@ def main():
     pseudo_dir = Path(args.pseudo_dir).expanduser().resolve()
     output_dir = Path(args.output_dir).expanduser().resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
-    scf_settings = resolve_scf_settings(args.scf_preset)
+    scf_profile = resolve_stage3_scf_profile(
+        qe_scf_profile_level=args.qe_scf_profile_level,
+        qe_static_preset=args.qe_static_preset,
+        legacy_scf_preset=args.scf_preset,
+        convergence_summary_path=args.convergence_summary,
+        selected_profiles_path=args.selected_profiles_json,
+    )
+    scf_settings = scf_profile["scf_settings"]
+    compatibility_scf_preset = (
+        scf_profile["scf_static_preset"]
+        if scf_profile["scf_static_preset"] is not None
+        else f"pes.{scf_profile['scf_profile_level']}"
+    )
 
     consensus_rows = json.loads(consensus_json.read_text())["rows"][: args.top_n]
     pair_db = {item["pair_code"]: item for item in json.loads(mode_pairs_json.read_text())["pairs"]}
@@ -157,10 +171,12 @@ def main():
                     frac_positions=frac_pos,
                     constraints=builder["constraints_prim"],
                     k_super=scale_k_mesh(builder["k_super"], scf_settings.get("k_scale")),
+                    atomic_species_entries=builder["atomic_species_entries"],
                     scf_settings=scf_settings,
                 )
 
-                for pseudo in PSEUDOS:
+                for entry in builder["atomic_species_entries"]:
+                    pseudo = entry["pseudo"]
                     src = pseudo_dir / pseudo
                     dst = job_dir / pseudo
                     if not src.exists():
@@ -181,8 +197,19 @@ def main():
                 "n_cells": builder["n_cells"],
                 "a1_vals": A1_VALS.tolist(),
                 "a2_vals": A2_VALS.tolist(),
-                "scf_preset": args.scf_preset,
+                "scf_preset": compatibility_scf_preset,
+                "legacy_scf_preset": args.scf_preset,
+                "qe_scf_profile_level": args.qe_scf_profile_level,
+                "qe_static_preset": args.qe_static_preset,
+                "scf_profile_source": scf_profile["scf_profile_source"],
+                "scf_profile_branch": scf_profile["scf_profile_branch"],
+                "scf_profile_level": scf_profile["scf_profile_level"],
+                "scf_static_preset": scf_profile["scf_static_preset"],
+                "selected_profiles_json": scf_profile["selected_profiles_json"],
+                "resolved_from_legacy_alias": scf_profile["resolved_from_legacy_alias"],
+                "extra_k_mesh_scale_after_supercell_reduction": scf_profile["extra_k_mesh_scale_after_supercell_reduction"],
                 "scf_settings": scf_settings,
+                "scf_settings_summary": scf_profile["scf_settings_summary"],
                 "source_scf_template": str(scf_template),
                 "source_mode_pairs_json": str(mode_pairs_json),
                 "launcher_command": args.launcher_command,
@@ -203,9 +230,19 @@ def main():
             "consensus_json": str(consensus_json),
             "mode_pairs_json": str(mode_pairs_json),
             "scf_template": str(scf_template),
-            "scf_preset": args.scf_preset,
+            "scf_preset": compatibility_scf_preset,
+            "legacy_scf_preset": args.scf_preset,
+            "qe_scf_profile_level": args.qe_scf_profile_level,
+            "qe_static_preset": args.qe_static_preset,
+            "scf_profile_source": scf_profile["scf_profile_source"],
+            "scf_profile_branch": scf_profile["scf_profile_branch"],
+            "scf_profile_level": scf_profile["scf_profile_level"],
+            "scf_static_preset": scf_profile["scf_static_preset"],
+            "selected_profiles_json": scf_profile["selected_profiles_json"],
+            "resolved_from_legacy_alias": scf_profile["resolved_from_legacy_alias"],
             "scf_settings": scf_settings,
-            "scf_settings_summary": compact_settings_summary(scf_settings),
+            "scf_settings_summary": scf_profile["scf_settings_summary"],
+            "extra_k_mesh_scale_after_supercell_reduction": scf_profile["extra_k_mesh_scale_after_supercell_reduction"],
             "pseudo_dir": str(pseudo_dir),
             "pair_dirs": [str((output_dir / item["pair"]["pair_code"]).resolve()) for item in selected_pairs],
             "job_count": len(all_job_dirs),
@@ -214,7 +251,13 @@ def main():
 
     print(f"prepared top pairs: {len(selected_pairs)}")
     print(f"job count: {len(all_job_dirs)}")
-    print(f"scf preset: {args.scf_preset} ({compact_settings_summary(scf_settings)})")
+    print(
+        "scf selection: "
+        + f"source={scf_profile['scf_profile_source']}, "
+        + f"profile_level={scf_profile['scf_profile_level']}, "
+        + f"static_preset={scf_profile['scf_static_preset']} "
+        + f"({scf_profile['scf_settings_summary']})"
+    )
     print(f"saved: {output_dir / 'run_manifest.json'}")
 
 

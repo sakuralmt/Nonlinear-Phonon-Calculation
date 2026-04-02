@@ -38,13 +38,15 @@ from server_highthroughput_workflow.stage_contracts import (
 from server_highthroughput_workflow.system_runtime import prepare_runtime_system
 
 DEFAULT_QE_TOP_N = 5
-DEFAULT_QE_PARTITION = "debug"
+DEFAULT_QE_PARTITION = "regular"
 DEFAULT_QE_WALLTIME = "72:00:00"
 DEFAULT_QE_MAX_RUNNING_JOBS = 5
 DEFAULT_QE_POLL_SECONDS = 20
 DEFAULT_STAGE2_BACKEND = "gptff"
 DEFAULT_STAGE2_MODEL = "auto"
 DEFAULT_STAGE2_MODEL_PRESET = "gptff_v2"
+DEFAULT_QE_SCF_PROFILE_LEVEL = "balanced"
+DEFAULT_QE_STATIC_PRESET = "static_balanced"
 STAGE2_MODEL_PRESETS = {
     "gptff_v1": {"backend": "gptff", "model": "gptff_v1"},
     "gptff_v2": {"backend": "gptff", "model": "gptff_v2"},
@@ -98,6 +100,9 @@ def parse_args():
     p.add_argument("--qe-walltime", type=str, default=DEFAULT_QE_WALLTIME)
     p.add_argument("--qe-max-running-jobs", type=int, default=DEFAULT_QE_MAX_RUNNING_JOBS)
     p.add_argument("--qe-poll-seconds", type=int, default=DEFAULT_QE_POLL_SECONDS)
+    p.add_argument("--qe-scf-profile-level", type=str, default=DEFAULT_QE_SCF_PROFILE_LEVEL, choices=["balanced", "fast"])
+    p.add_argument("--qe-static-preset", type=str, default=DEFAULT_QE_STATIC_PRESET)
+    p.add_argument("--qe-scf-preset", type=str, default=None)
     p.add_argument("--scheduler", type=str, default="auto", choices=["auto", "slurm", "local"])
     args = p.parse_args()
     preset = STAGE2_MODEL_PRESETS[args.stage2_model]
@@ -292,12 +297,13 @@ def run_stage2(args, run_root: Path, stage1_manifest_path: Path):
     return manifest
 
 
-def prepare_qe(stage2: dict, run_root: Path, qe_root: Path, backend_tag: str, top_n: int, qe_partition: str, qe_walltime: str):
+def prepare_qe(stage2: dict, run_root: Path, qe_root: Path, backend_tag: str, top_n: int, qe_partition: str, qe_walltime: str, args):
     pipeline = _pipeline()
     ranking_json = resolve_relative_file(run_root, stage2["output_files"]["ranking_json"])
     mode_pairs_json = resolve_relative_file(run_root, stage2["input_files"]["mode_pairs_json"])
     structure = resolve_relative_file(run_root, stage2["input_files"]["structure"])
     pseudo_dir = resolve_relative_file(run_root, stage2["pseudo_dir"])
+    convergence_summary = run_root / "stage1" / "convergence_summary.json"
     slurm_settings = None
     resolved_partition = qe_partition
     resolved_walltime = qe_walltime
@@ -326,6 +332,8 @@ def prepare_qe(stage2: dict, run_root: Path, qe_root: Path, backend_tag: str, to
         str(pseudo_dir),
         "--output-dir",
         str(qe_root),
+        "--convergence-summary",
+        str(convergence_summary),
         "--top-n",
         str(top_n),
         "--ntasks",
@@ -334,13 +342,17 @@ def prepare_qe(stage2: dict, run_root: Path, qe_root: Path, backend_tag: str, to
         resolved_partition,
         "--walltime",
         resolved_walltime,
-        "--scf-preset",
-        pipeline.QE_SCF_PRESET,
+        "--qe-scf-profile-level",
+        args.qe_scf_profile_level,
+        "--qe-static-preset",
+        args.qe_static_preset,
         "--slurm-job-prefix",
         backend_tag,
         "--launcher-command",
         pipeline.QE_LAUNCHER_COMMAND,
     ]
+    if args.qe_scf_preset:
+        cmd.extend(["--scf-preset", args.qe_scf_preset])
     if resolved_qos:
         cmd.extend(["--qos", resolved_qos])
     for line in pipeline.QE_ENV_INIT_LINES:
@@ -349,6 +361,24 @@ def prepare_qe(stage2: dict, run_root: Path, qe_root: Path, backend_tag: str, to
     if slurm_settings is not None:
         dump_json(qe_root / "resolved_slurm_settings.json", slurm_settings)
     return ranking_json
+
+
+def _stage3_profile_fields(qe_root: Path):
+    manifest_path = qe_root / "run_manifest.json"
+    if not manifest_path.exists():
+        return {}
+    payload = load_json(manifest_path)
+    keys = (
+        "scf_profile_source",
+        "scf_profile_branch",
+        "scf_profile_level",
+        "scf_static_preset",
+        "selected_profiles_json",
+        "resolved_from_legacy_alias",
+        "scf_settings_summary",
+        "extra_k_mesh_scale_after_supercell_reduction",
+    )
+    return {key: payload.get(key) for key in keys if payload.get(key) is not None}
 
 
 def run_stage3(args, run_root: Path, stage2_manifest_path: Path):
@@ -384,6 +414,7 @@ def run_stage3(args, run_root: Path, stage2_manifest_path: Path):
                 "qe_ranking_json": str(qe_ranking_json),
                 "stage3_manifest": str(manifest),
                 "resume_mode": "reuse_completed",
+                **_stage3_profile_fields(qe_root),
             },
         )
         print(f"[stage3] reusing completed QE batch: {qe_root}")
@@ -402,6 +433,7 @@ def run_stage3(args, run_root: Path, stage2_manifest_path: Path):
                 "qe_ranking_json": None,
                 "stage3_manifest": str(manifest),
                 "resume_mode": "resume_existing_prepare",
+                **_stage3_profile_fields(qe_root),
             },
         )
     else:
@@ -413,6 +445,7 @@ def run_stage3(args, run_root: Path, stage2_manifest_path: Path):
             top_n=args.top_n,
             qe_partition=args.qe_partition,
             qe_walltime=args.qe_walltime,
+            args=args,
         )
         manifest = create_stage3_manifest(run_root, stage2_manifest_path, qe_root, qe_ranking_json=None)
         dump_json(
@@ -424,6 +457,7 @@ def run_stage3(args, run_root: Path, stage2_manifest_path: Path):
                 "qe_ranking_json": None,
                 "stage3_manifest": str(manifest),
                 "resume_mode": "fresh_prepare",
+                **_stage3_profile_fields(qe_root),
             },
         )
 
@@ -463,6 +497,7 @@ def run_stage3(args, run_root: Path, stage2_manifest_path: Path):
             "qe_ranking_json": str(qe_ranking_json) if qe_ranking_json.exists() else None,
             "stage3_manifest": str(manifest),
             "resume_mode": "submit_collect",
+            **_stage3_profile_fields(qe_root),
         },
     )
     print(f"saved: {manifest}")

@@ -239,6 +239,21 @@ STAGE3_MODE=prepare_only bash ops/setup_stage3_env.sh
 
 This command uses `gptff_v2` by default.
 
+### Run `stage3`
+
+```bash
+./npc \
+  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
+  --system wse2 \
+  --stage stage3 \
+  --qe-mode prepare_only
+```
+
+By default, `stage3` reads the `stage1` autotune result and uses the
+system-specific `pes.balanced` profile. If the autotune result is missing, it
+falls back to the static `static_balanced` preset. The historical names
+`pes_balanced` and `pes_fast` remain accepted only as legacy static aliases.
+
 ### Select the `stage2` model preset
 
 Available presets:

@@ -60,7 +60,8 @@ MLFF_WALLTIME = "24:00:00"
 MLFF_POLL_SECONDS = 30
 
 QE_TOP_N = 5
-QE_SCF_PRESET = "pes_fast"
+QE_SCF_PROFILE_LEVEL = "balanced"
+QE_STATIC_PRESET = "static_balanced"
 QE_NTASKS = 24
 QE_PARTITION = "debug"
 QE_QOS = None
@@ -637,8 +638,10 @@ def run_qe_recheck(spec: dict, ranking_json: Path, qe_root: Path):
         slurm_settings["partition"],
         "--walltime",
         slurm_settings["walltime"],
-        "--scf-preset",
-        QE_SCF_PRESET,
+        "--qe-scf-profile-level",
+        QE_SCF_PROFILE_LEVEL,
+        "--qe-static-preset",
+        QE_STATIC_PRESET,
         "--slurm-job-prefix",
         spec["tag"],
         "--launcher-command",

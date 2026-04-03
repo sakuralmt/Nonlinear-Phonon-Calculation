@@ -63,6 +63,9 @@ def parse_args():
     parser.add_argument("--run-root", type=str, default=None)
     parser.add_argument("--qe-relax", choices=["yes", "no"], default=None)
     parser.add_argument("--qe-mode", choices=["prepare_only", "submit_collect"], default="submit_collect")
+    parser.add_argument("--qe-scf-profile-level", choices=["balanced", "fast"], default="balanced")
+    parser.add_argument("--qe-static-preset", type=str, default="static_balanced")
+    parser.add_argument("--qe-scf-preset", type=str, default=None)
     parser.add_argument(
         "--stage2-model",
         choices=VALID_STAGE2_MODELS,
@@ -220,6 +223,9 @@ def build_modular_command(
     qe_relax: bool,
     qe_mode: str,
     stage2_model: str,
+    qe_scf_profile_level: str,
+    qe_static_preset: str,
+    qe_scf_preset: str | None,
 ) -> list[str]:
     command = [
         sys.executable,
@@ -237,9 +243,15 @@ def build_modular_command(
         "yes" if qe_relax else "no",
         "--stage2-model",
         stage2_model,
+        "--qe-scf-profile-level",
+        qe_scf_profile_level,
+        "--qe-static-preset",
+        qe_static_preset,
     ]
     if stage in {"stage3", "all"}:
         command.extend(["--qe-mode", qe_mode])
+    if qe_scf_preset:
+        command.extend(["--qe-scf-preset", qe_scf_preset])
     return command
 
 
@@ -484,6 +496,21 @@ def summarize_stage3(run_root: Path, log_path: Path | None, emit=log_line) -> No
         emit(log_path, f"- QE run root: {qe_run_root}")
     if qe_run_manifest and qe_run_manifest.get("job_count") is not None:
         emit(log_path, f"- Prepared QE jobs: {qe_run_manifest['job_count']}")
+    if qe_run_manifest and qe_run_manifest.get("scf_profile_source"):
+        emit(
+            log_path,
+            "- QE SCF selection: "
+            + f"source={qe_run_manifest.get('scf_profile_source')}, "
+            + f"branch={qe_run_manifest.get('scf_profile_branch')}, "
+            + f"level={qe_run_manifest.get('scf_profile_level')}, "
+            + f"static={qe_run_manifest.get('scf_static_preset')}",
+        )
+    if qe_run_manifest and qe_run_manifest.get("extra_k_mesh_scale_after_supercell_reduction") is not None:
+        emit(
+            log_path,
+            "- Extra k-mesh scale after supercell reduction: "
+            + str(qe_run_manifest["extra_k_mesh_scale_after_supercell_reduction"]),
+        )
     if submission_payload:
         completed = submission_payload.get("completed_count")
         total = submission_payload.get("total_jobs")
@@ -611,7 +638,18 @@ def main() -> int:
 
         ensure_stage_prerequisites(run_root, stage, log_path)
 
-        command = build_modular_command(stage, run_root, input_root, system_id, qe_relax, args.qe_mode, args.stage2_model)
+        command = build_modular_command(
+            stage,
+            run_root,
+            input_root,
+            system_id,
+            qe_relax,
+            args.qe_mode,
+            args.stage2_model,
+            args.qe_scf_profile_level,
+            args.qe_static_preset,
+            args.qe_scf_preset,
+        )
         run_streaming_command(command, cwd=ROOT, log_path=log_path, label=STAGE_LABELS[stage])
         print_result_summary(stage, run_root, log_path)
         log_section(log_path, "Complete")

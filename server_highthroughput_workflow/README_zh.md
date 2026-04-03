@@ -91,6 +91,13 @@ stage3/qe/<backend>/
 - `contracts/stage3.manifest.json`
 
 `contracts/stage3.manifest.json` 会在 prepare 完成后立即写出。
+`run_manifest.json` 现在会明确记录 QE SCF 设置来源：
+
+- `stage1_autotune`
+- `static_fallback`
+- `legacy_static`
+
+同时也会记录超胞自然缩放之后额外应用的 k 网格抽稀因子。
 
 ## 说明
 

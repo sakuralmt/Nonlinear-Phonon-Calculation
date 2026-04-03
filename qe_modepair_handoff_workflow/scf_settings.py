@@ -4,7 +4,7 @@ from __future__ import annotations
 from copy import deepcopy
 
 
-DEFAULT_PRESET_NAME = "baseline_strict"
+DEFAULT_PRESET_NAME = "static_balanced"
 
 
 SCF_PRESETS = {
@@ -55,7 +55,7 @@ SCF_PRESETS = {
             "k_scale": 1.0,
         },
     },
-    "pes_balanced": {
+    "static_balanced": {
         "description": "Convergence-tested balanced PES preset.",
         "settings": {
             "disk_io": "low",
@@ -79,8 +79,8 @@ SCF_PRESETS = {
             "k_scale": 1.0,
         },
     },
-    "pes_fast": {
-        "description": "Convergence-tested lighter PES preset for high-throughput recheck.",
+    "static_fast": {
+        "description": "Static lighter PES preset for high-throughput recheck after supercell reduction.",
         "settings": {
             "disk_io": "low",
             "verbosity": "low",
@@ -204,13 +204,24 @@ BENCHMARK_PRESET_NAMES = [
     "ht_k4",
 ]
 
+LEGACY_STATIC_PRESET_ALIASES = {
+    "pes_balanced": "static_balanced",
+    "pes_fast": "static_fast",
+}
+
 
 def preset_names():
-    return tuple(SCF_PRESETS.keys())
+    return tuple(list(SCF_PRESETS.keys()) + list(LEGACY_STATIC_PRESET_ALIASES.keys()))
+
+
+def normalize_static_preset_name(preset: str | None):
+    preset_name = DEFAULT_PRESET_NAME if preset is None else str(preset)
+    canonical = LEGACY_STATIC_PRESET_ALIASES.get(preset_name, preset_name)
+    return canonical, canonical != preset_name
 
 
 def resolve_scf_settings(preset: str | None = None, overrides: dict | None = None):
-    preset_name = DEFAULT_PRESET_NAME if preset is None else str(preset)
+    preset_name, _resolved_from_alias = normalize_static_preset_name(preset)
     if preset_name not in SCF_PRESETS:
         raise KeyError(f"Unknown SCF preset: {preset_name}")
 
@@ -241,7 +252,7 @@ def compact_settings_summary(settings: dict):
         f"ecut={settings['ecutwfc']}/{settings['ecutrho']}",
         f"conv={settings['conv_thr']}",
         f"beta={settings['mixing_beta']}",
-        f"k_scale={settings.get('k_scale', 1.0)}",
+        f"extra_k_scale={settings.get('k_scale', 1.0)}",
         f"occ={settings['occupations']}",
         f"f/stress={'on' if settings.get('tprnfor', True) or settings.get('tstress', True) else 'off'}",
     ]

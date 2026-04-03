@@ -339,6 +339,11 @@ STAGE3_MODE=prepare_only bash ops/setup_stage3_env.sh
   --stage stage3
 ```
 
+默认情况下，`stage3` 会读取 `stage1` autotune 结果，并使用体系相关的
+`pes.balanced` profile。如果缺少 autotune 结果，则退回静态
+`static_balanced` preset。历史名字 `pes_balanced` 和 `pes_fast` 仅作为
+legacy static alias 保留。
+
 ### 仅准备 QE 复核批次，不提交
 
 ```bash

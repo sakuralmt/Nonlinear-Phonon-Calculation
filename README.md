@@ -169,10 +169,11 @@ environment and then validate stage-specific external requirements.
   stability. Run it on a host already known to execute `ph.x` reliably.
 - `stage2` is primarily a Python materials-stack workload and is comparatively
   easy to migrate once `stage1` has produced a valid contract.
-- `stage2` supports three model presets:
+- `stage2` supports four model presets:
   - `gptff_v1`
   - `gptff_v2`
   - `chgnet`
+  - `mattersim_v1_5m`
 - The default `stage2` model preset is `gptff_v2`.
 - `stage3` supports two modes:
   - `prepare_only`
@@ -246,6 +247,7 @@ Available presets:
 - `gptff_v1`
 - `gptff_v2`
 - `chgnet`
+- `mattersim_v1_5m`
 
 Examples:
 
@@ -263,6 +265,14 @@ Examples:
   --system wse2 \
   --stage stage2 \
   --stage2-model chgnet
+```
+
+```bash
+./npc \
+  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
+  --system wse2 \
+  --stage stage2 \
+  --stage2-model mattersim_v1_5m
 ```
 
 ### Run `stage3`

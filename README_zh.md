@@ -161,10 +161,11 @@ python3 start_release.py --help
 - 当前实现中，`stage1` 依赖 Slurm，不是纯本地前端模式。
 - `stage1` 对 QE 声子前端的稳定性要求最高，应放在已经验证过 `ph.x` 可稳定运行的宿主上执行。
 - `stage2` 主要依赖 Python 材料模拟栈，在 `stage1` contract 已生成后更容易迁移。
-- `stage2` 支持三种模型预设：
+- `stage2` 支持四种模型预设：
   - `gptff_v1`
   - `gptff_v2`
   - `chgnet`
+  - `mattersim_v1_5m`
 - `stage2` 的默认模型预设是 `gptff_v2`。
 - `stage3` 支持两种模式：
   - `prepare_only`
@@ -235,6 +236,7 @@ STAGE3_MODE=prepare_only bash ops/setup_stage3_env.sh
 - `gptff_v1`
 - `gptff_v2`
 - `chgnet`
+- `mattersim_v1_5m`
 
 示例：
 
@@ -252,6 +254,14 @@ STAGE3_MODE=prepare_only bash ops/setup_stage3_env.sh
   --system wse2 \
   --stage stage2 \
   --stage2-model chgnet
+```
+
+```bash
+./npc \
+  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
+  --system wse2 \
+  --stage stage2 \
+  --stage2-model mattersim_v1_5m
 ```
 
 ### 运行 `stage3`

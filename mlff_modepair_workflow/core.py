@@ -8,6 +8,7 @@ import importlib.util
 from pathlib import Path
 
 import numpy as np
+from ase.data import atomic_masses, atomic_numbers
 from ase.build import make_supercell
 from ase.io import read
 from ase.io.espresso import read_espresso_in
@@ -18,6 +19,7 @@ CONV_TO_CM1 = 521.4708983725064
 MASS_DICT = {"W": 183.84, "Se": 78.960}
 RY_TO_EV = 13.605693009
 DEFAULT_GPTFF_MODEL_NAME = "gptff_v2.pth"
+DEFAULT_MATTERSIM_MODEL = "mattersim-v1.0.0-5M"
 GPTFF_MODEL_ALIASES = {
     "gptff": "gptff_v2.pth",
     "gptff_v1": "gptff_v1.pth",
@@ -88,6 +90,25 @@ def load_atoms_from_qe(scf_file: Path):
             return read_espresso_in(f)
     except Exception:
         return read(scf_file)
+
+
+def atomic_mass_from_symbol(symbol: str) -> float:
+    if symbol in MASS_DICT:
+        return float(MASS_DICT[symbol])
+    try:
+        return float(atomic_masses[atomic_numbers[symbol]])
+    except Exception as exc:
+        raise KeyError(f"Unsupported element symbol for mass lookup: {symbol}") from exc
+
+
+def _ensure_mattersim_ase_compat() -> None:
+    import ase.constraints
+
+    if hasattr(ase.constraints, "full_3x3_to_voigt_6_stress"):
+        return
+    from ase.stress import full_3x3_to_voigt_6_stress
+
+    ase.constraints.full_3x3_to_voigt_6_stress = full_3x3_to_voigt_6_stress
 
 
 def configure_torch_runtime(torch_threads: int | None = None, interop_threads: int | None = 1):
@@ -618,7 +639,7 @@ class ModePairFrozenPhononBuilder:
         self.phase_q = np.exp(2j * np.pi * np.dot(self.replica_r, self.q_frac))
         self.gamma_super = self.gamma_mode[self.prim_indices]
         self.q_super = self.q_mode[self.prim_indices]
-        masses = np.array([MASS_DICT[s] for s in self.supercell.get_chemical_symbols()], dtype=float)
+        masses = np.array([atomic_mass_from_symbol(s) for s in self.supercell.get_chemical_symbols()], dtype=float)
         self.mass_sqrt = np.sqrt(masses)[:, None]
 
     @property
@@ -846,6 +867,22 @@ def make_calculator(backend: str, device: str = "auto", model: str | None = None
         model_path = resolve_gptff_model_path(model)
         calc = ASECalculator(str(model_path), chosen_device)
         return calc, gptff_backend_meta(model_path, chosen_device)
+
+    if backend == "mattersim":
+        _ensure_mattersim_ase_compat()
+        from mattersim.forcefield import MatterSimCalculator
+
+        model_name = DEFAULT_MATTERSIM_MODEL if model in {None, "", "auto"} else str(model)
+        if chosen_device == "mps":
+            chosen_device = "cpu"
+        calc = MatterSimCalculator.from_checkpoint(load_path=model_name, device=chosen_device)
+        return calc, {
+            "backend": "mattersim",
+            "device": chosen_device,
+            "model": model_name,
+            "model_version": "mattersim_v1_5m",
+            "source": "official_mattersim_1.0",
+        }
 
     raise ValueError(f"Unsupported backend: {backend}")
 

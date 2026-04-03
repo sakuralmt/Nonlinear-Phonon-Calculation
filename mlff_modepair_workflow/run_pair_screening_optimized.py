@@ -25,6 +25,7 @@ from core import (
     load_mode_pair_reference,
     load_pairs,
     make_calculator,
+    DEFAULT_MATTERSIM_MODEL,
     gptff_backend_meta,
     resolve_chgnet_runtime_config,
     resolve_gptff_model_path,
@@ -32,6 +33,14 @@ from core import (
     select_runtime_config_path,
     set_process_cpu_affinity,
     suggest_worker_cpu_sets,
+)
+from reference_compare import (
+    BASELINE_SESSION_ID,
+    compare_rankings,
+    default_baseline_reference,
+    load_baseline_rows,
+    write_comparison_outputs,
+    write_stage2_vs_stage3_reference_outputs,
 )
 
 
@@ -143,6 +152,17 @@ def build_backend_meta(args):
     if backend == "gptff":
         model_path = resolve_gptff_model_path(args.model)
         return gptff_backend_meta(model_path, device)
+    if backend == "mattersim":
+        model_name = DEFAULT_MATTERSIM_MODEL if args.model in {None, "", "auto"} else str(args.model)
+        if device == "mps":
+            device = "cpu"
+        return {
+            "backend": "mattersim",
+            "device": device,
+            "model": model_name,
+            "model_version": "mattersim_v1_5m",
+            "source": "official_mattersim_1.0",
+        }
     return {
         "backend": backend,
         "device": device,
@@ -516,7 +536,13 @@ def main():
         key=lambda item: abs(item["phi122_mev"]),
         reverse=True,
     )
+    baseline_reference = default_baseline_reference()
+    baseline_rows = load_baseline_rows(baseline_reference)
+    reference_comparison = compare_rankings(ranking, baseline_rows) if baseline_reference else None
     ranking_csv = write_final_ranking(output_dir, ranking)
+    comparison_paths = write_comparison_outputs(output_dir, baseline_reference, ranking)
+    stage3_reference_outputs = write_stage2_vs_stage3_reference_outputs(output_dir, baseline_reference, ranking)
+    stage3_reference_comparison = None if stage3_reference_outputs is None else stage3_reference_outputs.get("reference_comparison")
     dump_json(
         output_dir / "runtime_config_used.json",
         {
@@ -531,6 +557,13 @@ def main():
             "runtime": runtime_config,
             "runtime_meta": runtime_meta,
             "refined_pair_codes": sorted(refine_codes),
+            "baseline_reference": None if baseline_reference is None else baseline_reference.get("label"),
+            "baseline_source_session_id": None if baseline_reference is None else baseline_reference.get("session_id"),
+            "baseline_source_files": [] if baseline_reference is None else baseline_reference.get("source_files", []),
+            "reference_comparison": reference_comparison,
+            "comparison_outputs": comparison_paths,
+            "stage3_reference_comparison": stage3_reference_comparison,
+            "stage3_reference_outputs": stage3_reference_outputs,
             "pairs": ranking,
         },
     )
@@ -544,6 +577,13 @@ def main():
             "n_pairs": len(ranking),
             "runtime": runtime_config,
             "runtime_meta": runtime_meta,
+            "baseline_reference": None if baseline_reference is None else baseline_reference.get("label"),
+            "baseline_source_session_id": BASELINE_SESSION_ID if baseline_reference is not None else None,
+            "baseline_source_files": [] if baseline_reference is None else baseline_reference.get("source_files", []),
+            "reference_comparison": reference_comparison,
+            "comparison_outputs": comparison_paths,
+            "stage3_reference_comparison": stage3_reference_comparison,
+            "stage3_reference_outputs": stage3_reference_outputs,
         },
     )
 

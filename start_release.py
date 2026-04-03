@@ -18,7 +18,7 @@ LOG_FILE_NAME = "launcher.log"
 DEFAULT_QE_RELAX = True
 DEFAULT_STAGE = "all"
 VALID_STAGES = ("all", "tune", "stage1", "stage2", "stage3")
-VALID_STAGE2_MODELS = ("gptff_v1", "gptff_v2", "chgnet")
+VALID_STAGE2_MODELS = ("gptff_v1", "gptff_v2", "chgnet", "mattersim_v1_5m")
 DRIVER_HEARTBEAT_SECONDS = 60
 STAGE_LABELS = {
     "all": "Full workflow",

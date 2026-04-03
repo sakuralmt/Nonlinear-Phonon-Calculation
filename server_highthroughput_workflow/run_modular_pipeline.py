@@ -21,6 +21,7 @@ from nonlinear_phonon_calculation.system_inputs import (
     load_system_spec,
     resolve_system_dir,
 )
+from mlff_modepair_workflow.reference_compare import default_baseline_reference, write_stage3_comparison_outputs
 from server_highthroughput_workflow.qe_relax_preflight import run_qe_relax
 from server_highthroughput_workflow.real_stage1_phonon import run_real_stage1, run_stage1_tuning
 from server_highthroughput_workflow.scheduler import resolve_scheduler_mode, resolve_slurm_job_settings, slurm_available
@@ -45,12 +46,14 @@ DEFAULT_QE_POLL_SECONDS = 20
 DEFAULT_STAGE2_BACKEND = "gptff"
 DEFAULT_STAGE2_MODEL = "auto"
 DEFAULT_STAGE2_MODEL_PRESET = "gptff_v2"
+DEFAULT_MATTERSIM_MODEL = "mattersim-v1.0.0-5M"
 DEFAULT_QE_SCF_PROFILE_LEVEL = "balanced"
 DEFAULT_QE_STATIC_PRESET = "static_balanced"
 STAGE2_MODEL_PRESETS = {
     "gptff_v1": {"backend": "gptff", "model": "gptff_v1"},
     "gptff_v2": {"backend": "gptff", "model": "gptff_v2"},
     "chgnet": {"backend": "chgnet", "model": "0.3.0"},
+    "mattersim_v1_5m": {"backend": "mattersim", "model": DEFAULT_MATTERSIM_MODEL},
 }
 
 
@@ -78,6 +81,7 @@ def parse_args():
     )
     p.add_argument("--backend", type=str, default=DEFAULT_STAGE2_BACKEND, help=argparse.SUPPRESS)
     p.add_argument("--model", type=str, default=DEFAULT_STAGE2_MODEL, help=argparse.SUPPRESS)
+    p.add_argument("--device", type=str, default="auto")
     p.add_argument("--runtime-config", type=str, default=None)
     p.add_argument("--runtime-profile", type=str, default=None, choices=["default", "small", "medium", "large"])
     p.add_argument("--limit", type=int, default=None)
@@ -255,6 +259,8 @@ def run_stage2(args, run_root: Path, stage1_manifest_path: Path):
         str(ROOT / "mlff_modepair_workflow" / "run_pair_screening_optimized.py"),
         "--backend",
         args.backend,
+        "--device",
+        args.device,
         "--model",
         args.model,
         "--run-tag",
@@ -416,6 +422,7 @@ def run_stage3(args, run_root: Path, stage2_manifest_path: Path):
     )
 
     if stage3_complete:
+        comparison_outputs = write_stage3_comparison_outputs(qe_root, default_baseline_reference(), load_json(qe_ranking_json).get("rows", []))
         manifest = create_stage3_manifest(run_root, stage2_manifest_path, qe_root, qe_ranking_json=qe_ranking_json)
         dump_json(
             stage3_status_path,
@@ -424,6 +431,7 @@ def run_stage3(args, run_root: Path, stage2_manifest_path: Path):
                 "final_state": "all_completed",
                 "qe_root": str(qe_root),
                 "qe_ranking_json": str(qe_ranking_json),
+                "comparison_outputs": comparison_outputs,
                 "stage3_manifest": str(manifest),
                 "resume_mode": "reuse_completed",
                 **_stage3_profile_fields(qe_root),
@@ -499,6 +507,7 @@ def run_stage3(args, run_root: Path, stage2_manifest_path: Path):
         str(qe_root),
     ]
     subprocess.run(collect_cmd, cwd=str(ROOT), check=True, text=True)
+    comparison_outputs = write_stage3_comparison_outputs(qe_root, default_baseline_reference(), load_json(qe_ranking_json).get("rows", []))
     manifest = create_stage3_manifest(run_root, stage2_manifest_path, qe_root, qe_ranking_json=qe_ranking_json)
     dump_json(
         stage3_status_path,
@@ -507,6 +516,7 @@ def run_stage3(args, run_root: Path, stage2_manifest_path: Path):
             "final_state": final_state,
             "qe_root": str(qe_root),
             "qe_ranking_json": str(qe_ranking_json) if qe_ranking_json.exists() else None,
+            "comparison_outputs": comparison_outputs,
             "stage3_manifest": str(manifest),
             "resume_mode": "submit_collect",
             **_stage3_profile_fields(qe_root),

@@ -13,6 +13,72 @@
 当前主线调用结构见：
 - [ARCHITECTURE.md](ARCHITECTURE.md)
 
+## 当前正式版能力概览
+
+当前 stable 代码线已经把下面这些面向操作者的能力收进同一套入口：
+
+- 统一入口 `npc`
+  - 覆盖 `stage1`、`stage2`、`stage3`、状态查询以及跨机 handoff
+- 运行时 contract
+  - 每个阶段都把关键状态写入 `contracts/`，后续阶段直接复用，不要求操作者手工重建上下文
+- 四种 `stage2` 模型预设
+  - `gptff_v1`
+  - `gptff_v2`
+  - `chgnet`
+  - `mattersim_v1_5m`
+- `stage2` 默认模型预设
+  - `gptff_v2`
+- `stage3` 的 prepare / reuse / submit 语义
+  - `prepare_only`
+  - `submit_collect`
+- 本地 `stage2` 与远端/参考 `stage3` 的 comparison 输出
+  - 保持统一 schema，便于后续分析和报告生成
+
+因此，这个仓库同时承担两类职责：
+
+- 通过 `npc` 运行正式工作流
+- 通过 `reports/` 下的脚本做离线 benchmark 与结果分析
+
+## 代码结构总览
+
+阅读这个仓库时，最好把它看成几块明确分工的子系统，而不是一个单体脚本集合。
+
+- `start_release.py`
+  - `npc` 背后的薄封装入口
+  - 负责解析高层阶段参数，并转发到分阶段运行时
+- `server_highthroughput_workflow/`
+  - 运行时编排层
+  - 负责 stage 分发、run root 结构、handoff import/export、状态输出，以及阶段间 contract 流转
+- `qe_phonon_stage1_server_bundle/`
+  - `stage1` 声子前端与配套的 q 点/模式筛选工具
+- `mlff_modepair_workflow/`
+  - `stage2` 的 frozen-phonon 评估、pair ranking 与 reference compare
+  - 负责 GPTFF、CHGNet、MatterSim 等 backend 计算器接入
+- `qe_modepair_handoff_workflow/`
+  - `stage3` 的 QE prepare、submit、collect
+- `reports/`
+  - 离线表格提取与绘图脚本
+  - 这些脚本是工具链，不属于 `npc` 主流程调用路径
+
+## 三个阶段的职责边界
+
+这三个阶段并不是简单串联，而是有明确分工。
+
+- `stage1`
+  - 负责生成声子前端产物、候选 mode pair 和 `stage1 contract`
+  - 对运行环境最敏感，因为 QE phonon frontend 必须在宿主机上稳定运行
+- `stage2`
+  - 负责用指定的 MLFF backend 评估 candidate mode-pair grid
+  - 输出排序结果以及可直接用于 comparison/report 的 JSON/CSV
+- `stage3`
+  - 负责对高排名 pair 做 QE 复核准备和提交
+  - 设计上直接消费 `stage2` 输出，而不改变 ranking schema
+
+这套拆分是有意为之的：
+
+- `stage2` 不只是 `stage3` 的前处理
+- `stage2` 和 `stage3` 本身就是需要相互对照的两层结果
+
 ## 适用范围
 
 本包适用于以下场景：
@@ -161,10 +227,11 @@ python3 start_release.py --help
 - 当前实现中，`stage1` 依赖 Slurm，不是纯本地前端模式。
 - `stage1` 对 QE 声子前端的稳定性要求最高，应放在已经验证过 `ph.x` 可稳定运行的宿主上执行。
 - `stage2` 主要依赖 Python 材料模拟栈，在 `stage1` contract 已生成后更容易迁移。
-- `stage2` 支持三种模型预设：
+- `stage2` 支持四种模型预设：
   - `gptff_v1`
   - `gptff_v2`
   - `chgnet`
+  - `mattersim_v1_5m`
 - `stage2` 的默认模型预设是 `gptff_v2`。
 - `stage3` 支持两种模式：
   - `prepare_only`
@@ -235,6 +302,7 @@ STAGE3_MODE=prepare_only bash ops/setup_stage3_env.sh
 - `gptff_v1`
 - `gptff_v2`
 - `chgnet`
+- `mattersim_v1_5m`
 
 示例：
 
@@ -252,6 +320,14 @@ STAGE3_MODE=prepare_only bash ops/setup_stage3_env.sh
   --system wse2 \
   --stage stage2 \
   --stage2-model chgnet
+```
+
+```bash
+./npc \
+  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
+  --system wse2 \
+  --stage stage2 \
+  --stage2-model mattersim_v1_5m
 ```
 
 ### 运行 `stage3`

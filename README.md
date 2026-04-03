@@ -14,6 +14,74 @@ root created by the workflow itself.
 
 For the current call-path view, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
+## Current Release Surface
+
+The current stable code line already includes the following operator-facing
+capabilities:
+
+- a single entrypoint, `npc`, for `stage1`, `stage2`, `stage3`, status, and
+  cross-machine handoff
+- explicit runtime contracts under `contracts/` so that later stages can reuse
+  earlier results without reconstructing state manually
+- four `stage2` model presets:
+  - `gptff_v1`
+  - `gptff_v2`
+  - `chgnet`
+  - `mattersim_v1_5m`
+- a default `stage2` model preset of `gptff_v2`
+- `stage3` prepare/reuse/submit behavior with separate `prepare_only` and
+  `submit_collect` modes
+- comparison outputs that keep local `stage2` and remote/reference `stage3`
+  results on the same schema for downstream analysis
+
+The repository therefore serves two roles at once:
+
+- it runs the production workflow through `npc`
+- it also ships a small set of offline analysis scripts under `reports/` for
+  benchmark and comparison work
+
+## Code Map
+
+The repository is easier to read if it is treated as a small set of distinct
+subsystems rather than one large workflow bundle.
+
+- `start_release.py`
+  - thin user-facing launcher behind `npc`
+  - parses high-level stage options and forwards them into the staged runtime
+- `server_highthroughput_workflow/`
+  - runtime orchestration
+  - owns stage dispatch, run-root layout, handoff import/export, status, and
+    stage-to-stage contract flow
+- `qe_phonon_stage1_server_bundle/`
+  - `stage1` phonon frontend and its supporting screening/pair-selection tools
+- `mlff_modepair_workflow/`
+  - `stage2` frozen-phonon evaluation, pair ranking, and reference comparison
+  - owns backend calculators for GPTFF, CHGNet, and MatterSim
+- `qe_modepair_handoff_workflow/`
+  - `stage3` QE preparation, submission, and collection for selected top pairs
+- `reports/`
+  - offline scripts for extracting benchmark tables and generating comparison
+    figures
+  - these scripts are tools, not part of the main `npc` execution path
+
+## Stage Semantics
+
+The three workflow stages are intentionally asymmetric.
+
+- `stage1`
+  - produces phonon-derived candidate mode pairs and a `stage1` contract
+  - is the most environment-sensitive stage because the QE phonon frontend must
+    run reliably on the host
+- `stage2`
+  - evaluates the candidate mode-pair grid with a selected MLFF backend
+  - produces ranked pairs and comparison-friendly JSON/CSV outputs
+- `stage3`
+  - prepares and optionally submits QE rechecks for the top-ranked pairs
+  - is designed to consume `stage2` outputs without changing the ranking schema
+
+This separation is deliberate. `stage2` and `stage3` are meant to be compared,
+not just chained.
+
 ## Scope
 
 This package is intended for workflows in which:

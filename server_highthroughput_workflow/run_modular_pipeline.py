@@ -74,8 +74,8 @@ def parse_args():
         default=DEFAULT_STAGE2_MODEL_PRESET,
         help="Stage2 ML model preset.",
     )
-    p.add_argument("--backend", type=str, default=DEFAULT_STAGE2_BACKEND)
-    p.add_argument("--model", type=str, default=DEFAULT_STAGE2_MODEL)
+    p.add_argument("--backend", type=str, default=DEFAULT_STAGE2_BACKEND, help=argparse.SUPPRESS)
+    p.add_argument("--model", type=str, default=DEFAULT_STAGE2_MODEL, help=argparse.SUPPRESS)
     p.add_argument("--runtime-config", type=str, default=None)
     p.add_argument("--runtime-profile", type=str, default=None, choices=["default", "small", "medium", "large"])
     p.add_argument("--limit", type=int, default=None)
@@ -105,6 +105,15 @@ def parse_args():
         args.backend = preset["backend"]
         args.model = preset["model"]
     return args
+
+
+def resolve_stage2_tag(args) -> str:
+    preset = STAGE2_MODEL_PRESETS.get(args.stage2_model)
+    if preset and args.backend == preset["backend"] and args.model == preset["model"]:
+        return args.stage2_model
+    if args.backend == "gptff" and args.model not in {None, "", "auto"}:
+        return str(args.model).split("/")[-1].replace(".pth", "")
+    return args.backend
 
 
 def _resolve_system_spec(args):
@@ -231,6 +240,7 @@ def run_tuning(args, run_root: Path, spec):
 
 def run_stage2(args, run_root: Path, stage1_manifest_path: Path):
     pipeline = _pipeline()
+    backend_tag = resolve_stage2_tag(args)
     stage1 = load_json(stage1_manifest_path)
     mode_pairs_json = resolve_relative_file(run_root, stage1["files"]["mode_pairs_json"])
     structure = resolve_relative_file(run_root, stage1["files"]["structure"])
@@ -243,7 +253,7 @@ def run_stage2(args, run_root: Path, stage1_manifest_path: Path):
         "--model",
         args.model,
         "--run-tag",
-        args.backend,
+        backend_tag,
         "--mode-pairs-json",
         str(mode_pairs_json),
         "--structure",
@@ -273,10 +283,10 @@ def run_stage2(args, run_root: Path, stage1_manifest_path: Path):
             cmd.extend([flag, str(value)])
     subprocess.run(cmd, cwd=str(ROOT), check=True, text=True)
 
-    screening_dir = stage2_root / args.backend / "screening"
+    screening_dir = stage2_root / backend_tag / "screening"
     ranking_csv = screening_dir / "pair_ranking.csv"
     pair_ranking_json = screening_dir / "pair_ranking.json"
-    ranking_json = pipeline.normalize_ranking_csv(ranking_csv, args.backend)
+    ranking_json = pipeline.normalize_ranking_csv(ranking_csv, backend_tag)
     runtime_config_used = screening_dir / "runtime_config_used.json"
     run_meta = screening_dir / "run_meta.json"
     manifest = create_stage2_manifest(
@@ -354,7 +364,9 @@ def prepare_qe(stage2: dict, run_root: Path, qe_root: Path, backend_tag: str, to
 def run_stage3(args, run_root: Path, stage2_manifest_path: Path):
     pipeline = _pipeline()
     stage2 = load_json(stage2_manifest_path)
-    qe_root = run_root / "stage3" / "qe" / args.backend
+    ranking_csv_rel = stage2.get("output_files", {}).get("ranking_csv")
+    backend_tag = Path(ranking_csv_rel).parts[-3] if ranking_csv_rel else resolve_stage2_tag(args)
+    qe_root = run_root / "stage3" / "qe" / backend_tag
     qe_root.mkdir(parents=True, exist_ok=True)
     stage3_status_path = qe_root / "modular_stage3_status.json"
     qe_manifest_path = qe_root / "run_manifest.json"
@@ -409,7 +421,7 @@ def run_stage3(args, run_root: Path, stage2_manifest_path: Path):
             stage2=stage2,
             run_root=run_root,
             qe_root=qe_root,
-            backend_tag=f"{args.backend}_r03",
+            backend_tag=f"{backend_tag}_r03",
             top_n=args.top_n,
             qe_partition=args.qe_partition,
             qe_walltime=args.qe_walltime,

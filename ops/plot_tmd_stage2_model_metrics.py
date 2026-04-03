@@ -15,7 +15,7 @@ PHI_UNIT = r"meV/(\AA\,amu)^{3/2}"
 
 
 def parse_args():
-    p = argparse.ArgumentParser(description="Plot WSe2 baseline comparison metric charts.")
+    p = argparse.ArgumentParser(description="Plot TMD stage2 multi-model comparison charts.")
     p.add_argument("--data-json", required=True)
     p.add_argument("--out-dir", required=True)
     return p.parse_args()
@@ -25,7 +25,7 @@ def short_label(pair_label: str) -> str:
     return pair_label.replace("_", "\n")
 
 
-def plot_phi122_bars(pair_rows: list[dict]):
+def plot_phi122_bars(material: str, pair_rows: list[dict]):
     labels = [short_label(row["pair_label"]) for row in pair_rows]
     x = np.arange(len(pair_rows))
     width = 0.2
@@ -39,17 +39,18 @@ def plot_phi122_bars(pair_rows: list[dict]):
     for idx, (label, field, color) in enumerate(method_fields):
         vals = [row[field] for row in pair_rows]
         ax.bar(x + (idx - 1.5) * width, vals, width=width, label=label, color=color)
+    ax.axhline(0.0, color="black", linewidth=0.9)
     ax.set_xticks(x)
     ax.set_xticklabels(labels, fontsize=10)
     ax.set_ylabel(rf"$\phi_{{122}}$ ({PHI_UNIT})")
-    ax.set_title("WSe2 Real-Stage1 Candidate Set: Pairwise $\\phi_{122}$ Comparison")
+    ax.set_title(f"{material.upper()}: Pairwise $\\phi_{{122}}$ Comparison")
     ax.legend(frameon=False, ncols=2)
     ax.grid(axis="y", linestyle="--", alpha=0.3)
     fig.tight_layout()
     return fig
 
 
-def plot_phi122_error(pair_rows: list[dict]):
+def plot_phi122_error(material: str, pair_rows: list[dict]):
     labels = [short_label(row["pair_label"]) for row in pair_rows]
     x = np.arange(len(pair_rows))
     width = 0.24
@@ -66,14 +67,14 @@ def plot_phi122_error(pair_rows: list[dict]):
     ax.set_xticks(x)
     ax.set_xticklabels(labels, fontsize=10)
     ax.set_ylabel(rf"$\Delta \phi_{{122}}$ relative to QE ({PHI_UNIT})")
-    ax.set_title("Deviation from QE Stage3 Reference")
+    ax.set_title(f"{material.upper()}: Deviation from QE Stage3 Reference")
     ax.legend(frameon=False)
     ax.grid(axis="y", linestyle="--", alpha=0.3)
     fig.tight_layout()
     return fig
 
 
-def plot_rmse(pair_rows: list[dict]):
+def plot_rmse(material: str, pair_rows: list[dict]):
     labels = [short_label(row["pair_label"]) for row in pair_rows]
     x = np.arange(len(pair_rows))
     method_fields = [
@@ -90,14 +91,14 @@ def plot_rmse(pair_rows: list[dict]):
     ax.set_xticklabels(labels, fontsize=10)
     ax.set_yscale("log")
     ax.set_ylabel("RMSE (eV/supercell, log scale)")
-    ax.set_title("Residual Comparison Across Screening and QE Fits")
+    ax.set_title(f"{material.upper()}: Residual Comparison Across Screening and QE Fits")
     ax.legend(frameon=False, ncols=2)
     ax.grid(axis="y", linestyle="--", alpha=0.3)
     fig.tight_layout()
     return fig
 
 
-def plot_summary_metrics(aggregate_rows: list[dict]):
+def plot_summary_metrics(material: str, aggregate_rows: list[dict]):
     labels = ["MAE", "RMSE", "MaxAE"]
     x = np.arange(len(labels))
     width = 0.24
@@ -114,7 +115,7 @@ def plot_summary_metrics(aggregate_rows: list[dict]):
     ax.set_xticks(x)
     ax.set_xticklabels(labels)
     ax.set_ylabel(rf"Error magnitude ({PHI_UNIT})")
-    ax.set_title("Aggregate Error Metrics Relative to QE Stage3")
+    ax.set_title(f"{material.upper()}: Aggregate Error Metrics Relative to QE Stage3")
     ax.legend(frameon=False)
     ax.grid(axis="y", linestyle="--", alpha=0.3)
     fig.tight_layout()
@@ -135,12 +136,15 @@ def main():
     out_dir = Path(args.out_dir).expanduser().resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
     payload = json.loads(Path(args.data_json).read_text())
+    material = payload["metadata"]["material"]
     plt.rcParams.update({"font.size": 12, "axes.spines.top": False, "axes.spines.right": False})
     outputs: list[str] = []
-    outputs.extend(save_fig(plot_phi122_bars(payload["pair_rows"]), out_dir, "wse2_phi122_bar_comparison"))
-    outputs.extend(save_fig(plot_phi122_error(payload["pair_rows"]), out_dir, "wse2_phi122_error_vs_qe"))
-    outputs.extend(save_fig(plot_rmse(payload["pair_rows"]), out_dir, "wse2_rmse_comparison"))
-    outputs.extend(save_fig(plot_summary_metrics(payload["aggregate_error_stats"]), out_dir, "wse2_aggregate_error_metrics"))
+    outputs.extend(save_fig(plot_phi122_bars(material, payload["pair_rows"]), out_dir, f"{material}_phi122_bar_comparison"))
+    outputs.extend(save_fig(plot_phi122_error(material, payload["pair_rows"]), out_dir, f"{material}_phi122_error_vs_qe"))
+    outputs.extend(save_fig(plot_rmse(material, payload["pair_rows"]), out_dir, f"{material}_rmse_comparison"))
+    outputs.extend(
+        save_fig(plot_summary_metrics(material, payload["aggregate_error_stats"]), out_dir, f"{material}_aggregate_error_metrics")
+    )
     for item in outputs:
         print(item)
 

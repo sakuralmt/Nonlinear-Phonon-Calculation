@@ -541,16 +541,16 @@ the imported run root. Cross-machine continuation should therefore use
 
 ```mermaid
 flowchart TB
-    A["External input tree\nstructure.cif + pseudos + system.json"] --> B["npc / tui\noperator entrypoint"]
+    A["External input tree<br/>structure.cif + pseudos + system.json"] --> B["npc / tui<br/>operator entrypoint"]
     B --> C["Create or reuse run root"]
-    C --> D["stage1\nQE phonon frontend"]
+    C --> D["stage1<br/>QE phonon frontend"]
     D --> E["contracts/stage1.manifest.json"]
-    E --> F["stage2\nMLFF screening\n(default: GPTFF v2)"]
+    E --> F["stage2<br/>MLFF screening<br/>default GPTFF v2"]
     F --> G["contracts/stage2.manifest.json"]
-    G --> H["stage3\nQE top5 recheck"]
+    G --> H["stage3<br/>QE top5 recheck"]
     H --> I["contracts/stage3.manifest.json"]
-    B --> J["Read-only status\n./npc --status"]
-    B --> K["Cross-machine handoff\nexport / import bundle"]
+    B --> J["Read-only status<br/>./npc --status"]
+    B --> K["Cross-machine handoff<br/>export or import bundle"]
     E --> K
     G --> K
 ```
@@ -564,7 +564,7 @@ flowchart TB
 - `qe_phonon_stage1_server_bundle/`
   - stage1 phonon frontend and convergence tooling
 - `mlff_modepair_workflow/`
-  - stage2 MLFF screening logic for GPTFF and CHGNet backends
+  - stage2 MLFF screening logic for GPTFF, CHGNet, and MatterSim backends
 - `qe_modepair_handoff_workflow/`
   - stage3 QE preparation and collection helpers
 - `examples/wse2_input_example/`

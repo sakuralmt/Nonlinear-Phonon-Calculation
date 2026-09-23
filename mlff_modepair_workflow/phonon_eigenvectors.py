@@ -114,7 +114,7 @@ def frequencies_and_vectors(matrix: np.ndarray):
     return np.sign(eigvals) * np.sqrt(np.abs(eigvals)) * CONV_TO_THZ, vectors
 
 
-def compare_modes(qe_freq, qe_vectors, model_freq, model_vectors, degeneracy_thz=0.1):
+def compare_modes(qe_freq, qe_vectors, model_freq, model_vectors, degeneracy_thz=0.1, gamma_acoustic=False):
     """Assign isolated modes by overlap; score QE degenerate groups as subspaces."""
     overlap = np.abs(qe_vectors.conj().T @ model_vectors) ** 2
     rows, cols = linear_sum_assignment(-overlap)
@@ -123,7 +123,14 @@ def compare_modes(qe_freq, qe_vectors, model_freq, model_vectors, degeneracy_thz
     groups = []
     start = 0
     for index in range(1, len(qe_freq) + 1):
-        if index == len(qe_freq) or qe_freq[index] - qe_freq[index - 1] > degeneracy_thz:
+        if gamma_acoustic and index < 3:
+            continue
+        boundary = (
+            index == len(qe_freq)
+            or (gamma_acoustic and index == 3)
+            or qe_freq[index] - qe_freq[index - 1] > degeneracy_thz
+        )
+        if boundary:
             members = list(range(start, index))
             matched = assignment[members]
             score = float(np.linalg.norm(qe_vectors[:, members].conj().T @ model_vectors[:, matched]) ** 2 / len(members))

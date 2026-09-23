@@ -21,6 +21,10 @@ individual overlaps without changing the physical subspace. Frequencies are
 reported for the overlap-matched mode, which can differ from the mode with
 the same ascending frequency index. Full arrays, including force constants,
 are saved alongside the JSON result in a compressed NPZ file.
+The first three modes at Gamma are always compared as one acoustic subspace,
+even when raw QE numerical noise splits their frequencies or makes one
+slightly imaginary. `scripts/reassign_grid_eigenvectors.py` can recompute
+assignments from the saved NPZ files without repeating model force calls.
 
 For archived selected modes without a complete `qeph.eig`, use
 `scripts/compare_selected_q_modes.py`. It computes the same dynamical matrices

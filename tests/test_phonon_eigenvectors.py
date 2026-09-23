@@ -79,3 +79,15 @@ def test_degenerate_modes_are_compared_as_subspaces():
     assert np.allclose(individual[:2], 0.5)
     assert groups[0]["qe_modes"] == [1, 2]
     assert np.isclose(groups[0]["subspace_overlap"], 1)
+
+
+def test_gamma_acoustic_triplet_is_grouped_despite_numerical_splitting():
+    qe = np.eye(4)
+    ml = np.eye(4)
+    ml[:, :2] = np.array([[1, 1], [1, -1], [0, 0], [0, 0]]) / np.sqrt(2)
+    _, _, groups = compare_modes(
+        np.array([-0.44, 0.49, 0.52, 5.2]), qe,
+        np.array([0.0, 0.0, 0.0, 5.2]), ml, gamma_acoustic=True
+    )
+    assert groups[0]["qe_modes"] == [1, 2, 3]
+    assert np.isclose(groups[0]["subspace_overlap"], 1.0)

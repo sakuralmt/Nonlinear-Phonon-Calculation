@@ -91,7 +91,9 @@ def main(argv=None):
     for iq, point in enumerate(q):
         matrix, hermitian_error = dynamical_matrix(phi, masses, point)
         freq, vec = frequencies_and_vectors(matrix)
-        assignment, overlaps, groups = compare_modes(qe_freq[iq], qe_vec[iq], freq, vec)
+        assignment, overlaps, groups = compare_modes(
+            qe_freq[iq], qe_vec[iq], freq, vec, gamma_acoustic=bool(np.allclose(point, 0))
+        )
         all_freq.append(freq)
         all_vec.append(vec)
         records.append({

@@ -15,7 +15,6 @@ from ase.io.espresso import read_espresso_in
 
 CONV_TO_THZ = 15.63330423985619
 CONV_TO_CM1 = 521.4708983725064
-MASS_DICT = {"W": 183.84, "Se": 78.960}
 RY_TO_EV = 13.605693009
 DEFAULT_GPTFF_MODEL_NAME = "gptff_v2.pth"
 GPTFF_MODEL_ALIASES = {
@@ -618,7 +617,31 @@ class ModePairFrozenPhononBuilder:
         self.phase_q = np.exp(2j * np.pi * np.dot(self.replica_r, self.q_frac))
         self.gamma_super = self.gamma_mode[self.prim_indices]
         self.q_super = self.q_mode[self.prim_indices]
-        masses = np.array([MASS_DICT[s] for s in self.supercell.get_chemical_symbols()], dtype=float)
+        # For Gamma and other self-conjugate points an arbitrary global QE
+        # phase can make the real displacement vanish. Rotate only when the
+        # supercell wave has a well-defined real quadrature. At generic q the
+        # quadratures have equal norm and we preserve the supplied QE gauge.
+        def real_quadrature_phase(wave):
+            pseudo_norm = np.sum(wave**2)
+            total_norm = np.sum(np.abs(wave) ** 2)
+            if abs(pseudo_norm) < 1e-8 * total_norm:
+                return 1.0 + 0.0j
+            return np.exp(-0.5j * np.angle(pseudo_norm))
+
+        self.gamma_phase_factor = real_quadrature_phase(self.gamma_super)
+        self.q_phase_factor = real_quadrature_phase(self.q_super * self.phase_q[:, None])
+        self.gamma_super *= self.gamma_phase_factor
+        self.q_super *= self.q_phase_factor
+        # QE eigenvectors are normalized in the primitive cell.  Taking the real
+        # part of a Bloch wave changes its norm at a non-self-conjugate q point.
+        # Normalize the actual real supercell displacement, not the complex wave.
+        gamma_norm = np.linalg.norm(np.real(self.gamma_super)) / np.sqrt(self.n_cells)
+        q_norm = np.linalg.norm(np.real(self.q_super * self.phase_q[:, None])) / np.sqrt(self.n_cells)
+        if gamma_norm < 1e-12 or q_norm < 1e-12:
+            raise ValueError("Real frozen-phonon displacement has zero norm; choose another mode phase")
+        self.gamma_amplitude_factor = 1.0 / gamma_norm
+        self.q_amplitude_factor = 1.0 / q_norm
+        masses = np.asarray(self.supercell.get_masses(), dtype=float)
         self.mass_sqrt = np.sqrt(masses)[:, None]
 
     @property
@@ -626,7 +649,10 @@ class ModePairFrozenPhononBuilder:
         return len(self.supercell)
 
     def displacement_cart(self, a1: float, a2: float):
-        u_complex = a1 * self.gamma_super + a2 * self.q_super * self.phase_q[:, None]
+        u_complex = (
+            a1 * self.gamma_amplitude_factor * self.gamma_super
+            + a2 * self.q_amplitude_factor * self.q_super * self.phase_q[:, None]
+        )
         u_complex = u_complex / np.sqrt(self.n_cells)
         return np.real(u_complex) / self.mass_sqrt
 
@@ -682,7 +708,11 @@ class ModePairFrozenPhononBuilder:
             "nat_prim": self.nat_prim,
             "nat_super": self.nat_super,
             "q_frac": self.q_frac.tolist(),
-            "normalization": "u = Re[(A1 e_Gamma + A2 e_q exp(i qR))/sqrt(N_cells)]/sqrt(M)",
+            "normalization": "each real mass-weighted supercell mode has unit norm; u = Re[(A1 c_Gamma e_Gamma + A2 c_q e_q exp(i qR))/sqrt(N_cells)]/sqrt(M)",
+            "gamma_amplitude_factor": self.gamma_amplitude_factor,
+            "q_amplitude_factor": self.q_amplitude_factor,
+            "gamma_phase_factor": [self.gamma_phase_factor.real, self.gamma_phase_factor.imag],
+            "q_phase_factor": [self.q_phase_factor.real, self.q_phase_factor.imag],
         }
 
 

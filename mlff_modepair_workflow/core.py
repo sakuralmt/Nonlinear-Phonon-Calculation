@@ -12,10 +12,11 @@ from ase.build import make_supercell
 from ase.io import read
 from ase.io.espresso import read_espresso_in
 
+try:
+    from .units import CONV_TO_CM1, CONV_TO_THZ, NORMALIZATION_VERSION, RY_TO_EV, UNITS, energies_to_ev, projected_derivatives
+except ImportError:  # Direct execution from the workflow directory.
+    from units import CONV_TO_CM1, CONV_TO_THZ, NORMALIZATION_VERSION, RY_TO_EV, UNITS, energies_to_ev, projected_derivatives
 
-CONV_TO_THZ = 15.63330423985619
-CONV_TO_CM1 = 521.4708983725064
-RY_TO_EV = 13.605693009
 DEFAULT_GPTFF_MODEL_NAME = "gptff_v2.pth"
 GPTFF_MODEL_ALIASES = {
     "gptff": "gptff_v2.pth",
@@ -481,7 +482,7 @@ def fit_1d_axis_quartic(a: np.ndarray, e: np.ndarray):
     }
 
 
-def fit_polynomial(a1_vals: np.ndarray, a2_vals: np.ndarray, energies: np.ndarray, fit_window: float | None = None):
+def polynomial_design(a1_vals: np.ndarray, a2_vals: np.ndarray, fit_window: float | None = None):
     x = np.repeat(a1_vals, len(a2_vals))
     y = np.tile(a2_vals, len(a1_vals))
 
@@ -489,9 +490,9 @@ def fit_polynomial(a1_vals: np.ndarray, a2_vals: np.ndarray, energies: np.ndarra
         mask = (np.abs(x) <= fit_window) & (np.abs(y) <= fit_window)
         x_fit = x[mask]
         y_fit = y[mask]
-        e_fit = energies[mask]
     else:
-        x_fit, y_fit, e_fit = x, y, energies
+        mask = np.ones(len(x), dtype=bool)
+        x_fit, y_fit = x, y
 
     design = np.column_stack(
         [
@@ -511,40 +512,39 @@ def fit_polynomial(a1_vals: np.ndarray, a2_vals: np.ndarray, energies: np.ndarra
         ]
     )
 
-    params, _, _, _ = np.linalg.lstsq(design, e_fit, rcond=None)
+    return design, mask
+
+
+def fit_polynomial(a1_vals: np.ndarray, a2_vals: np.ndarray, energies: np.ndarray, fit_window: float | None = None):
+    x = np.repeat(a1_vals, len(a2_vals))
+    y = np.tile(a2_vals, len(a1_vals))
+    design, mask = polynomial_design(a1_vals, a2_vals, fit_window)
+    params, _, _, _ = np.linalg.lstsq(design, energies[mask], rcond=None)
     e_model_all = fit_func(np.vstack([x, y]), *params)
     residuals = e_model_all - energies
     sse = np.sum(residuals**2)
     sst = np.sum((energies - np.mean(energies)) ** 2)
-    r2 = float(1.0 - sse / sst)
+    r2 = float(1.0 - sse / sst) if sst > 1e-24 else (1.0 if sse <= 1e-24 else 0.0)
     rmse = float(np.sqrt(np.mean(residuals**2)))
     return params, residuals, r2, rmse
 
 
 def extract_physics(params: np.ndarray):
     c20, c02, c12, c21, c30, c03, c11, c40, c04, c22, c10, c01, c00 = params
+    coefficients = {
+        "c20": float(c20), "c02": float(c02), "c12": float(c12),
+        "c21": float(c21), "c30": float(c30), "c03": float(c03),
+        "c11": float(c11), "c40": float(c40), "c04": float(c04),
+        "c22": float(c22), "c10": float(c10), "c01": float(c01),
+        "c00": float(c00),
+    }
     return {
         "freq_mode1": freq_from_c2(float(c20)),
         "freq_mode2": freq_from_c2(float(c02)),
-        "phi_122_mev_per_A3amu32": float(2.0 * c12 * 1000.0),
-        "phi_112_mev_per_A3amu32": float(2.0 * c21 * 1000.0),
-        "phi_111_mev_per_A3amu32": float(6.0 * c30 * 1000.0),
-        "phi_222_mev_per_A3amu32": float(6.0 * c03 * 1000.0),
-        "coefficients_ev": {
-            "c20": float(c20),
-            "c02": float(c02),
-            "c12": float(c12),
-            "c21": float(c21),
-            "c30": float(c30),
-            "c03": float(c03),
-            "c11": float(c11),
-            "c40": float(c40),
-            "c04": float(c04),
-            "c22": float(c22),
-            "c10": float(c10),
-            "c01": float(c01),
-            "c00": float(c00),
-        },
+        **projected_derivatives(coefficients),
+        "coefficients_ev": coefficients,
+        "coefficient_units": "eV/(Angstrom*sqrt(amu))^degree; c00 is eV/supercell",
+        "normalization_version": NORMALIZATION_VERSION,
     }
 
 
@@ -559,7 +559,7 @@ def axis_frequency_checks(a1_vals: np.ndarray, a2_vals: np.ndarray, e_grid: np.n
     }
 
 
-def compare_with_reference_grid(ref_grid_file: Path, ml_grid_ev_supercell: np.ndarray):
+def compare_with_reference_grid(ref_grid_file: Path, ml_grid_ev_supercell: np.ndarray, source_unit: str):
     if not ref_grid_file.exists():
         return None
 
@@ -571,10 +571,7 @@ def compare_with_reference_grid(ref_grid_file: Path, ml_grid_ev_supercell: np.nd
     elif ref.shape != ml_grid_ev_supercell.shape:
         return None
 
-    if np.max(np.abs(ref)) < 1.0:
-        ref_ev = ref * RY_TO_EV
-    else:
-        ref_ev = ref
+    ref_ev = energies_to_ev(ref, source_unit)
 
     ref_rel = ref_ev - np.min(ref_ev)
     ml_rel = ml_grid_ev_supercell - np.min(ml_grid_ev_supercell)
@@ -587,6 +584,7 @@ def compare_with_reference_grid(ref_grid_file: Path, ml_grid_ev_supercell: np.nd
     sse = float(np.sum((ml_flat - ref_flat) ** 2))
     r2 = float(1.0 - sse / sst)
     return {
+        "reference_source_energy_unit": source_unit,
         "rmse_ev_supercell": rmse,
         "mae_ev_supercell": mae,
         "r2_against_ref_shape": r2,
@@ -737,7 +735,12 @@ def evaluate_pair_grid(
 
 def analyze_pair_grid(pair_record: dict, e_grid_ev_supercell: np.ndarray, a1_vals: np.ndarray, a2_vals: np.ndarray, fit_window: float | None = 1.0):
     e_shift = e_grid_ev_supercell - np.min(e_grid_ev_supercell)
+    design, center_mask = polynomial_design(a1_vals, a2_vals, fit_window)
     params, residuals, r2, rmse = fit_polynomial(a1_vals, a2_vals, e_shift.T.reshape(-1), fit_window=fit_window)
+    fit_energies = e_shift.T.reshape(-1)[center_mask]
+    center_sse = float(np.sum(residuals[center_mask] ** 2))
+    center_sst = float(np.sum((fit_energies - np.mean(fit_energies)) ** 2))
+    center_r2 = 1.0 - center_sse / center_sst if center_sst > 1e-24 else (1.0 if center_sse <= 1e-24 else 0.0)
     physics = extract_physics(params)
     axis = axis_frequency_checks(a1_vals, a2_vals, e_shift)
     mode_pair_reference = {
@@ -748,13 +751,20 @@ def analyze_pair_grid(pair_record: dict, e_grid_ev_supercell: np.ndarray, a1_val
     }
     return {
         "fit_window": fit_window,
+        "fit_points": int(len(design)),
+        "fit_design_rank": int(np.linalg.matrix_rank(design)),
+        "fit_condition_number": float(np.linalg.cond(design)),
         "r2": r2,
+        "center_fit_r2": float(center_r2),
         "rmse_ev_supercell": rmse,
+        "center_fit_rmse_ev_supercell": float(np.sqrt(np.mean(residuals[center_mask] ** 2))),
         "max_abs_residual_ev_supercell": float(np.max(np.abs(residuals))),
         "physics": physics,
         "axis_checks": axis,
         "mode_pair_reference": mode_pair_reference,
         "reference": mode_pair_reference,
+        "units": UNITS,
+        "normalization_version": NORMALIZATION_VERSION,
     }
 
 
@@ -876,6 +886,13 @@ def make_calculator(backend: str, device: str = "auto", model: str | None = None
         model_path = resolve_gptff_model_path(model)
         calc = ASECalculator(str(model_path), chosen_device)
         return calc, gptff_backend_meta(model_path, chosen_device)
+
+    if backend == "prophet":
+        try:
+            from .prophet_backend import make_prophet_calculator
+        except ImportError:
+            from prophet_backend import make_prophet_calculator
+        return make_prophet_calculator(model, chosen_device)
 
     raise ValueError(f"Unsupported backend: {backend}")
 

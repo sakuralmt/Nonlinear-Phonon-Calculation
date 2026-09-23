@@ -1,5 +1,8 @@
 # Nonlinear Phonon Calculation
 
+The pinned Prophet Stage1/Stage2 v3 workflow, unit conventions, checkpointing,
+and validation commands are documented in [docs/prophet_stage12_v3.md](docs/prophet_stage12_v3.md).
+
 [English](README.md) | [中文](README_zh.md)
 
 `npc` is the operator entrypoint for a staged workflow that separates:

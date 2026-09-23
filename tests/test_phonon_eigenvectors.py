@@ -64,6 +64,7 @@ def test_force_constants_fourier_transform_on_whole_mesh():
 
     equilibrium = make_supercell(primitive, np.diag([mesh_n, mesh_n, 1])).get_positions()
     phi = real_space_force_constants(primitive, _ToySprings(equilibrium, mesh_n), mesh_n, 0.01)
+    assert np.max(np.abs(phi.sum(axis=(0, 1, 4))[..., 0, 0])) < 1e-9
     for iq in range(mesh_n):
         matrix, error = dynamical_matrix(phi, primitive.get_masses(), np.array([iq / mesh_n, 0, 0]))
         assert error < 1e-12

@@ -1,0 +1,248 @@
+"""Prophet finite-displacement Stage1 on a complete 2D q mesh.
+
+Every non-Gamma branch is retained.  Point-group and time-reversal actions
+only coalesce duplicate q points; they never select a little-group subset.
+"""
+
+from __future__ import annotations
+
+import json
+import time
+from pathlib import Path
+
+import numpy as np
+
+from .core import load_atoms_from_qe
+from .phonon_eigenvectors import dynamical_matrix, frequencies_and_vectors, real_space_force_constants
+from .prophet_backend import make_prophet_calculator, process_resource_metrics, sha256_file, validate_atoms
+from .units import CONTRACT_VERSION, NORMALIZATION_VERSION, UNITS
+from qe_phonon_stage1_server_bundle.qpair_tools.common import HEX_RECIPROCAL_OPERATIONS_2D, classify_hex_qpoint, is_hexagonal_2d
+
+
+def _q_index(q, mesh_n: int) -> tuple[int, int]:
+    return tuple(int(x) % mesh_n for x in q[:2])
+
+
+def finite_q_orbits(mesh_n: int) -> list[dict]:
+    if mesh_n < 2:
+        raise ValueError("The finite-q workflow requires mesh_n >= 2")
+    remaining = {(i, j) for i in range(mesh_n) for j in range(mesh_n)} - {(0, 0)}
+    orbits = []
+    preferred = []
+    if mesh_n % 6 == 0:
+        scale = mesh_n // 6
+        preferred = [(3 * scale, 0), (2 * scale, 2 * scale), (2 * scale, 4 * scale)]
+    while remaining:
+        seed = min(remaining)
+        members = set()
+        for matrix in HEX_RECIPROCAL_OPERATIONS_2D:
+            image = np.rint(matrix @ np.asarray(seed)).astype(int)
+            members.add(_q_index(image, mesh_n))
+            members.add(_q_index(-image, mesh_n))
+        if members - remaining:
+            raise ValueError("Hexagonal reciprocal operations produced overlapping q orbits")
+        representative = next((point for point in preferred if point in members), min(members))
+        orbits.append({
+            "representative_index": list(representative),
+            "representative_q_frac": [representative[0] / mesh_n, representative[1] / mesh_n, 0.0],
+            "members_index": [list(point) for point in sorted(members)],
+            "members_q_frac": [[i / mesh_n, j / mesh_n, 0.0] for i, j in sorted(members)],
+            "size": len(members),
+        })
+        remaining -= members
+    orbits.sort(key=lambda record: record["representative_index"])
+    if sum(record["size"] for record in orbits) != mesh_n * mesh_n - 1:
+        raise AssertionError("Finite-q orbit coverage is incomplete")
+    return orbits
+
+
+def _phase_fix(vector: np.ndarray) -> np.ndarray:
+    vector = np.asarray(vector, dtype=np.complex128).copy()
+    pivot = int(np.argmax(np.abs(vector)))
+    if abs(vector[pivot]) > 0:
+        vector *= np.conjugate(vector[pivot]) / abs(vector[pivot])
+    return vector
+
+
+def _encode_mode(vector: np.ndarray, natoms: int):
+    return [[[float(value.real), float(value.imag)] for value in row] for row in vector.reshape(natoms, 3)]
+
+
+def _degenerate_groups(freq: np.ndarray, tolerance_thz: float = 0.1):
+    groups = []
+    start = 0
+    for end in range(1, len(freq) + 1):
+        if end == len(freq) or freq[end] - freq[end - 1] > tolerance_thz:
+            groups.append(list(range(start + 1, end + 1)))
+            start = end
+    return groups
+
+
+def phonons_from_force_constants(phi: np.ndarray, masses: np.ndarray, mesh_n: int):
+    records = []
+    for i in range(mesh_n):
+        for j in range(mesh_n):
+            q = np.array([i / mesh_n, j / mesh_n, 0.0])
+            matrix, hermitian_error = dynamical_matrix(phi, masses, q)
+            freq, vectors = frequencies_and_vectors(matrix)
+            vectors = np.column_stack([_phase_fix(vectors[:, mode]) for mode in range(len(freq))])
+            records.append({
+                "q_index": [i, j],
+                "q_frac": q.tolist(),
+                "freqs_thz": freq.tolist(),
+                "eigenvectors": [_encode_mode(vectors[:, mode], len(masses)) for mode in range(len(freq))],
+                "degenerate_groups_one_based": _degenerate_groups(freq),
+                "hermitian_relative_error_before_symmetrizing": hermitian_error,
+            })
+    return records
+
+
+def mode_pairs_from_phonons(records: list[dict], orbits: list[dict], natoms: int):
+    by_index = {tuple(row["q_index"]): row for row in records}
+    gamma = by_index[(0, 0)]
+    nmode = 3 * natoms
+    pairs = []
+    for orbit_number, orbit in enumerate(orbits, start=1):
+        target = by_index[tuple(orbit["representative_index"])]
+        q = target["q_frac"]
+        qbar = [(-value) % 1.0 for value in q]
+        self_conjugate = all(abs((2 * value) - round(2 * value)) < 1e-10 for value in q)
+        label = classify_hex_qpoint(np.asarray(q))
+        for gamma_index in range(nmode):
+            for target_index in range(nmode):
+                pair_code = (
+                    f"Gamma_p0_m{gamma_index + 1}__{label}_q_"
+                    f"{q[0]:.3f}_{q[1]:.3f}_{q[2]:.3f}_m{target_index + 1}"
+                ).replace("-", "m")
+                pairs.append({
+                    "pair_code": pair_code,
+                    "coupling_type": "Q_gamma*Q_q^2" if self_conjugate else "Q_gamma*Q_q*Q_-q",
+                    "q_orbit_number": orbit_number,
+                    "gamma_mode": {
+                        "mode_code": f"Gamma_p0_m{gamma_index + 1}",
+                        "point_index": 0,
+                        "point_label": "Gamma",
+                        "q_frac": [0.0, 0.0, 0.0],
+                        "mode_index_zero_based": gamma_index,
+                        "mode_number_one_based": gamma_index + 1,
+                        "freq_thz": gamma["freqs_thz"][gamma_index],
+                        "eigenvector": gamma["eigenvectors"][gamma_index],
+                    },
+                    "target_mode": {
+                        "mode_code": f"{label}_p{orbit_number}_m{target_index + 1}",
+                        "point_index": orbit_number,
+                        "point_label": label,
+                        "q_frac": q,
+                        "qbar_frac": qbar,
+                        "self_conjugate": self_conjugate,
+                        "mode_index_zero_based": target_index,
+                        "mode_number_one_based": target_index + 1,
+                        "freq_thz": target["freqs_thz"][target_index],
+                        "eigenvector_q": target["eigenvectors"][target_index],
+                        "eigenvector_qbar_by_conjugation": [
+                            [[component[0], -component[1]] for component in atom]
+                            for atom in target["eigenvectors"][target_index]
+                        ],
+                    },
+                })
+    codes = [pair["pair_code"] for pair in pairs]
+    if len(codes) != len(set(codes)):
+        raise ValueError("Nonunique pair codes in the selected q mesh")
+    return pairs
+
+
+def run_prophet_stage1(
+    structure: Path,
+    checkpoint: str | Path,
+    output_dir: Path,
+    *,
+    mesh_n: int = 6,
+    step: float = 0.01,
+    device: str = "cpu",
+    convergence_step: float | None = 0.005,
+    geometry_source: str = "shared_dft",
+):
+    structure = Path(structure).resolve()
+    output_dir = Path(output_dir).resolve()
+    primitive = load_atoms_from_qe(structure)
+    if not bool(np.all(primitive.pbc)):
+        raise ValueError("Stage1 needs periodic x/y/z with explicit monolayer vacuum")
+    hexagonal, geometry = is_hexagonal_2d(primitive.cell.array, 0.05, 3.0)
+    if not hexagonal:
+        raise ValueError(f"6x6 q-orbit reduction requires a hexagonal 2D cell: {geometry}")
+    calculator, model_meta = make_prophet_calculator(checkpoint, device, primitive)
+    validate_atoms(primitive, set(model_meta["supported_atomic_numbers"]))
+    start = time.perf_counter()
+    phi = real_space_force_constants(primitive, calculator, mesh_n, step)
+    force_elapsed = time.perf_counter() - start
+    records = phonons_from_force_constants(phi, primitive.get_masses(), mesh_n)
+    orbits = finite_q_orbits(mesh_n)
+    pairs = mode_pairs_from_phonons(records, orbits, len(primitive))
+    convergence = None
+    if convergence_step is not None:
+        smaller = real_space_force_constants(primitive, calculator, mesh_n, convergence_step)
+        compare_records = phonons_from_force_constants(smaller, primitive.get_masses(), mesh_n)
+        checks = {(0, 0), *(tuple(orbit["representative_index"]) for orbit in orbits)}
+        differences = [
+            abs(a - b)
+            for left, right in zip(records, compare_records)
+            if tuple(left["q_index"]) in checks
+            for a, b in zip(left["freqs_thz"], right["freqs_thz"])
+        ]
+        convergence = {
+            "second_step_angstrom": convergence_step,
+            "checked_q_count": len(checks),
+            "max_frequency_change_thz": max(differences),
+            "median_frequency_change_thz": float(np.median(differences)),
+            "max_acoustic_row_sum_residual_ev_per_A2": float(np.max(np.abs(np.sum(smaller, axis=(0, 1, 4))))),
+            "max_hermitian_relative_error": max(record["hermitian_relative_error_before_symmetrizing"] for record in compare_records),
+        }
+    output_dir.mkdir(parents=True, exist_ok=True)
+    force_arrays = {"force_constants_ev_per_A2": phi}
+    if convergence_step is not None:
+        force_arrays["force_constants_convergence_ev_per_A2"] = smaller
+    np.savez_compressed(output_dir / "force_constants.npz", **force_arrays)
+    source = {
+        "backend": "prophet", "model": model_meta, "structure": str(structure),
+        "structure_sha256": sha256_file(structure), "natoms_primitive": len(primitive),
+        "symbols": primitive.get_chemical_symbols(), "masses_amu": primitive.get_masses().tolist(),
+        "q_grid": [mesh_n, mesh_n, 1], "finite_difference_step_angstrom": step,
+        "geometry_source": geometry_source,
+        "normalization_version": NORMALIZATION_VERSION, "units": UNITS,
+    }
+    row_sum = float(np.max(np.abs(np.sum(phi, axis=(0, 1, 4)))))
+    row_sum_ratio = row_sum / max(float(np.max(np.abs(phi))), 1e-12)
+    hermitian_error = max(record["hermitian_relative_error_before_symmetrizing"] for record in records)
+    quality_flags = []
+    if row_sum_ratio > 1e-3:
+        quality_flags.append("acoustic_row_sum_above_0.1_percent_of_max_fc")
+    if hermitian_error > 1e-3:
+        quality_flags.append("dynamical_matrix_hermiticity_above_0.1_percent")
+    dataset = {
+        "kind": "prophet_phonon_mesh", "version": CONTRACT_VERSION,
+        "source": source, "q_points": records, "q_orbits": orbits,
+        "diagnostics": {
+            "force_evaluation_count": 6 * len(primitive),
+            "force_elapsed_seconds": force_elapsed,
+            "total_elapsed_seconds": time.perf_counter() - start,
+            "resources": process_resource_metrics(device),
+            "gamma_acoustic_frequencies_thz": records[0]["freqs_thz"][:3],
+            "max_hermitian_relative_error": hermitian_error,
+            # Translational invariance sums over source cells and source atoms
+            # for each fixed target atom and Cartesian component.
+            "max_acoustic_row_sum_residual_ev_per_A2": row_sum,
+            "acoustic_row_sum_ratio_to_max_fc": row_sum_ratio,
+            "max_net_force_column_sum_residual_ev_per_A2": float(np.max(np.abs(np.sum(phi, axis=(0, 1, 2))))),
+            "convergence": convergence,
+            "quality_flags": quality_flags,
+        },
+    }
+    (output_dir / "phonon_dataset.json").write_text(json.dumps(dataset, indent=2) + "\n")
+    pair_payload = {
+        "kind": "mode_pairs_qgamma_qpair", "version": CONTRACT_VERSION,
+        "source": source, "selection": "momentum_conservation_only",
+        "finite_q_orbits": orbits, "pairs": pairs,
+    }
+    pair_file = output_dir / "mode_pairs.selected.json"
+    pair_file.write_text(json.dumps(pair_payload, indent=2) + "\n")
+    return pair_file, output_dir / "phonon_dataset.json", output_dir / "force_constants.npz"

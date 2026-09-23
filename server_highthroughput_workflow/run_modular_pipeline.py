@@ -23,6 +23,7 @@ from nonlinear_phonon_calculation.system_inputs import (
 )
 from server_highthroughput_workflow.qe_relax_preflight import run_qe_relax
 from server_highthroughput_workflow.real_stage1_phonon import run_real_stage1, run_stage1_tuning
+from server_highthroughput_workflow.real_stage1_prophet import run_real_prophet_stage1
 from server_highthroughput_workflow.scheduler import resolve_scheduler_mode, resolve_slurm_job_settings, slurm_available
 from server_highthroughput_workflow.stage_contracts import (
     STAGE1_KIND,
@@ -51,7 +52,18 @@ STAGE2_MODEL_PRESETS = {
     "gptff_v1": {"backend": "gptff", "model": "gptff_v1"},
     "gptff_v2": {"backend": "gptff", "model": "gptff_v2"},
     "chgnet": {"backend": "chgnet", "model": "0.3.0"},
+    "prophet_oame_mbd": {"backend": "prophet", "model": "prophet_oame_mbd"},
 }
+
+
+def resolve_prophet_device(hint: str) -> str:
+    if hint != "auto":
+        return hint
+    try:
+        import torch
+    except ImportError:
+        return "cpu"
+    return "cuda" if torch.cuda.is_available() else "cpu"
 
 
 def _pipeline():
@@ -69,6 +81,15 @@ def parse_args():
     p.add_argument("--system", type=str, default=None)
     p.add_argument("--system-dir", type=str, default=None)
     p.add_argument("--qe-relax", choices=["yes", "no"], default="yes")
+    p.add_argument("--stage1-backend", choices=["qe", "prophet"], default="qe")
+    p.add_argument("--geometry-source", choices=["shared_dft", "model_relaxed"], default="shared_dft")
+    p.add_argument("--stage1-structure", type=str, default=None, help="Explicit shared or initial QE-format structure")
+    p.add_argument("--structure-provenance", type=str, default=None)
+    p.add_argument("--prophet-checkpoint", type=str, default=None)
+    p.add_argument("--stage1-device", choices=["auto", "cpu", "cuda"], default="auto")
+    p.add_argument("--stage2-device", choices=["auto", "cpu", "cuda"], default="auto")
+    p.add_argument("--q-grid-n", type=int, default=6)
+    p.add_argument("--fd-step", type=float, default=0.01)
 
     p.add_argument(
         "--stage2-model",
@@ -183,9 +204,14 @@ def run_stage1(args, run_root: Path, spec):
     structure_path = _stage1_structure_path(run_root)
     pseudo_dir = _stage1_pseudo_dir(run_root)
 
-    structure_for_stage1 = structure_path
+    structure_for_stage1 = Path(args.stage1_structure).expanduser().resolve() if args.stage1_structure else structure_path
     relax_summary = None
-    if args.qe_relax == "yes" and not spec.already_relaxed:
+    needs_qe_relax = (
+        args.stage1_structure is None
+        and not (args.stage1_backend == "prophet" and args.geometry_source == "model_relaxed")
+        and args.qe_relax == "yes" and not spec.already_relaxed
+    )
+    if needs_qe_relax:
         relax_summary = run_qe_relax(
             run_root=run_root,
             structure_path=structure_path,
@@ -194,16 +220,26 @@ def run_stage1(args, run_root: Path, spec):
         )
         structure_for_stage1 = Path(relax_summary["optimized_structure"]).expanduser().resolve()
 
-    manifest = run_real_stage1(
-        run_root=run_root,
-        structure=structure_for_stage1,
-        pseudo_dir=pseudo_dir,
-        system_id=spec.system_id,
-        system_dir=spec.system_dir,
-        source_cif=spec.structure_cif,
-        system_meta=spec.metadata_path,
-        workflow_family=spec.workflow_family,
-    )
+    if args.stage1_backend == "prophet":
+        manifest = run_real_prophet_stage1(
+            run_root=run_root, structure=structure_for_stage1, pseudo_dir=pseudo_dir,
+            checkpoint=args.prophet_checkpoint or "prophet_oame_mbd",
+            device=resolve_prophet_device(args.stage1_device), mesh_n=args.q_grid_n,
+            step=args.fd_step, geometry_source=args.geometry_source,
+            system_id=spec.system_id, system_dir=spec.system_dir,
+            source_cif=spec.structure_cif, system_meta=spec.metadata_path,
+            provenance=args.structure_provenance or (
+                "qe_relax_this_run" if relax_summary else
+                "system_json_already_relaxed" if spec.already_relaxed else "unverified_input"
+            ),
+        )
+    else:
+        manifest = run_real_stage1(
+            run_root=run_root, structure=structure_for_stage1, pseudo_dir=pseudo_dir,
+            system_id=spec.system_id, system_dir=spec.system_dir,
+            source_cif=spec.structure_cif, system_meta=spec.metadata_path,
+            workflow_family=spec.workflow_family,
+        )
     _write_stage_runtime_summary(
         run_root,
         {
@@ -213,6 +249,8 @@ def run_stage1(args, run_root: Path, spec):
             "input_root": str(Path(args.input_root).expanduser().resolve()),
             "scheduler_mode": resolve_scheduler_mode(args.scheduler),
             "qe_relax": args.qe_relax,
+            "stage1_backend": args.stage1_backend,
+            "geometry_source": args.geometry_source if args.stage1_backend == "prophet" else None,
             "prepared_system": system_summary,
             "relax_summary": relax_summary,
         },
@@ -240,6 +278,30 @@ def run_stage2(args, run_root: Path, stage1_manifest_path: Path):
     mode_pairs_json = resolve_relative_file(run_root, stage1["files"]["mode_pairs_json"])
     structure = resolve_relative_file(run_root, stage1["files"]["structure"])
     stage2_root = run_root / "stage2" / "outputs"
+    if args.backend == "prophet":
+        if args.limit is not None:
+            raise ValueError("Prophet stable Stage2 computes every pair; use the direct diagnostic CLI for partial runs")
+        cmd = [
+            sys.executable, "-m", "mlff_modepair_workflow.prophet_stage2",
+            "--model", args.prophet_checkpoint or args.model,
+            "--device", resolve_prophet_device(args.stage2_device),
+            "--run-tag", "prophet", "--mode-pairs-json", str(mode_pairs_json),
+            "--structure", str(structure), "--output-root", str(stage2_root),
+        ]
+        subprocess.run(cmd, cwd=str(ROOT), check=True, text=True)
+        screening_dir = stage2_root / "prophet" / "screening"
+        ranking_csv = screening_dir / "pair_ranking.csv"
+        ranking_json = pipeline.normalize_ranking_csv(ranking_csv, "prophet")
+        manifest = create_stage2_manifest(
+            run_root=run_root, stage1_manifest=stage1_manifest_path,
+            ranking_csv=ranking_csv, ranking_json=ranking_json,
+            runtime_config_used=screening_dir / "runtime_config_used.json",
+            run_meta=screening_dir / "run_meta.json",
+            pair_ranking_json=screening_dir / "pair_ranking.json",
+            raw_pairs_dir=screening_dir / "pairs",
+        )
+        print(f"saved: {manifest}")
+        return manifest
     cmd = [
         sys.executable,
         str(ROOT / "mlff_modepair_workflow" / "run_pair_screening_optimized.py"),
@@ -247,6 +309,8 @@ def run_stage2(args, run_root: Path, stage1_manifest_path: Path):
         args.backend,
         "--model",
         args.model,
+        "--device",
+        args.stage2_device,
         "--run-tag",
         args.backend,
         "--mode-pairs-json",

@@ -3,11 +3,13 @@ from __future__ import annotations
 
 import json
 import shutil
+import hashlib
 from datetime import datetime
 from pathlib import Path
 
+from mlff_modepair_workflow.units import NORMALIZATION_VERSION, UNITS
 
-MANIFEST_VERSION = 2
+MANIFEST_VERSION = 3
 STAGE1_KIND = "stage1_manifest"
 STAGE2_KIND = "stage2_manifest"
 STAGE3_KIND = "stage3_manifest"
@@ -44,6 +46,14 @@ def _rel(path: Path, run_root: Path):
     return str(Path(path).resolve().relative_to(Path(run_root).resolve()))
 
 
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with Path(path).open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def resolve_relative_file(run_root: Path, relative_path: str):
     return (Path(run_root) / relative_path).resolve()
 
@@ -69,6 +79,12 @@ def create_stage1_manifest(
     system_dir: Path | None = None,
     source_cif: Path | None = None,
     system_meta: Path | None = None,
+    backend: str = "qe",
+    phonon_dataset: Path | None = None,
+    force_constants: Path | None = None,
+    geometry_source: str | None = None,
+    model: dict | None = None,
+    structure_provenance: str | None = None,
 ):
     run_root = Path(run_root).expanduser().resolve()
     dsts = stage1_defaults(run_root)
@@ -87,9 +103,10 @@ def create_stage1_manifest(
         _copy_file(pseudo, dst)
         copied_pseudos.append(dst)
 
+    contract_version = MANIFEST_VERSION if backend == "prophet" else 2
     payload = {
         "kind": STAGE1_KIND,
-        "version": MANIFEST_VERSION,
+        "version": contract_version,
         "created_at": timestamp_now(),
         "run_root": str(run_root),
         "system_id": system_id,
@@ -103,10 +120,24 @@ def create_stage1_manifest(
         "pseudo_files": [_rel(path, run_root) for path in copied_pseudos],
         "next_stage": STAGE2_KIND,
     }
+    if backend == "prophet":
+        payload.update({
+            "backend": backend,
+            "geometry_source": geometry_source,
+            "structure_provenance": structure_provenance,
+            "structure_sha256": _sha256(dsts["structure"]),
+            "model": model,
+            "units": UNITS,
+            "normalization_version": NORMALIZATION_VERSION,
+        })
     if source_cif is not None and dsts["source_cif"].exists():
         payload["source_files"]["structure_cif"] = _rel(dsts["source_cif"], run_root)
     if system_meta is not None and dsts["system_meta"].exists():
         payload["source_files"]["system_meta"] = _rel(dsts["system_meta"], run_root)
+    if phonon_dataset is not None:
+        payload["files"]["phonon_dataset"] = _rel(Path(phonon_dataset), run_root)
+    if force_constants is not None:
+        payload["files"]["force_constants"] = _rel(Path(force_constants), run_root)
     out = manifest_path(run_root, STAGE1_KIND)
     dump_json(out, payload)
     return out
@@ -120,15 +151,19 @@ def create_stage2_manifest(
     runtime_config_used: Path | None,
     run_meta: Path | None,
     pair_ranking_json: Path | None = None,
+    raw_pairs_dir: Path | None = None,
 ):
     run_root = Path(run_root).expanduser().resolve()
     stage1 = load_json(stage1_manifest)
     payload = {
         "kind": STAGE2_KIND,
-        "version": MANIFEST_VERSION,
+        "version": stage1["version"],
         "created_at": timestamp_now(),
         "run_root": str(run_root),
         "system_id": stage1.get("system_id"),
+        "stage1_backend": stage1.get("backend"),
+        "geometry_source": stage1.get("geometry_source"),
+        "structure_sha256": stage1.get("structure_sha256"),
         "stage1_manifest": _rel(Path(stage1_manifest).resolve(), run_root),
         "input_files": dict(stage1["files"]),
         "pseudo_dir": stage1.get("pseudo_dir"),
@@ -140,12 +175,17 @@ def create_stage2_manifest(
         "runtime_files": {},
         "next_stage": STAGE3_KIND,
     }
+    if stage1["version"] >= 3:
+        payload["units"] = UNITS
+        payload["normalization_version"] = NORMALIZATION_VERSION
     if runtime_config_used is not None and Path(runtime_config_used).exists():
         payload["runtime_files"]["runtime_config_used"] = _rel(Path(runtime_config_used).resolve(), run_root)
     if run_meta is not None and Path(run_meta).exists():
         payload["runtime_files"]["run_meta"] = _rel(Path(run_meta).resolve(), run_root)
     if pair_ranking_json is not None and Path(pair_ranking_json).exists():
         payload["runtime_files"]["pair_ranking_json"] = _rel(Path(pair_ranking_json).resolve(), run_root)
+    if raw_pairs_dir is not None and Path(raw_pairs_dir).is_dir():
+        payload["runtime_files"]["raw_pairs_dir"] = _rel(Path(raw_pairs_dir).resolve(), run_root)
     out = manifest_path(run_root, STAGE2_KIND)
     dump_json(out, payload)
     return out
@@ -156,7 +196,7 @@ def create_stage3_manifest(run_root: Path, stage2_manifest: Path, qe_run_root: P
     stage2 = load_json(stage2_manifest)
     payload = {
         "kind": STAGE3_KIND,
-        "version": MANIFEST_VERSION,
+        "version": stage2["version"],
         "created_at": timestamp_now(),
         "run_root": str(run_root),
         "system_id": stage2.get("system_id"),

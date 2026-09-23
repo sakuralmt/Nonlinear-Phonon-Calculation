@@ -1,5 +1,8 @@
 # Nonlinear Phonon Calculation
 
+Prophet Stage1/Stage2 v3 的固定版本、单位、断点续算和验收命令见
+[docs/prophet_stage12_v3.md](docs/prophet_stage12_v3.md)。
+
 [English](README.md) | [中文](README_zh.md)
 
 `npc` 是本项目的统一操作入口，用于驱动一个分阶段工作流：

@@ -11,7 +11,7 @@ import numpy as np
 from .core import load_atoms_from_qe
 from .phonon_eigenvectors import read_matdyn_q_mesh, read_qe_eigenvectors
 from .prophet_backend import sha256_file
-from .prophet_stage1 import _degenerate_groups, _encode_mode, _phase_fix, finite_q_orbits, mode_pairs_from_phonons
+from .prophet_stage1 import _degenerate_groups, _encode_mode, _phase_fix, equivalent_pair_channels, finite_q_orbits, mode_pairs_from_phonons
 from .units import CONTRACT_VERSION, NORMALIZATION_VERSION, UNITS
 from qe_phonon_stage1_server_bundle.qpair_tools.common import is_hexagonal_2d
 
@@ -79,7 +79,9 @@ def import_qe_mesh(structure: Path, matdyn_input: Path, qe_eig: Path, output_dir
                                   "source": source, "q_points": records, "q_orbits": orbits}, indent=2) + "\n")
     mode_pairs.write_text(json.dumps({"kind": "mode_pairs_qgamma_qpair", "version": CONTRACT_VERSION,
                                       "source": source, "selection": "momentum_conservation_only",
-                                      "finite_q_orbits": orbits, "pairs": pairs}, indent=2) + "\n")
+                                      "finite_q_orbits": orbits,
+                                      "equivalent_pair_channels": equivalent_pair_channels(records, orbits, pairs, len(primitive)),
+                                      "pairs": pairs}, indent=2) + "\n")
     return mode_pairs, phonon
 
 

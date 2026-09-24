@@ -10,7 +10,7 @@ from ase.calculators.calculator import Calculator, all_changes
 from mlff_modepair_workflow.core import analyze_pair_grid
 from mlff_modepair_workflow.prophet_backend import validate_atoms
 from mlff_modepair_workflow.prophet_stage1 import (
-    finite_q_orbits, mode_pairs_from_phonons, phonons_from_force_constants,
+    equivalent_pair_channels, finite_q_orbits, mode_pairs_from_phonons, phonons_from_force_constants,
 )
 from mlff_modepair_workflow.phonon_eigenvectors import real_space_force_constants
 from mlff_modepair_workflow.prophet_stage2 import _ensure_run_signature, _signature, evaluate_pair, finalize
@@ -91,6 +91,39 @@ def test_only_finite_q_momentum_pairs_with_full_branch_coverage(nat):
         assert not np.allclose(q, 0)
         assert np.allclose((q + qbar) % 1, 0)
     assert {pair["gamma_mode"]["mode_number_one_based"] for pair in pairs} == set(range(1, 3 * nat + 1))
+
+
+@pytest.mark.parametrize("nat", [1, 2, 3])
+def test_stage1_physical_channels_cover_each_pair_once(nat):
+    orbits = finite_q_orbits(6)
+    records = _toy_records(6, nat)
+    pairs = mode_pairs_from_phonons(records, orbits, nat)
+    plan = equivalent_pair_channels(records, orbits, pairs, nat)
+    assert plan["finite_q_point_count"] == 35
+    assert plan["q_orbit_count"] == 6
+    assert plan["pair_count"] == 6 * (3 * nat) ** 2
+    assert plan["gamma_groups_one_based"][0] == [1, 2, 3]
+    assert plan["channel_count"] == 6 * 3 * nat * len(plan["gamma_groups_one_based"])
+    listed = [code for channel in plan["channels"] for code in channel["pair_codes"]]
+    assert len(listed) == len(set(listed)) == len(pairs)
+    assert set(listed) == {pair["pair_code"] for pair in pairs}
+    assert all(channel["q_orbit_member_indices"] for channel in plan["channels"])
+    with pytest.raises(ValueError, match="complete mode pairs"):
+        equivalent_pair_channels(records, orbits, pairs[:-1], nat)
+
+
+def test_gamma_multiplet_is_not_replaced_by_one_arbitrary_component():
+    orbits = finite_q_orbits(6)
+    records = _toy_records(6, 3)
+    gamma = next(row for row in records if row["q_index"] == [0, 0])
+    gamma["freqs_thz"] = [0, 0, 0, 5, 5.01, 8, 9, 10, 11]
+    pairs = mode_pairs_from_phonons(records, orbits, 3)
+    plan = equivalent_pair_channels(records, orbits, pairs, 3)
+    assert plan["gamma_groups_one_based"][:2] == [[1, 2, 3], [4, 5]]
+    assert plan["channel_count"] == 6 * 9 * 6
+    multiplet = next(row for row in plan["channels"] if row["gamma_modes_one_based"] == [4, 5])
+    assert len(multiplet["pair_codes"]) == 2
+    assert multiplet["requires_all_gamma_components"]
 
 
 def test_checkpoint_covers_each_point_and_recovers_from_interruption(tmp_path):

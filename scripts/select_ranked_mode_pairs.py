@@ -9,23 +9,15 @@ import json
 import math
 from pathlib import Path
 
+from mlff_modepair_workflow.prophet_stage1 import equivalent_pair_channels, gamma_subspaces
+
 
 def _sha(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def _gamma_groups(dataset: dict, threshold_thz: float) -> list[list[int]]:
-    gamma = next(row for row in dataset["q_points"] if row["q_index"] == [0, 0])
-    freqs = gamma["freqs_thz"]
-    if len(freqs) != 9 or len(dataset["source"]["symbols"]) != 3:
-        raise ValueError("This selector expects a three-atom primitive cell and nine Gamma modes")
-    groups = [[1, 2, 3]]  # Three translations form one zero-frequency subspace.
-    for number in range(4, 10):
-        if groups[-1][-1] >= 4 and freqs[number - 1] - freqs[number - 2] <= threshold_thz:
-            groups[-1].append(number)
-        else:
-            groups.append([number])
-    return groups
+    return gamma_subspaces(dataset["q_points"], len(dataset["source"]["symbols"]), threshold_thz)
 
 
 def select(mode_pairs: dict, ranking: dict, dataset: dict, *,
@@ -40,21 +32,31 @@ def select(mode_pairs: dict, ranking: dict, dataset: dict, *,
     pairs = mode_pairs["pairs"]
     source_codes = {row["pair_code"] for row in pairs}
     ranked = {row["pair_code"]: row for row in ranking["pairs"]}
-    if len(source_codes) != 486 or len(pairs) != 486 or len(ranked) != 486 or set(ranked) != source_codes:
-        raise ValueError("Selection requires a complete, unique 486-pair screening ranking")
-    groups = _gamma_groups(dataset, degeneracy_thz)
-    targets = sorted({code.split("__", 1)[1] for code in source_codes})
-    if len(targets) != 54:
-        raise ValueError("Expected 54 finite-q mode channels")
+    natoms = len(dataset["source"]["symbols"])
+    orbits = mode_pairs["finite_q_orbits"]
+    expected = len(orbits) * (3 * natoms) ** 2
+    if len(source_codes) != expected or len(pairs) != expected or len(ranked) != expected or set(ranked) != source_codes:
+        raise ValueError(f"Selection requires a complete, unique {expected}-pair screening ranking")
+    precomputed = mode_pairs.get("equivalent_pair_channels")
+    if precomputed is not None:
+        canonical = equivalent_pair_channels(
+            dataset["q_points"], orbits, pairs, natoms,
+            precomputed["gamma_degeneracy_threshold_thz"])
+        if precomputed != canonical:
+            raise ValueError("Stage1 precomputed physical channels differ from the pair basis")
+    use_precomputed = (precomputed is not None
+                       and degeneracy_thz == precomputed["gamma_degeneracy_threshold_thz"])
+    planned = (precomputed if use_precomputed else equivalent_pair_channels(
+        dataset["q_points"], orbits, pairs, natoms, degeneracy_thz))
+    groups = planned["gamma_groups_one_based"]
     channels = []
-    for target in targets:
-        for gamma_group in groups:
-            codes = [f"Gamma_p0_m{number}__{target}" for number in gamma_group]
-            if not set(codes) <= source_codes:
-                raise ValueError(f"Incomplete Gamma subspace for {target}")
-            score = math.sqrt(sum(float(ranked[code]["phi122_mev"]) ** 2 for code in codes))
-            channels.append({"q_mode_code": target, "gamma_modes_one_based": gamma_group,
-                             "screening_phi122_norm_mev": score, "pair_codes": codes})
+    for channel in planned["channels"]:
+        codes = channel["pair_codes"]
+        score = math.sqrt(sum(float(ranked[code]["phi122_mev"]) ** 2 for code in codes))
+        channels.append({"channel_code": channel["channel_code"],
+                         "q_mode_code": channel["q_mode_code"],
+                         "gamma_modes_one_based": channel["gamma_modes_one_based"],
+                         "screening_phi122_norm_mev": score, "pair_codes": codes})
     channels.sort(key=lambda row: (-row["screening_phi122_norm_mev"],
                                    row["q_mode_code"], row["gamma_modes_one_based"]))
     if top_k_channels > len(channels):
@@ -63,7 +65,7 @@ def select(mode_pairs: dict, ranking: dict, dataset: dict, *,
     ordered_codes = [code for channel in chosen for code in channel["pair_codes"]]
     by_code = {row["pair_code"]: row for row in pairs}
     return {
-        **{key: value for key, value in mode_pairs.items() if key != "pairs"},
+        **{key: value for key, value in mode_pairs.items() if key not in {"pairs", "equivalent_pair_channels"}},
         "selection": "ranked_gamma_subspace_channels",
         "selection_meta": {
             "screening_backend": ranking["backend"]["backend"],
@@ -72,6 +74,8 @@ def select(mode_pairs: dict, ranking: dict, dataset: dict, *,
             "score": "Euclidean norm of Phi122 over each near-degenerate Gamma subspace",
             "gamma_degeneracy_threshold_thz": degeneracy_thz,
             "gamma_groups_one_based": groups,
+            "available_physical_channels": planned["channel_count"],
+            "stage1_channels_precomputed": use_precomputed,
             "top_k_physical_channels": top_k_channels,
             "selected_pair_count": len(ordered_codes),
             "selected_channels": chosen,

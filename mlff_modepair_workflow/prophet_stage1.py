@@ -151,6 +151,81 @@ def mode_pairs_from_phonons(records: list[dict], orbits: list[dict], natoms: int
     return pairs
 
 
+def gamma_subspaces(records: list[dict], natoms: int, tolerance_thz: float = 0.1) -> list[list[int]]:
+    """Group Gamma optical modes while keeping the three translations together."""
+    if natoms < 1 or tolerance_thz <= 0:
+        raise ValueError("A positive atom count and degeneracy tolerance are required")
+    gamma = next((row for row in records if row["q_index"] == [0, 0]), None)
+    if gamma is None or len(gamma["freqs_thz"]) != 3 * natoms:
+        raise ValueError("A complete Gamma spectrum is required")
+    optical = _degenerate_groups(np.asarray(gamma["freqs_thz"][3:]), tolerance_thz)
+    return [[1, 2, 3], *[[number + 3 for number in group] for group in optical]]
+
+
+def equivalent_pair_channels(records: list[dict], orbits: list[dict], pairs: list[dict],
+                             natoms: int, tolerance_thz: float = 0.1) -> dict:
+    """Precompute complete Gamma-subspace channels at representative finite q points.
+
+    The q-orbit reduction assumes the structure has the encoded hexagonal point
+    symmetry. A channel contains every
+    Gamma component needed for a basis-invariant coupling norm; it does not claim
+    that individual finite-q branches have been mapped at other orbit members.
+    """
+    groups = gamma_subspaces(records, natoms, tolerance_thz)
+    nmode = 3 * natoms
+    expected = len(orbits) * nmode * nmode
+    if len(pairs) != expected:
+        raise ValueError(f"Expected {expected} complete mode pairs; got {len(pairs)}")
+    by_key = {}
+    for pair in pairs:
+        key = (pair["q_orbit_number"], pair["target_mode"]["mode_number_one_based"],
+               pair["gamma_mode"]["mode_number_one_based"])
+        if key in by_key:
+            raise ValueError(f"Duplicate mode pair for {key}")
+        by_key[key] = pair
+    if set(by_key) != {(orbit_number, target_number, gamma_number)
+                      for orbit_number in range(1, len(orbits) + 1)
+                      for target_number in range(1, nmode + 1)
+                      for gamma_number in range(1, nmode + 1)}:
+        raise ValueError("Mode pairs do not cover every orbit and branch combination")
+    channels = []
+    covered = set()
+    for orbit_number, orbit in enumerate(orbits, start=1):
+        for target_number in range(1, nmode + 1):
+            for group in groups:
+                members = [by_key[(orbit_number, target_number, gamma_number)]
+                           for gamma_number in group]
+                codes = [member["pair_code"] for member in members]
+                if len(set(codes)) != len(codes) or covered.intersection(codes):
+                    raise ValueError("A mode pair belongs to multiple physical channels")
+                covered.update(codes)
+                channels.append({
+                    "channel_code": f"{members[0]['target_mode']['mode_code']}__Gamma_"
+                                    + "_".join(map(str, group)),
+                    "q_orbit_number": orbit_number,
+                    "representative_q_index": orbit["representative_index"],
+                    "q_orbit_member_indices": orbit["members_index"],
+                    "q_mode_code": members[0]["target_mode"]["mode_code"],
+                    "target_mode_number_one_based": target_number,
+                    "gamma_modes_one_based": group,
+                    "pair_codes": codes,
+                    "requires_all_gamma_components": len(group) > 1,
+                })
+    if len(covered) != len(pairs) or covered != {pair["pair_code"] for pair in pairs}:
+        raise ValueError("Physical channels do not cover each pair exactly once")
+    return {
+        "kind": "gamma_subspace_q_orbit_channels", "version": 1,
+        "gamma_degeneracy_threshold_thz": tolerance_thz,
+        "gamma_groups_one_based": groups,
+        "q_orbit_count": len(orbits),
+        "finite_q_point_count": sum(orbit["size"] for orbit in orbits),
+        "channel_count": len(channels), "pair_count": len(pairs),
+        "finite_q_branch_mapping_at_orbit_members": "not_computed",
+        "score_after_stage2": "Euclidean norm of Phi122 over all Gamma components",
+        "channels": channels,
+    }
+
+
 def run_prophet_stage1(
     structure: Path,
     checkpoint: str | Path,
@@ -278,7 +353,9 @@ def run_prophet_stage1(
     pair_payload = {
         "kind": "mode_pairs_qgamma_qpair", "version": CONTRACT_VERSION,
         "source": source, "selection": "momentum_conservation_only",
-        "finite_q_orbits": orbits, "pairs": pairs,
+        "finite_q_orbits": orbits,
+        "equivalent_pair_channels": equivalent_pair_channels(records, orbits, pairs, len(primitive)),
+        "pairs": pairs,
     }
     pair_file = output_dir / "mode_pairs.selected.json"
     pair_file.write_text(json.dumps(pair_payload, indent=2) + "\n")

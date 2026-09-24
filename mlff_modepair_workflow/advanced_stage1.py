@@ -17,7 +17,7 @@ from .core import load_atoms_from_qe
 from .model_relaxation import relax_structure_with_calculator
 from .phonon_eigenvectors import real_space_force_constants
 from .prophet_backend import process_resource_metrics, sha256_file
-from .prophet_stage1 import finite_q_orbits, mode_pairs_from_phonons, phonons_from_force_constants
+from .prophet_stage1 import equivalent_pair_channels, finite_q_orbits, mode_pairs_from_phonons, phonons_from_force_constants
 from .units import CONTRACT_VERSION, NORMALIZATION_VERSION, UNITS
 from qe_phonon_stage1_server_bundle.qpair_tools.common import is_hexagonal_2d
 
@@ -329,7 +329,9 @@ def run_advanced_stage1(structure: Path, checkpoint: Path, source_root: Path,
     pair_file = output_dir / "mode_pairs.selected.json"
     pair_file.write_text(json.dumps({"kind": "mode_pairs_qgamma_qpair", "version": CONTRACT_VERSION,
                                      "source": source, "selection": "momentum_conservation_only",
-                                     "finite_q_orbits": orbits, "pairs": pairs}, indent=2) + "\n")
+                                     "finite_q_orbits": orbits,
+                                     "equivalent_pair_channels": equivalent_pair_channels(records, orbits, pairs, len(primitive)),
+                                     "pairs": pairs}, indent=2) + "\n")
     return pair_file, phonon, force_constants
 
 

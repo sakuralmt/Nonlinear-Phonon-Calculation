@@ -18,7 +18,7 @@ LOG_FILE_NAME = "launcher.log"
 DEFAULT_QE_RELAX = True
 DEFAULT_STAGE = "all"
 VALID_STAGES = ("all", "tune", "stage1", "stage2", "stage3")
-VALID_STAGE2_MODELS = ("gptff_v1", "gptff_v2", "chgnet", "mattersim_v1_5m")
+VALID_STAGE2_MODELS = ("gptff_v1", "gptff_v2", "chgnet", "prophet_oame_mbd")
 DRIVER_HEARTBEAT_SECONDS = 60
 STAGE_LABELS = {
     "all": "Full workflow",
@@ -62,6 +62,15 @@ def parse_args():
     parser.add_argument("--stage", choices=VALID_STAGES, default=None)
     parser.add_argument("--run-root", type=str, default=None)
     parser.add_argument("--qe-relax", choices=["yes", "no"], default=None)
+    parser.add_argument("--stage1-backend", choices=["qe", "prophet"], default="qe")
+    parser.add_argument("--geometry-source", choices=["shared_dft", "model_relaxed"], default="shared_dft")
+    parser.add_argument("--stage1-structure", type=str, default=None)
+    parser.add_argument("--structure-provenance", type=str, default=None)
+    parser.add_argument("--prophet-checkpoint", type=str, default=None)
+    parser.add_argument("--stage1-device", choices=["auto", "cpu", "cuda"], default="auto")
+    parser.add_argument("--stage2-device", choices=["auto", "cpu", "cuda"], default="auto")
+    parser.add_argument("--q-grid-n", type=int, default=6)
+    parser.add_argument("--fd-step", type=float, default=0.01)
     parser.add_argument("--qe-mode", choices=["prepare_only", "submit_collect"], default="submit_collect")
     parser.add_argument("--qe-scf-profile-level", choices=["balanced", "fast"], default="balanced")
     parser.add_argument("--qe-static-preset", type=str, default="static_balanced")
@@ -618,7 +627,9 @@ def main() -> int:
     else:
         system_id = args.system or prompt_system(input_root)
     qe_relax = DEFAULT_QE_RELAX if args.qe_relax is None else args.qe_relax == "yes"
-    if args.qe_relax is None and stage in {"stage1", "all"}:
+    if args.qe_relax is None and stage in {"stage1", "all"} and not (
+        args.stage1_backend == "prophet" and args.geometry_source == "model_relaxed"
+    ):
         qe_relax = prompt_yes_no("Run QE structure relaxation first?", default=DEFAULT_QE_RELAX)
     run_root = choose_run_root(input_root, system_id, args.run_root, stage)
     run_root.mkdir(parents=True, exist_ok=True)
@@ -650,6 +661,21 @@ def main() -> int:
             args.qe_static_preset,
             args.qe_scf_preset,
         )
+        command.extend([
+            "--stage1-backend", args.stage1_backend,
+            "--geometry-source", args.geometry_source,
+            "--stage1-device", args.stage1_device,
+            "--stage2-device", args.stage2_device,
+            "--q-grid-n", str(args.q_grid_n),
+            "--fd-step", str(args.fd_step),
+        ])
+        for flag, value in (
+            ("--stage1-structure", args.stage1_structure),
+            ("--structure-provenance", args.structure_provenance),
+            ("--prophet-checkpoint", args.prophet_checkpoint),
+        ):
+            if value is not None:
+                command.extend([flag, value])
         run_streaming_command(command, cwd=ROOT, log_path=log_path, label=STAGE_LABELS[stage])
         print_result_summary(stage, run_root, log_path)
         log_section(log_path, "Complete")

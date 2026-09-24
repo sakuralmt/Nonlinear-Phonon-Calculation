@@ -66,6 +66,7 @@ def parse_args():
     p.add_argument("--structure", type=str, required=True)
     p.add_argument("--golden-fit-json", type=str, default=None)
     p.add_argument("--golden-ref-grid", type=str, default=None)
+    p.add_argument("--golden-ref-unit", choices=["Ry", "eV"], default=None)
     p.add_argument("--output-root", type=str, default=str(DEFAULT_OUT_ROOT))
     p.add_argument("--limit", type=int, default=None)
     p.add_argument("--fit-window", type=float, default=1.0)
@@ -170,7 +171,7 @@ def build_backend_meta(args):
     }
 
 
-def build_summary(result, structure: Path, backend_meta: dict, golden_pair_code: str | None, mode_pair_reference: dict | None, golden_reference: dict | None, golden_ref_grid: Path | None, stage_name: str):
+def build_summary(result, structure: Path, backend_meta: dict, golden_pair_code: str | None, mode_pair_reference: dict | None, golden_reference: dict | None, golden_ref_grid: Path | None, stage_name: str, golden_ref_unit: str | None):
     pair = result["pair"]
     e_grid = result["e_grid"]
     analysis = result["analysis"]
@@ -180,7 +181,7 @@ def build_summary(result, structure: Path, backend_meta: dict, golden_pair_code:
     ref_compare = None
     if golden_pair_code is not None and golden_reference is not None and mode_pair_reference is not None and golden_ref_grid is not None and pair["pair_code"] == golden_pair_code:
         golden_compare = compare_golden_metrics(analysis, golden_reference)
-        ref_compare = compare_with_reference_grid(golden_ref_grid, e_grid)
+        ref_compare = compare_with_reference_grid(golden_ref_grid, e_grid, source_unit=golden_ref_unit)
 
     return {
         "pair_code": pair["pair_code"],
@@ -277,7 +278,7 @@ def run_stage(stage_name: str, pair_records: list[dict], a1_vals: np.ndarray, a2
                 "builder_meta": builder.metadata(),
                 "elapsed_sec": time.time() - t0,
             }
-            summary = build_summary(result, Path(args.structure), backend_meta, golden_pair_code, mode_pair_reference, golden_reference, golden_ref_grid, stage_name)
+            summary = build_summary(result, Path(args.structure), backend_meta, golden_pair_code, mode_pair_reference, golden_reference, golden_ref_grid, stage_name, args.golden_ref_unit)
             write_pair_outputs(stage_root, result, summary, a1_vals, a2_vals)
             row = ranking_row_from_result(result, stage_name)
             results[pair["pair_code"]] = {
@@ -312,7 +313,7 @@ def run_stage(stage_name: str, pair_records: list[dict], a1_vals: np.ndarray, a2
         maxtasksperchild=int(args.maxtasksperchild),
     ) as pool:
         for result in pool.imap_unordered(evaluate_task, tasks, chunksize=int(args.chunksize)):
-            summary = build_summary(result, Path(args.structure), backend_meta, golden_pair_code, mode_pair_reference, golden_reference, golden_ref_grid, stage_name)
+            summary = build_summary(result, Path(args.structure), backend_meta, golden_pair_code, mode_pair_reference, golden_reference, golden_ref_grid, stage_name, args.golden_ref_unit)
             write_pair_outputs(stage_root, result, summary, a1_vals, a2_vals)
             row = ranking_row_from_result(result, stage_name)
             results[result["pair"]["pair_code"]] = {
@@ -474,6 +475,8 @@ def main():
     mode_pair_reference = None
     golden_reference = None
     golden_ref_grid = None
+    if args.golden_ref_grid and args.golden_ref_unit is None:
+        raise ValueError("--golden-ref-unit Ry|eV is required when --golden-ref-grid is provided")
     if args.golden_fit_json and args.golden_ref_grid:
         golden_fit_json = Path(args.golden_fit_json).expanduser().resolve()
         golden_ref_grid = Path(args.golden_ref_grid).expanduser().resolve()

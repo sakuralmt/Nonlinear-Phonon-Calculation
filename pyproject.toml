@@ -10,13 +10,17 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
   "numpy>=1.24",
+  "scipy>=1.10",
   "ase>=3.22",
   "matplotlib>=3.7",
+  "phonopy==2.38.0",
 ]
-license = "MIT"
+
+license = { text = "MIT" }
 authors = [
   { name = "qiyan Codex packaging workflow" }
 ]
+
 classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
@@ -26,6 +30,11 @@ classifiers = [
   "Environment :: Console",
   "Operating System :: POSIX :: Linux",
   "Topic :: Scientific/Engineering :: Physics",
+]
+
+[project.optional-dependencies]
+prophet = [
+  "prophet-mlip @ git+https://github.com/kairosmaterial/prophet.git@c4fda8251d8a7c90c7cb7842aea4d2f57e5fc3bd",
 ]
 
 [project.scripts]

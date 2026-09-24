@@ -118,17 +118,17 @@ def _write_stage_submit(stage_dir: Path, job_name: str, command: str, stdin_name
     path.chmod(0o755)
 
 
-def _write_ph_input(stage_dir: Path, prefix: str):
+def _write_ph_input(stage_dir: Path, prefix: str, atomic_species_entries: list[dict]):
     recover_raw = str(os.environ.get("QIYAN_STAGE1_PH_RECOVER", "true")).strip().lower()
     recover_value = ".false." if recover_raw in {"0", "false", "no", "off"} else ".true."
     path = stage_dir / 'ph.in'
     path.write_text(
-        "phonons of WSe2 on 6x6x1 grid\n"
+        "phonons on the requested q grid\n"
         "&INPUTPH\n"
         f"prefix='{prefix}'\n"
         "outdir='../pw_stage/tmp'\n"
-        "amass(1)=183.84\n"
-        "amass(2)=78.960\n"
+        + "".join(f"amass({index})={entry['mass']}\n" for index, entry in enumerate(atomic_species_entries, 1))
+        +
         "tr2_ph=1.0d-15\n"
         "alpha_mix(1)=0.3\n"
         "ldisp=.true.\n"
@@ -217,7 +217,7 @@ def prepare_frontend() -> Path:
         'scf.out',
         pw_runtime["slurm_settings"],
     )
-    _write_ph_input(ph_stage, prefix)
+    _write_ph_input(ph_stage, prefix, template_meta["atomic_species_entries"])
     _write_stage_submit(
         ph_stage,
         f'{PHONON_JOB_PREFIX}_ph',

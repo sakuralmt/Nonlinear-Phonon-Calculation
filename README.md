@@ -1,5 +1,16 @@
 # Nonlinear Phonon Calculation
 
+The pinned Prophet Stage1/Stage2 v3 workflow, unit conventions, checkpointing,
+and validation commands are documented in [docs/prophet_stage12_v3.md](docs/prophet_stage12_v3.md).
+MLFF Stage1 now defaults to pinned Phonopy 2.38.0 with translational ASR;
+see [docs/phonopy_stage1_standardization.md](docs/phonopy_stage1_standardization.md).
+The default static workflow uses Prophet Stage1 and MatterSim Stage2 ranking.
+The MoS2/WSe2 model replacement and archived QE comparison is documented in
+[docs/phonopy_model_comparison_report.md](docs/phonopy_model_comparison_report.md).
+QE Stage3 remains paused. Its earlier runbook is retained in
+[docs/prophet_mattersim_stage3_v3.md](docs/prophet_mattersim_stage3_v3.md).
+The top-5 Stage3 examples below describe the older v2 handoff.
+
 [English](README.md) | [中文](README_zh.md)
 
 `npc` is the operator entrypoint for a staged workflow that separates:

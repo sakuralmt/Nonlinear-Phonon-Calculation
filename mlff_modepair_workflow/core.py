@@ -8,18 +8,16 @@ import importlib.util
 from pathlib import Path
 
 import numpy as np
-from ase.data import atomic_masses, atomic_numbers
 from ase.build import make_supercell
 from ase.io import read
 from ase.io.espresso import read_espresso_in
 
+try:
+    from .units import CONV_TO_CM1, CONV_TO_THZ, NORMALIZATION_VERSION, RY_TO_EV, UNITS, energies_to_ev, projected_derivatives
+except ImportError:  # Direct execution from the workflow directory.
+    from units import CONV_TO_CM1, CONV_TO_THZ, NORMALIZATION_VERSION, RY_TO_EV, UNITS, energies_to_ev, projected_derivatives
 
-CONV_TO_THZ = 15.63330423985619
-CONV_TO_CM1 = 521.4708983725064
-MASS_DICT = {"W": 183.84, "Se": 78.960}
-RY_TO_EV = 13.605693009
 DEFAULT_GPTFF_MODEL_NAME = "gptff_v2.pth"
-DEFAULT_MATTERSIM_MODEL = "mattersim-v1.0.0-5M"
 GPTFF_MODEL_ALIASES = {
     "gptff": "gptff_v2.pth",
     "gptff_v1": "gptff_v1.pth",
@@ -90,25 +88,6 @@ def load_atoms_from_qe(scf_file: Path):
             return read_espresso_in(f)
     except Exception:
         return read(scf_file)
-
-
-def atomic_mass_from_symbol(symbol: str) -> float:
-    if symbol in MASS_DICT:
-        return float(MASS_DICT[symbol])
-    try:
-        return float(atomic_masses[atomic_numbers[symbol]])
-    except Exception as exc:
-        raise KeyError(f"Unsupported element symbol for mass lookup: {symbol}") from exc
-
-
-def _ensure_mattersim_ase_compat() -> None:
-    import ase.constraints
-
-    if hasattr(ase.constraints, "full_3x3_to_voigt_6_stress"):
-        return
-    from ase.stress import full_3x3_to_voigt_6_stress
-
-    ase.constraints.full_3x3_to_voigt_6_stress = full_3x3_to_voigt_6_stress
 
 
 def configure_torch_runtime(torch_threads: int | None = None, interop_threads: int | None = 1):
@@ -503,7 +482,7 @@ def fit_1d_axis_quartic(a: np.ndarray, e: np.ndarray):
     }
 
 
-def fit_polynomial(a1_vals: np.ndarray, a2_vals: np.ndarray, energies: np.ndarray, fit_window: float | None = None):
+def polynomial_design(a1_vals: np.ndarray, a2_vals: np.ndarray, fit_window: float | None = None):
     x = np.repeat(a1_vals, len(a2_vals))
     y = np.tile(a2_vals, len(a1_vals))
 
@@ -511,9 +490,9 @@ def fit_polynomial(a1_vals: np.ndarray, a2_vals: np.ndarray, energies: np.ndarra
         mask = (np.abs(x) <= fit_window) & (np.abs(y) <= fit_window)
         x_fit = x[mask]
         y_fit = y[mask]
-        e_fit = energies[mask]
     else:
-        x_fit, y_fit, e_fit = x, y, energies
+        mask = np.ones(len(x), dtype=bool)
+        x_fit, y_fit = x, y
 
     design = np.column_stack(
         [
@@ -533,40 +512,39 @@ def fit_polynomial(a1_vals: np.ndarray, a2_vals: np.ndarray, energies: np.ndarra
         ]
     )
 
-    params, _, _, _ = np.linalg.lstsq(design, e_fit, rcond=None)
+    return design, mask
+
+
+def fit_polynomial(a1_vals: np.ndarray, a2_vals: np.ndarray, energies: np.ndarray, fit_window: float | None = None):
+    x = np.repeat(a1_vals, len(a2_vals))
+    y = np.tile(a2_vals, len(a1_vals))
+    design, mask = polynomial_design(a1_vals, a2_vals, fit_window)
+    params, _, _, _ = np.linalg.lstsq(design, energies[mask], rcond=None)
     e_model_all = fit_func(np.vstack([x, y]), *params)
     residuals = e_model_all - energies
     sse = np.sum(residuals**2)
     sst = np.sum((energies - np.mean(energies)) ** 2)
-    r2 = float(1.0 - sse / sst)
+    r2 = float(1.0 - sse / sst) if sst > 1e-24 else (1.0 if sse <= 1e-24 else 0.0)
     rmse = float(np.sqrt(np.mean(residuals**2)))
     return params, residuals, r2, rmse
 
 
 def extract_physics(params: np.ndarray):
     c20, c02, c12, c21, c30, c03, c11, c40, c04, c22, c10, c01, c00 = params
+    coefficients = {
+        "c20": float(c20), "c02": float(c02), "c12": float(c12),
+        "c21": float(c21), "c30": float(c30), "c03": float(c03),
+        "c11": float(c11), "c40": float(c40), "c04": float(c04),
+        "c22": float(c22), "c10": float(c10), "c01": float(c01),
+        "c00": float(c00),
+    }
     return {
         "freq_mode1": freq_from_c2(float(c20)),
         "freq_mode2": freq_from_c2(float(c02)),
-        "phi_122_mev_per_A3amu32": float(2.0 * c12 * 1000.0),
-        "phi_112_mev_per_A3amu32": float(2.0 * c21 * 1000.0),
-        "phi_111_mev_per_A3amu32": float(6.0 * c30 * 1000.0),
-        "phi_222_mev_per_A3amu32": float(6.0 * c03 * 1000.0),
-        "coefficients_ev": {
-            "c20": float(c20),
-            "c02": float(c02),
-            "c12": float(c12),
-            "c21": float(c21),
-            "c30": float(c30),
-            "c03": float(c03),
-            "c11": float(c11),
-            "c40": float(c40),
-            "c04": float(c04),
-            "c22": float(c22),
-            "c10": float(c10),
-            "c01": float(c01),
-            "c00": float(c00),
-        },
+        **projected_derivatives(coefficients),
+        "coefficients_ev": coefficients,
+        "coefficient_units": "eV/(Angstrom*sqrt(amu))^degree; c00 is eV/supercell",
+        "normalization_version": NORMALIZATION_VERSION,
     }
 
 
@@ -581,7 +559,7 @@ def axis_frequency_checks(a1_vals: np.ndarray, a2_vals: np.ndarray, e_grid: np.n
     }
 
 
-def compare_with_reference_grid(ref_grid_file: Path, ml_grid_ev_supercell: np.ndarray):
+def compare_with_reference_grid(ref_grid_file: Path, ml_grid_ev_supercell: np.ndarray, source_unit: str):
     if not ref_grid_file.exists():
         return None
 
@@ -593,10 +571,7 @@ def compare_with_reference_grid(ref_grid_file: Path, ml_grid_ev_supercell: np.nd
     elif ref.shape != ml_grid_ev_supercell.shape:
         return None
 
-    if np.max(np.abs(ref)) < 1.0:
-        ref_ev = ref * RY_TO_EV
-    else:
-        ref_ev = ref
+    ref_ev = energies_to_ev(ref, source_unit)
 
     ref_rel = ref_ev - np.min(ref_ev)
     ml_rel = ml_grid_ev_supercell - np.min(ml_grid_ev_supercell)
@@ -609,6 +584,7 @@ def compare_with_reference_grid(ref_grid_file: Path, ml_grid_ev_supercell: np.nd
     sse = float(np.sum((ml_flat - ref_flat) ** 2))
     r2 = float(1.0 - sse / sst)
     return {
+        "reference_source_energy_unit": source_unit,
         "rmse_ev_supercell": rmse,
         "mae_ev_supercell": mae,
         "r2_against_ref_shape": r2,
@@ -627,6 +603,9 @@ class ModePairFrozenPhononBuilder:
         self.nat_prim = len(self.prim_atoms)
 
         self.supercell = make_supercell(self.prim_atoms, [[self.n_super, 0, 0], [0, self.n_super, 0], [0, 0, 1]])
+        # QE relaxation flags are constraints for geometry optimization, not
+        # for frozen-phonon displacements or force-grid validation.
+        self.supercell.set_constraint()
         self.n_cells = self.n_super * self.n_super
         self.base_cell = self.supercell.get_cell().array.copy()
         self.base_frac = self.supercell.get_scaled_positions().copy()
@@ -639,7 +618,31 @@ class ModePairFrozenPhononBuilder:
         self.phase_q = np.exp(2j * np.pi * np.dot(self.replica_r, self.q_frac))
         self.gamma_super = self.gamma_mode[self.prim_indices]
         self.q_super = self.q_mode[self.prim_indices]
-        masses = np.array([atomic_mass_from_symbol(s) for s in self.supercell.get_chemical_symbols()], dtype=float)
+        # For Gamma and other self-conjugate points an arbitrary global QE
+        # phase can make the real displacement vanish. Rotate only when the
+        # supercell wave has a well-defined real quadrature. At generic q the
+        # quadratures have equal norm and we preserve the supplied QE gauge.
+        def real_quadrature_phase(wave):
+            pseudo_norm = np.sum(wave**2)
+            total_norm = np.sum(np.abs(wave) ** 2)
+            if abs(pseudo_norm) < 1e-8 * total_norm:
+                return 1.0 + 0.0j
+            return np.exp(-0.5j * np.angle(pseudo_norm))
+
+        self.gamma_phase_factor = real_quadrature_phase(self.gamma_super)
+        self.q_phase_factor = real_quadrature_phase(self.q_super * self.phase_q[:, None])
+        self.gamma_super *= self.gamma_phase_factor
+        self.q_super *= self.q_phase_factor
+        # QE eigenvectors are normalized in the primitive cell.  Taking the real
+        # part of a Bloch wave changes its norm at a non-self-conjugate q point.
+        # Normalize the actual real supercell displacement, not the complex wave.
+        gamma_norm = np.linalg.norm(np.real(self.gamma_super)) / np.sqrt(self.n_cells)
+        q_norm = np.linalg.norm(np.real(self.q_super * self.phase_q[:, None])) / np.sqrt(self.n_cells)
+        if gamma_norm < 1e-12 or q_norm < 1e-12:
+            raise ValueError("Real frozen-phonon displacement has zero norm; choose another mode phase")
+        self.gamma_amplitude_factor = 1.0 / gamma_norm
+        self.q_amplitude_factor = 1.0 / q_norm
+        masses = np.asarray(self.supercell.get_masses(), dtype=float)
         self.mass_sqrt = np.sqrt(masses)[:, None]
 
     @property
@@ -647,7 +650,10 @@ class ModePairFrozenPhononBuilder:
         return len(self.supercell)
 
     def displacement_cart(self, a1: float, a2: float):
-        u_complex = a1 * self.gamma_super + a2 * self.q_super * self.phase_q[:, None]
+        u_complex = (
+            a1 * self.gamma_amplitude_factor * self.gamma_super
+            + a2 * self.q_amplitude_factor * self.q_super * self.phase_q[:, None]
+        )
         u_complex = u_complex / np.sqrt(self.n_cells)
         return np.real(u_complex) / self.mass_sqrt
 
@@ -703,7 +709,11 @@ class ModePairFrozenPhononBuilder:
             "nat_prim": self.nat_prim,
             "nat_super": self.nat_super,
             "q_frac": self.q_frac.tolist(),
-            "normalization": "u = Re[(A1 e_Gamma + A2 e_q exp(i qR))/sqrt(N_cells)]/sqrt(M)",
+            "normalization": "each real mass-weighted supercell mode has unit norm; u = Re[(A1 c_Gamma e_Gamma + A2 c_q e_q exp(i qR))/sqrt(N_cells)]/sqrt(M)",
+            "gamma_amplitude_factor": self.gamma_amplitude_factor,
+            "q_amplitude_factor": self.q_amplitude_factor,
+            "gamma_phase_factor": [self.gamma_phase_factor.real, self.gamma_phase_factor.imag],
+            "q_phase_factor": [self.q_phase_factor.real, self.q_phase_factor.imag],
         }
 
 
@@ -728,7 +738,12 @@ def evaluate_pair_grid(
 
 def analyze_pair_grid(pair_record: dict, e_grid_ev_supercell: np.ndarray, a1_vals: np.ndarray, a2_vals: np.ndarray, fit_window: float | None = 1.0):
     e_shift = e_grid_ev_supercell - np.min(e_grid_ev_supercell)
+    design, center_mask = polynomial_design(a1_vals, a2_vals, fit_window)
     params, residuals, r2, rmse = fit_polynomial(a1_vals, a2_vals, e_shift.T.reshape(-1), fit_window=fit_window)
+    fit_energies = e_shift.T.reshape(-1)[center_mask]
+    center_sse = float(np.sum(residuals[center_mask] ** 2))
+    center_sst = float(np.sum((fit_energies - np.mean(fit_energies)) ** 2))
+    center_r2 = 1.0 - center_sse / center_sst if center_sst > 1e-24 else (1.0 if center_sse <= 1e-24 else 0.0)
     physics = extract_physics(params)
     axis = axis_frequency_checks(a1_vals, a2_vals, e_shift)
     mode_pair_reference = {
@@ -739,13 +754,20 @@ def analyze_pair_grid(pair_record: dict, e_grid_ev_supercell: np.ndarray, a1_val
     }
     return {
         "fit_window": fit_window,
+        "fit_points": int(len(design)),
+        "fit_design_rank": int(np.linalg.matrix_rank(design)),
+        "fit_condition_number": float(np.linalg.cond(design)),
         "r2": r2,
+        "center_fit_r2": float(center_r2),
         "rmse_ev_supercell": rmse,
+        "center_fit_rmse_ev_supercell": float(np.sqrt(np.mean(residuals[center_mask] ** 2))),
         "max_abs_residual_ev_supercell": float(np.max(np.abs(residuals))),
         "physics": physics,
         "axis_checks": axis,
         "mode_pair_reference": mode_pair_reference,
         "reference": mode_pair_reference,
+        "units": UNITS,
+        "normalization_version": NORMALIZATION_VERSION,
     }
 
 
@@ -868,21 +890,12 @@ def make_calculator(backend: str, device: str = "auto", model: str | None = None
         calc = ASECalculator(str(model_path), chosen_device)
         return calc, gptff_backend_meta(model_path, chosen_device)
 
-    if backend == "mattersim":
-        _ensure_mattersim_ase_compat()
-        from mattersim.forcefield import MatterSimCalculator
-
-        model_name = DEFAULT_MATTERSIM_MODEL if model in {None, "", "auto"} else str(model)
-        if chosen_device == "mps":
-            chosen_device = "cpu"
-        calc = MatterSimCalculator.from_checkpoint(load_path=model_name, device=chosen_device)
-        return calc, {
-            "backend": "mattersim",
-            "device": chosen_device,
-            "model": model_name,
-            "model_version": "mattersim_v1_5m",
-            "source": "official_mattersim_1.0",
-        }
+    if backend == "prophet":
+        try:
+            from .prophet_backend import make_prophet_calculator
+        except ImportError:
+            from prophet_backend import make_prophet_calculator
+        return make_prophet_calculator(model, chosen_device)
 
     raise ValueError(f"Unsupported backend: {backend}")
 

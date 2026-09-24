@@ -41,6 +41,7 @@ def parse_args():
     p.add_argument("--mode-pairs-json", type=str, required=True)
     p.add_argument("--structure", type=str, required=True)
     p.add_argument("--ref-grid", type=str, required=True)
+    p.add_argument("--ref-unit", choices=["Ry", "eV"], required=True)
     p.add_argument("--golden-fit-json", type=str, required=True)
     p.add_argument("--output-root", type=str, default=str(DEFAULT_OUT_ROOT))
     return p.parse_args()
@@ -87,7 +88,7 @@ def main():
         analysis = analyze_pair_grid(golden_pair, e_grid, A1_VALS, A2_VALS, fit_window=1.0)
         mode_pair_compare = compare_mode_frequency_metrics(analysis, mode_pair_reference)
         golden_compare = compare_golden_metrics(analysis, golden_reference)
-        ref_compare = compare_with_reference_grid(ref_grid, e_grid)
+        ref_compare = compare_with_reference_grid(ref_grid, e_grid, source_unit=args.ref_unit)
 
         summary = {
             "pair_code": golden_pair["pair_code"],

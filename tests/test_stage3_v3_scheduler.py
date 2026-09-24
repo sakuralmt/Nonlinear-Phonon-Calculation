@@ -1,4 +1,5 @@
 import json
+import fcntl
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -114,6 +115,20 @@ def test_stage3_small_batch_alternates_registered_materials(tmp_path, monkeypatc
     monkeypatch.setattr(stage3_scheduler, "_queue", lambda: {})
     stage3_scheduler.run(state_root, max_active=4, submit_batch=4, once=True)
     assert [path.parents[3].name for path in submitted] == ["mos2", "wse2", "mos2", "wse2"]
+
+
+def test_stage3_controller_lock_is_shared_across_state_roots(tmp_path, monkeypatch):
+    monkeypatch.setattr(stage3_scheduler.Path, "home", lambda: tmp_path)
+    first = tmp_path / "first"
+    second = tmp_path / "second"
+    stage3_scheduler.register(first, _prepared_run(tmp_path, "mos2"))
+    stage3_scheduler.register(second, _prepared_run(tmp_path, "wse2"))
+    lock_path = tmp_path / ".cache/mlff_modepair_workflow/stage3_controller.lock"
+    lock_path.parent.mkdir(parents=True)
+    with lock_path.open("a+") as lock:
+        fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        with pytest.raises(BlockingIOError):
+            stage3_scheduler.run(second, once=True)
 
 
 def test_qe_parser_converts_energy_and_forces_and_requires_completion(tmp_path):

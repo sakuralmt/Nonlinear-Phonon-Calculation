@@ -1,4 +1,4 @@
-"""Uniform 9x9 Prophet Stage2 with atomic point checkpoints and safe sharding."""
+"""Uniform 9x9 v3 Stage2 with atomic point checkpoints and safe sharding."""
 
 from __future__ import annotations
 
@@ -46,7 +46,7 @@ def _ensure_run_signature(output_dir: Path, signature: dict, model_meta: dict) -
 
 
 def _signature(pair_source: dict, structure: Path, model_meta: dict) -> dict:
-    return {
+    signature = {
         "version": CONTRACT_VERSION,
         "mode_pairs_sha256": pair_source["mode_pairs_sha256"],
         "structure_sha256": sha256_file(structure),
@@ -59,12 +59,16 @@ def _signature(pair_source: dict, structure: Path, model_meta: dict) -> dict:
         "a2_values": AXES.tolist(),
         "fit_window": FIT_WINDOW,
     }
+    # Keep signatures of already-running Prophet campaigns byte-for-byte stable.
+    if model_meta["backend"] != "prophet":
+        signature["backend"] = model_meta["backend"]
+    return signature
 
 
 def _open_checkpoint(path: Path, signature: dict, pair_code: str) -> dict:
     if not path.exists():
         return {
-            "kind": "prophet_pair_checkpoint", "signature": signature,
+            "kind": f"{signature.get('backend', 'prophet')}_pair_checkpoint", "signature": signature,
             "pair_code": pair_code, "energies_ev_supercell": [[None] * 9 for _ in range(9)],
             "elapsed_seconds": 0.0,
         }
@@ -113,7 +117,7 @@ def _evaluate_pair_unlocked(pair: dict, primitive, calc, model_meta: dict, signa
             atoms.calc = calc
             energy = float(atoms.get_potential_energy())
             if not np.isfinite(energy):
-                raise ValueError(f"Nonfinite Prophet energy for {pair['pair_code']} at ({a1}, {a2})")
+                raise ValueError(f"Nonfinite Stage2 energy for {pair['pair_code']} at ({a1}, {a2})")
             checkpoint["energies_ev_supercell"][row][col] = energy
             checkpoint["elapsed_seconds"] += time.perf_counter() - started
             _atomic_json(checkpoint_path, checkpoint)
@@ -131,7 +135,7 @@ def _evaluate_pair_unlocked(pair: dict, primitive, calc, model_meta: dict, signa
     np.savetxt(pair_dir / "energy_grid_eV.dat", grid, fmt="%.12f")
     np.save(pair_dir / "energy_grid_eV.npy", grid)
     summary = {
-        "kind": "prophet_pair_pes", "version": CONTRACT_VERSION,
+        "kind": f"{model_meta['backend']}_pair_pes", "version": CONTRACT_VERSION,
         "pair_code": pair["pair_code"], "pair": pair, "signature": signature,
         "units": UNITS, "builder": builder.metadata(), "backend": model_meta,
         "a1_values": AXES.tolist(), "a2_values": AXES.tolist(),
@@ -238,7 +242,7 @@ def finalize(output_dir: Path, pairs: list[dict], signature: dict, model_meta: d
             writer.writerow({"rank": rank, **row})
     os.replace(temp, output_dir / "pair_ranking.csv")
     _atomic_json(output_dir / "pair_ranking.json", {
-        "kind": "prophet_pair_ranking", "version": CONTRACT_VERSION,
+        "kind": f"{model_meta['backend']}_pair_ranking", "version": CONTRACT_VERSION,
         "signature": signature, "units": UNITS, "backend": model_meta,
         "pairs": [{"rank": rank, **row} for rank, row in enumerate(rows, start=1)],
     })
@@ -248,7 +252,7 @@ def finalize(output_dir: Path, pairs: list[dict], signature: dict, model_meta: d
         "meta": {"no_pair_selection": True},
     })
     _atomic_json(output_dir / "run_meta.json", {
-        "kind": "prophet_stage2_run", "version": CONTRACT_VERSION,
+        "kind": f"{model_meta['backend']}_stage2_run", "version": CONTRACT_VERSION,
         "signature": signature, "n_pairs": len(rows), "n_energy_evaluations": 81 * len(rows),
         "backend": model_meta, "units": UNITS,
     })
@@ -259,6 +263,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mode-pairs-json", type=Path, required=True)
     parser.add_argument("--structure", type=Path, required=True)
+    parser.add_argument("--backend", choices=["prophet", "mattersim"], default="prophet")
     parser.add_argument("--model", default="prophet_oame_mbd")
     parser.add_argument("--device", choices=["cpu", "cuda"], default="cpu")
     parser.add_argument("--output-root", type=Path, required=True)
@@ -272,11 +277,13 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if args.shard_count < 1 or not 0 <= args.shard_index < args.shard_count:
         parser.error("shard-index must be in [0, shard-count)")
+    if args.backend == "mattersim" and args.model == "prophet_oame_mbd":
+        parser.error("MatterSim requires an explicit --model checkpoint path")
     pair_file = args.mode_pairs_json.resolve()
     structure = args.structure.resolve()
     payload = json.loads(pair_file.read_text())
     if payload.get("version") != CONTRACT_VERSION or payload.get("source", {}).get("normalization_version") != NORMALIZATION_VERSION:
-        raise ValueError("Prophet Stage2 requires v3 mode pairs with the real-unit-mass normalization")
+        raise ValueError("Stage2 requires v3 mode pairs with the real-unit-mass normalization")
     if payload["source"].get("structure_sha256") != sha256_file(structure):
         raise ValueError("Stage2 structure does not match the Stage1 structure hash")
     pairs = payload["pairs"]
@@ -285,6 +292,8 @@ def main(argv=None):
     output_dir = args.output_root.resolve() / args.run_tag / "screening"
     if args.finalize_only:
         existing = json.loads((output_dir / "run_signature.json").read_text())
+        if existing["backend"]["backend"] != args.backend:
+            raise ValueError("Finalization backend differs from the recorded Stage2 run")
         expected = _signature({"mode_pairs_sha256": sha256_file(pair_file),
                                "geometry_source": payload["source"].get("geometry_source", "unrecorded")},
                               structure, existing["backend"])
@@ -293,7 +302,12 @@ def main(argv=None):
         print(finalize(output_dir, pairs, existing["signature"]))
         return 0
     primitive = load_atoms_from_qe(structure)
-    calc, model_meta = make_prophet_calculator(args.model, args.device, primitive)
+    if args.backend == "prophet":
+        calc, model_meta = make_prophet_calculator(args.model, args.device, primitive)
+    else:
+        from .mattersim_backend import make_mattersim_calculator
+
+        calc, model_meta = make_mattersim_calculator(args.model, args.device, primitive)
     pair_source = {
         "mode_pairs_sha256": sha256_file(pair_file),
         "geometry_source": payload["source"].get("geometry_source", "unrecorded"),

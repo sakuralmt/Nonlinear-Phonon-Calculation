@@ -13,7 +13,7 @@ from mlff_modepair_workflow.prophet_stage1 import (
     finite_q_orbits, mode_pairs_from_phonons, phonons_from_force_constants,
 )
 from mlff_modepair_workflow.phonon_eigenvectors import real_space_force_constants
-from mlff_modepair_workflow.prophet_stage2 import _ensure_run_signature, evaluate_pair, finalize
+from mlff_modepair_workflow.prophet_stage2 import _ensure_run_signature, _signature, evaluate_pair, finalize
 from mlff_modepair_workflow.units import NORMALIZATION_VERSION, energies_to_ev, projected_derivatives
 from server_highthroughput_workflow.stage_contracts import create_stage1_manifest, load_json
 from server_highthroughput_workflow.real_stage1_prophet import write_relaxed_structure_from_qe_template
@@ -146,6 +146,19 @@ def test_run_signature_lock_is_idempotent_and_rejects_mixed_inputs(tmp_path):
     _ensure_run_signature(root, {"structure": "one"}, {"checkpoint_sha256": "fixed"})
     with pytest.raises(ValueError, match="different inputs"):
         _ensure_run_signature(root, {"structure": "two"}, {"checkpoint_sha256": "fixed"})
+
+
+def test_stage2_backend_signatures_keep_prophet_resume_and_separate_mattersim(tmp_path):
+    structure = tmp_path / "structure.scf.inp"
+    structure.write_text("same structure for both backends")
+    source = {"mode_pairs_sha256": "same-pairs", "geometry_source": "shared_dft"}
+    common = {"checkpoint_sha256": "pinned-weight", "source_commit": "pinned-code",
+              "energy_accumulation": "pinned-energy"}
+    prophet = _signature(source, structure, {**common, "backend": "prophet"})
+    mattersim = _signature(source, structure, {**common, "backend": "mattersim"})
+    assert "backend" not in prophet  # active Prophet checkpoint signatures stay unchanged
+    assert mattersim["backend"] == "mattersim"
+    assert prophet != mattersim
 
 
 def test_checkpoint_element_and_atom_count_preflight():

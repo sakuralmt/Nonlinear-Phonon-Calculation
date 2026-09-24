@@ -1,2 +1,1 @@
-"""Installable CLI wrapper for the nonlinear phonon workflow."""
-
+"""Public two-stage nonlinear phonon command-line package."""

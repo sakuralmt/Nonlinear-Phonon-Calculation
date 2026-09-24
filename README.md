@@ -1,582 +1,64 @@
-# Nonlinear Phonon Calculation
+# Hexagonal 2D nonlinear phonon screening
 
-The pinned Prophet Stage1/Stage2 v3 workflow, unit conventions, checkpointing,
-and validation commands are documented in [docs/prophet_stage12_v3.md](docs/prophet_stage12_v3.md).
-MLFF Stage1 now defaults to pinned Phonopy 2.38.0 with translational ASR;
-see [docs/phonopy_stage1_standardization.md](docs/phonopy_stage1_standardization.md).
-The default static workflow uses Prophet Stage1 and MatterSim Stage2 ranking.
-The MoS2/WSe2 model replacement and archived QE comparison is documented in
-[docs/phonopy_model_comparison_report.md](docs/phonopy_model_comparison_report.md).
-QE Stage3 remains paused. Its earlier runbook is retained in
-[docs/prophet_mattersim_stage3_v3.md](docs/prophet_mattersim_stage3_v3.md).
-The top-5 Stage3 examples below describe the older v2 handoff.
+`npc` calculates a complete 6×6×1 harmonic phonon mesh with Phonopy, then ranks Γ–q–(−q) couplings with MatterSim. TECE-OAM-RRA-1.0 is the default Stage1 model; Prophet OAME-MBD and EquiformerV3+DeNS-OAM are optional. It does not run DFT or molecular dynamics.
 
-[English](README.md) | [中文](README_zh.md)
+## What is compared
 
-`npc` is the operator entrypoint for a staged workflow that separates:
+Stage1 uses all non-Γ q points and every finite-q phonon branch, but only Γ **optical** modes. It identifies the three Γ acoustic translations by mass-weighted eigenvector overlap with rigid translations, not by a frequency index. It discovers the **atomic** symmetry of the supplied structure with spglib and reduces q points only when transformed frequencies and eigenvectors agree. A hexagonal cell with a lower-symmetry atomic motif therefore has more candidates. If the phonons fail the symmetry check, the run records why and falls back to q/−q pairing. It never removes a candidate because of a little-group rule or a predicted coupling. The `mode_maps` in each q orbit record atom permutation, operation, time reversal, branch mapping and overlap diagnostics. A near-degenerate branch number is not treated as a unique physical direction.
 
-1. phonon frontend generation (`stage1`)
-2. MLFF screening (`stage2`)
-3. QE top-5 recheck (`stage3`)
+Stage2 first evaluates six energies for **every** candidate at `QΓ=±1`, `Qq=−1,0,+1` Å√amu. It ranks complete Γ-subspace channels by the norm of the third-order `Φ122` proxy. The best **20 channels by default** are expanded to all component pairs and calculated on the central 5×5 grid (`−1` to `+1` in 0.5 steps). `audit` optionally extends the strongest five refined channels to 9×9 (`−2` to `+2`). Six points are only a ranking proxy; report fourth-order results from the central fit with its fit quality and window sensitivity. The 20-channel default supersedes earlier 30-channel drafts.
 
-The repository is designed for structured production runs. User input lives
-outside the repository. Runtime contracts and stage outputs live under a run
-root created by the workflow itself.
+Lengths are Å, masses amu, total supercell energies eV, forces eV/Å, force constants eV/Å², frequencies THz and real normal coordinates Å√amu. Third and fourth derivatives are meV/(Å³·amu³ᐟ²) and meV/(Å⁴·amu²). Outputs use contract **v5** and reject older mode-pair files, including v4 files with Γ acoustic candidates.
 
-For the current call-path view, see [ARCHITECTURE.md](ARCHITECTURE.md).
+## Requirements
 
-## Current Release Surface
+See [installation and Slurm execution](docs/INSTALL.md) and the
+[numerical architecture](ARCHITECTURE.md). The [validation report](docs/VALIDATION.md)
+documents three model routes tested on two additional materials, with
+[machine-readable results](docs/validation_v5.json). For N atoms and C verified q orbits,
+Stage1 produces `C × (3N−3) × 3N` candidates: 324 for the validated three-atom
+TMD cells with six q orbits. A one-atom primitive cell has no Γ optical pairs.
 
-The current stable code line already includes the following operator-facing
-capabilities:
+Use Python 3.10+ with `pip install -e .`. Phonopy is pinned to 2.38.0; spglib is required for atomic symmetry. Install the chosen model in its own environment: validated TECE source commit `81f65a4c188bd09cec8d1419388f7afdcc1b6fd0`, Prophet commit `c4fda8251d8a7c90c7cb7842aea4d2f57e5fc3bd`, or EquiformerV3 commit `a7300c58df683dc99cb48027d5bfd4c887486c48`. Stage2 requires MatterSim 1.2.1 and the pinned 5M checkpoint. The adapters verify source/checkpoint hashes before inference. See the corresponding `MODEL_SOURCES` and backend constants for the exact validated files.
 
-- a single entrypoint, `npc`, for `stage1`, `stage2`, `stage3`, status, and
-  cross-machine handoff
-- explicit runtime contracts under `contracts/` so that later stages can reuse
-  earlier results without reconstructing state manually
-- four `stage2` model presets:
-  - `gptff_v1`
-  - `gptff_v2`
-  - `chgnet`
-  - `mattersim_v1_5m`
-- a default `stage2` model preset of `gptff_v2`
-- `stage3` prepare/reuse/submit behavior with separate `prepare_only` and
-  `submit_collect` modes
-- comparison outputs that keep local `stage2` and remote/reference `stage3`
-  results on the same schema for downstream analysis
-
-The repository therefore serves two roles at once:
-
-- it runs the production workflow through `npc`
-- it also ships a small set of offline analysis scripts under `reports/` for
-  benchmark and comparison work
-
-## Code Map
-
-The repository is easier to read if it is treated as a small set of distinct
-subsystems rather than one large workflow bundle.
-
-- `start_release.py`
-  - thin user-facing launcher behind `npc`
-  - parses high-level stage options and forwards them into the staged runtime
-- `server_highthroughput_workflow/`
-  - runtime orchestration
-  - owns stage dispatch, run-root layout, handoff import/export, status, and
-    stage-to-stage contract flow
-- `qe_phonon_stage1_server_bundle/`
-  - `stage1` phonon frontend and its supporting screening/pair-selection tools
-- `mlff_modepair_workflow/`
-  - `stage2` frozen-phonon evaluation, pair ranking, and reference comparison
-  - owns backend calculators for GPTFF, CHGNet, and MatterSim
-- `qe_modepair_handoff_workflow/`
-  - `stage3` QE preparation, submission, and collection for selected top pairs
-- `reports/`
-  - offline scripts for extracting benchmark tables and generating comparison
-    figures
-  - these scripts are tools, not part of the main `npc` execution path
-
-## Stage Semantics
-
-The three workflow stages are intentionally asymmetric.
-
-- `stage1`
-  - produces phonon-derived candidate mode pairs and a `stage1` contract
-  - is the most environment-sensitive stage because the QE phonon frontend must
-    run reliably on the host
-- `stage2`
-  - evaluates the candidate mode-pair grid with a selected MLFF backend
-  - produces ranked pairs and comparison-friendly JSON/CSV outputs
-- `stage3`
-  - prepares and optionally submits QE rechecks for the top-ranked pairs
-  - is designed to consume `stage2` outputs without changing the ranking schema
-
-This separation is deliberate. `stage2` and `stage3` are meant to be compared,
-not just chained.
-
-## Scope
-
-This package is intended for workflows in which:
-
-- the structure is supplied as `structure.cif`
-- pseudopotentials are supplied explicitly by the operator
-- `stage1`, `stage2`, and `stage3` may run on different machines
-- cross-machine continuation is handled by explicit handoff bundles
-
-The package does not hide cross-machine continuation. It formalizes it.
-
-## Input Specification
-
-Each system must be prepared under an external input root:
-
-```text
-<input_root>/
-  <system_id>/
-    structure.cif
-    system.json
-    pseudos/
-      *.UPF
-```
-
-Minimal required files:
-
-- `structure.cif`
-- `system.json`
-- `pseudos/*.UPF`
-
-Example input tree:
-
-- [examples/wse2_input_example/README.md](examples/wse2_input_example/README.md)
-
-Minimal `system.json` schema:
-
-```json
-{
-  "system_id": "wse2",
-  "formula": "WSe2",
-  "workflow_family": "tmd_monolayer_hex",
-  "preferred_pseudos": {
-    "W": "W.pz-spn-rrkjus_psl.1.0.0.UPF",
-    "Se": "Se.pz-n-rrkjus_psl.0.2.UPF"
-  },
-  "already_relaxed": false,
-  "notes": "Optional free-form note"
-}
-```
-
-## Runtime Layout
-
-Each run creates a runtime tree under a runs root:
-
-```text
-.../Nonlinear-Phonon-Calculation-runs/
-  <system_id>/
-    <run_tag>/
-      contracts/
-      logs/
-      stage1/
-      stage2/
-      stage3/
-```
-
-Key principle:
-
-- user input stays in the external input tree
-- workflow state stays in the runtime tree
-- internal contracts are runtime artifacts, not user-authored inputs
-
-## Installation
-
-From the repository root:
+For a QE-style input with explicit monolayer vacuum and periodic flags, run:
 
 ```bash
-./install.sh
+npc stage1 --model tece \
+  --structure /data/mose2/structure.scf.inp \
+  --checkpoint /models/TECE-OAM-RRA-1.0.pt \
+  --source-root /models/tace \
+  --output-dir /runs/mose2/tece/stage1
+
+npc stage2 screen \
+  --mode-pairs-json /runs/mose2/tece/stage1/mode_pairs.selected.json \
+  --structure /runs/mose2/tece/stage1/relax/optimized_structure.scf.inp \
+  --checkpoint /models/mattersim-v1.0.0-5M.pth \
+  --output-dir /runs/mose2/tece/stage2
+
+npc stage2 refine \
+  --mode-pairs-json /runs/mose2/tece/stage1/mode_pairs.selected.json \
+  --structure /runs/mose2/tece/stage1/relax/optimized_structure.scf.inp \
+  --checkpoint /models/mattersim-v1.0.0-5M.pth \
+  --output-dir /runs/mose2/tece/stage2
 ```
 
-Repository-local execution:
+Pass the **same** mode-pair file, structure, checkpoint, output directory and `--top-channels` to every Stage2 phase. Use `npc stage2 audit` with the same arguments for 9×9 diagnostics. Replace `--model tece` with `prophet` or `equiformer-v3` for alternate Stage1; Prophet uses `NPC_PROPHET_SOURCE` or its pinned installation, whereas TECE and Equiformer require `--source-root`.
 
-```bash
-./npc --help
-```
+Stage1 always relaxes its input with the selected model. The optimized structure is saved at `stage1/relax/optimized_structure.scf.inp`; pass **that file** to Stage2. Both stages verify the relaxation provenance and structure hash. The constrained-relaxation writer currently requires a QE-style source with atom flags; it performs no QE calculation.
 
-If the user install location is already on `PATH`, the installed entrypoint is
-equivalent:
+`--gamma-degeneracy-thz` sets the Γ optical grouping threshold (default 0.01 THz).
+A completed Stage1 directory cannot be overwritten; use a fresh directory for
+different parameters. Keep the same Stage2 settings throughout a restart.
 
-```bash
-npc --help
-```
+Stage2 accepts `--shard-index I --shard-count N`. Run the same phase once per shard, then rerun with `--finalize-only` to verify all expected energies and write its ranking. Point checkpoints are reused after interruption. Never change a run's input files or top-channel count in place: its identity hash will reject the restart.
 
-Compatibility entrypoints are also provided:
+## Outputs and limits
 
-```bash
-./tui --help
-python3 start_release.py --help
-```
+`stage1/phonon_dataset.json` contains the 36 q-point frequencies, eigenvectors, ASR and finite-step diagnostics. `stage1/mode_pairs.selected.json` contains the structure-derived q orbits, branch mappings and complete candidates. Stage2 keeps `pairs/<pair_code>/points.json`, `screen_ranking.json`, `selection.json`, `refine_ranking.json` and optional `audit_ranking.json`. Model weights, source, structure, normalization and screening settings are recorded with each run.
 
-## Software Environment
+Phonopy's force-constant symmetrizer enforces translational and index-exchange conditions; this release does **not** claim to enforce the 2D rotational sum rule for ZA. No non-analytic correction is applied. This workflow assumes nonmagnetic scalar MLFF energies without an external field. Its symmetry reduction is checked against the Stage1 phonons. Because each Stage1 model relaxes its own structure, cross-model differences include structural effects; compare phonon modes and couplings only after a reliable mode/subspace mapping. Historical QE results should not be called exact same-structure labels without verifying their geometry and displacement convention.
 
-This package does not assume a site-specific environment name. The required
-interface is a set of executables and Python modules available in the shell
-that launches `npc`.
+## Repository
 
-One-command stage environment scripts are provided under:
-
-- `ops/setup_stage1_env.sh`
-- `ops/setup_stage2_env.sh`
-- `ops/setup_stage3_env.sh`
-
-These scripts configure the Python side of the workflow in the current shell
-environment and then validate stage-specific external requirements.
-
-### Base requirements
-
-- `python3`
-- `python3 -m pip`
-- `git`
-- a successful `./install.sh`
-
-### Stage-specific requirements
-
-- `stage1`
-  - run `bash ops/setup_stage1_env.sh`
-  - `pw.x`
-  - `ph.x`
-  - `q2r.x`
-  - `matdyn.x`
-  - `sbatch`
-  - `squeue`
-- `stage2`
-  - run `bash ops/setup_stage2_env.sh`
-  - importable Python modules:
-    - `gptff`
-    - `chgnet`
-    - `torch`
-    - `phonopy`
-    - `pymatgen`
-- `stage3`
-  - run `bash ops/setup_stage3_env.sh`
-  - QE executables on `PATH`
-  - if `submit_collect` is used:
-    - `sbatch`
-    - `squeue`
-    - a Slurm runtime suitable for batch QE work
-
-### Operational guidance
-
-- `stage1` depends on Slurm in the current implementation. It is not a pure
-  local frontend runner.
-- `stage1` is the most demanding stage with respect to QE phonon frontend
-  stability. Run it on a host already known to execute `ph.x` reliably.
-- `stage2` is primarily a Python materials-stack workload and is comparatively
-  easy to migrate once `stage1` has produced a valid contract.
-- `stage2` supports four model presets:
-  - `gptff_v1`
-  - `gptff_v2`
-  - `chgnet`
-  - `mattersim_v1_5m`
-- The default `stage2` model preset is `gptff_v2`.
-- `stage3` supports two modes:
-  - `prepare_only`
-  - `submit_collect`
-- `stage3 --qe-mode prepare_only` can be prepared without Slurm, but
-  `submit_collect` requires Slurm.
-
-If your site uses Conda, modules, or environment scripts, activate that
-environment first and only then launch `npc`. This README deliberately does not
-prescribe a site-local activation command.
-
-### Example environment setup commands
-
-Stage 1 host:
-
-```bash
-bash ops/setup_stage1_env.sh
-```
-
-Stage 2 host:
-
-```bash
-GPTFF_SOURCE=/path/to/GPTFF bash ops/setup_stage2_env.sh
-```
-
-Stage 3 host for queue submission:
-
-```bash
-bash ops/setup_stage3_env.sh
-```
-
-Stage 3 host for preparation only:
-
-```bash
-STAGE3_MODE=prepare_only bash ops/setup_stage3_env.sh
-```
-
-## Command Reference
-
-### Start the interactive launcher
-
-```bash
-./npc --input-root /path/to/Nonlinear-Phonon-Calculation-inputs --system wse2
-```
-
-### Run `stage1`
-
-```bash
-./npc \
-  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
-  --system wse2 \
-  --stage stage1 \
-  --qe-relax yes
-```
-
-### Run `stage2` on the latest run of a system
-
-```bash
-./npc \
-  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
-  --system wse2 \
-  --stage stage2
-```
-
-This command uses `gptff_v2` by default.
-
-### Run `stage3`
-
-```bash
-./npc \
-  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
-  --system wse2 \
-  --stage stage3 \
-  --qe-mode prepare_only
-```
-
-By default, `stage3` reads the `stage1` autotune result and uses the
-system-specific `pes.balanced` profile. If the autotune result is missing, it
-falls back to the static `static_balanced` preset. The historical names
-`pes_balanced` and `pes_fast` remain accepted only as legacy static aliases.
-
-### Select the `stage2` model preset
-
-Available presets:
-
-- `gptff_v1`
-- `gptff_v2`
-- `chgnet`
-- `mattersim_v1_5m`
-
-Examples:
-
-```bash
-./npc \
-  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
-  --system wse2 \
-  --stage stage2 \
-  --stage2-model gptff_v1
-```
-
-```bash
-./npc \
-  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
-  --system wse2 \
-  --stage stage2 \
-  --stage2-model chgnet
-```
-
-```bash
-./npc \
-  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
-  --system wse2 \
-  --stage stage2 \
-  --stage2-model mattersim_v1_5m
-```
-
-### Run `stage3`
-
-```bash
-./npc \
-  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
-  --system wse2 \
-  --stage stage3
-```
-
-### Prepare the QE recheck batch without submission
-
-```bash
-./npc \
-  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
-  --system wse2 \
-  --stage stage3 \
-  --qe-mode prepare_only
-```
-
-### Resume an existing `stage3` run
-
-```bash
-./npc \
-  --run-root /path/to/run_root \
-  --stage stage3 \
-  --qe-mode submit_collect
-```
-
-### Read-only status inspection
-
-Latest detected run:
-
-```bash
-./npc --status
-```
-
-Specific system or run root:
-
-```bash
-./npc --input-root /path/to/Nonlinear-Phonon-Calculation-inputs --system wse2 --status
-./npc --run-root /path/to/Nonlinear-Phonon-Calculation-runs/wse2/wse2_20260331_235959 --status
-```
-
-### Export handoff bundles
-
-After `stage1`:
-
-```bash
-./npc --handoff-export stage1 --run-root /path/to/run_root --output /tmp/wse2_stage1_handoff.tar.gz
-```
-
-After `stage2`:
-
-```bash
-./npc --handoff-export stage2 --run-root /path/to/run_root --output /tmp/wse2_stage2_handoff.tar.gz
-```
-
-### Import a handoff bundle
-
-```bash
-./npc --handoff-import --bundle /tmp/wse2_stage1_handoff.tar.gz --run-root /path/to/new_run_root
-```
-
-### Run convergence tuning
-
-```bash
-./npc \
-  --input-root /path/to/Nonlinear-Phonon-Calculation-inputs \
-  --system wse2 \
-  --stage tune \
-  --qe-relax no
-```
-
-## Stage Definitions
-
-### `stage1`
-
-Input:
-
-- `structure.cif`
-- `system.json`
-- `pseudos/*.UPF`
-
-Actions:
-
-1. generate internal QE inputs
-2. optionally run QE relax
-3. run the QE phonon frontend
-4. extract screened eigenvectors
-5. select modes
-6. generate mode pairs
-7. write `contracts/stage1.manifest.json`
-
-Primary outputs:
-
-- `stage1/outputs/mode_pairs.selected.json`
-- `contracts/stage1.manifest.json`
-
-### `tune`
-
-`tune` is a family-aware convergence stage. It reads `workflow_family` from
-`system.json`, runs the configured scan, and writes reusable profile selections
-into the stage1 runtime bundle.
-
-### `stage2`
-
-Input:
-
-- `contracts/stage1.manifest.json`
-
-Actions:
-
-1. load the imported or locally generated stage1 contract
-2. run stage2 MLFF screening with the selected model preset
-3. rank candidate mode pairs
-4. write `contracts/stage2.manifest.json`
-
-Primary outputs:
-
-- `stage2/outputs/<backend>/screening/pair_ranking.csv`
-- `stage2/outputs/<backend>/screening/single_backend_ranking.json`
-- `contracts/stage2.manifest.json`
-
-### `stage3`
-
-Input:
-
-- `contracts/stage2.manifest.json`
-
-Actions:
-
-1. select the top-5 pairs
-2. prepare QE recheck jobs
-3. optionally submit and collect them
-4. write `contracts/stage3.manifest.json`
-
-Behavior:
-
-- if a QE batch has already been prepared, rerunning `npc` reuses it
-- if final QE collection already exists, rerunning `npc` reuses the completed result
-
-Primary outputs:
-
-- `stage3/qe/<backend>/run_manifest.json`
-- `contracts/stage3.manifest.json`
-- `stage3/qe/<backend>/results/qe_ranking.json` when collection finishes
-
-## Monitoring
-
-`./npc --status` reports:
-
-- discovered stage contracts
-- `stage1` handoff summary
-- `stage2` ranking summary
-- `stage3` QE run root
-- prepared job count
-- submission progress
-- final QE state
-- resume mode
-
-For normal operation, `--status` should be the first inspection command. Manual
-inspection of lower-level runtime files should only be needed for debugging.
-
-## Cross-machine Handoff
-
-Recommended operator sequence:
-
-1. run `stage1` on a machine with a stable QE phonon frontend
-2. export a `stage1` handoff bundle
-3. import it on a machine prepared for `stage2`
-4. run `stage2`
-5. either continue in place or export a `stage2` handoff bundle
-6. import on the machine intended for `stage3`
-7. run `stage3`
-
-The handoff bundle preserves relative runtime paths by rewriting them against
-the imported run root. Cross-machine continuation should therefore use
-`--handoff-export` and `--handoff-import`, not manual directory copying.
-
-## Workflow Model
-
-```mermaid
-flowchart TB
-    A["External input tree\nstructure.cif + pseudos + system.json"] --> B["npc / tui\noperator entrypoint"]
-    B --> C["Create or reuse run root"]
-    C --> D["stage1\nQE phonon frontend"]
-    D --> E["contracts/stage1.manifest.json"]
-    E --> F["stage2\nMLFF screening\n(default: GPTFF v2)"]
-    F --> G["contracts/stage2.manifest.json"]
-    G --> H["stage3\nQE top5 recheck"]
-    H --> I["contracts/stage3.manifest.json"]
-    B --> J["Read-only status\n./npc --status"]
-    B --> K["Cross-machine handoff\nexport / import bundle"]
-    E --> K
-    G --> K
-```
-
-## Repository Layout
-
-- `nonlinear_phonon_calculation/`
-  - CLI entrypoints and input discovery
-- `server_highthroughput_workflow/`
-  - orchestration, runtime preparation, manifests, and stage2/3 helpers
-- `qe_phonon_stage1_server_bundle/`
-  - stage1 phonon frontend and convergence tooling
-- `mlff_modepair_workflow/`
-  - stage2 MLFF screening logic for GPTFF and CHGNet backends
-- `qe_modepair_handoff_workflow/`
-  - stage3 QE preparation and collection helpers
-- `examples/wse2_input_example/`
-  - user-facing input example
+`nonlinear_phonon_calculation/cli.py` provides the public interface. `mlff_modepair_workflow/` contains the Phonopy bridge, atomic-symmetry mapping, model adapters, frozen-mode builder and staged PES fit. `tests/` has analytic, structure-symmetry and checkpoint tests. `scripts/` contains optional CPU timing tools. All runtime inputs, checkpoints and model weights stay outside the repository.

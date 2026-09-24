@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 
 
-CONTRACT_VERSION = 3
+CONTRACT_VERSION = 5
 NORMALIZATION_VERSION = "real_mass_weighted_unit_v2"
 RY_TO_EV = 13.605693009
 CONV_TO_THZ = 15.63330423985619

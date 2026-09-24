@@ -1,2 +1,1 @@
-"""Namespace package for the stage2 MLFF workflow."""
-
+"""Structure-aware hexagonal phonon and MLFF coupling workflow."""

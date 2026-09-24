@@ -28,7 +28,9 @@ class OnsiteSprings(Calculator):
         self.positions = reference.positions
         self.symbols = reference.get_chemical_symbols()
         self.cell = reference.cell.array
-        self.k = {symbol: 2.0 + i for i, symbol in enumerate(primitive.get_chemical_symbols())}
+        self.k = {
+            symbol: 2.0 + i for i, symbol in enumerate(primitive.get_chemical_symbols())
+        }
 
     def calculate(self, atoms=None, properties=("forces",), system_changes=all_changes):
         super().calculate(atoms, properties, system_changes)
@@ -38,7 +40,9 @@ class OnsiteSprings(Calculator):
         delta = fractional @ self.cell
         force = np.empty((len(atoms), 3))
         for index, symbol in enumerate(atoms.get_chemical_symbols()):
-            matches = [j for j, candidate in enumerate(self.symbols) if candidate == symbol]
+            matches = [
+                j for j, candidate in enumerate(self.symbols) if candidate == symbol
+            ]
             nearest = min(matches, key=lambda j: np.linalg.norm(delta[index, j]))
             assert np.linalg.norm(delta[index, nearest]) < 0.02
             force[index] = -self.k[symbol] * delta[index, nearest]
@@ -49,8 +53,10 @@ class OnsiteSprings(Calculator):
 def test_phonopy_generates_and_fits_all_cartesian_displacements(symbols):
     nat = len(Atoms(symbols))
     primitive = Atoms(
-        symbols, positions=[[0.5 * i, 0.3 * i, 7.5 + 0.2 * i] for i in range(nat)],
-        cell=[[3.0, 0, 0], [-1.5, 2.598076211, 0], [0, 0, 15]], pbc=True,
+        symbols,
+        positions=[[0.5 * i, 0.3 * i, 7.5 + 0.2 * i] for i in range(nat)],
+        cell=[[3.0, 0, 0], [-1.5, 2.598076211, 0], [0, 0, 15]],
+        pbc=True,
     )
     calculator = OnsiteSprings(primitive, 2)
     expected = real_space_force_constants(primitive, calculator, 2, 0.01)
@@ -59,13 +65,23 @@ def test_phonopy_generates_and_fits_all_cartesian_displacements(symbols):
     assert actual.shape == expected.shape
     assert np.max(np.abs(actual - expected)) < 1e-9
     assert np.max(np.abs(phonopy_to_legacy_force_constants(phonon, 2) - actual)) < 1e-12
-    assert np.max(np.abs(legacy_to_phonopy_force_constants(phonon, actual) - phonon.force_constants)) < 1e-9
+    assert (
+        np.max(
+            np.abs(
+                legacy_to_phonopy_force_constants(phonon, actual)
+                - phonon.force_constants
+            )
+        )
+        < 1e-9
+    )
 
 
 def test_phonopy_frequencies_and_v3_gauge_agree_on_finite_q():
     primitive = Atoms(
-        "BN", positions=[[0, 0, 5], [1.2, 0.7, 5.5]],
-        cell=[[3, 0, 0], [-1.5, 2.598076211, 0], [0, 0, 10]], pbc=True,
+        "BN",
+        positions=[[0, 0, 5], [1.2, 0.7, 5.5]],
+        cell=[[3, 0, 0], [-1.5, 2.598076211, 0], [0, 0, 10]],
+        pbc=True,
     )
     phi = np.zeros((3, 3, 2, 3, 2, 3))
     for axis, k in enumerate([2.0, 3.0, 4.0]):
@@ -92,8 +108,10 @@ def test_phonopy_bridge_rejects_bad_shape():
 
 def test_phonopy_force_calls_preserve_ase_atom_order():
     primitive = Atoms(
-        "BN", positions=[[0, 0, 5], [1.2, 0.7, 5.5]],
-        cell=[[3, 0, 0], [-1.5, 2.598076211, 0], [0, 0, 10]], pbc=True,
+        "BN",
+        positions=[[0, 0, 5], [1.2, 0.7, 5.5]],
+        cell=[[3, 0, 0], [-1.5, 2.598076211, 0], [0, 0, 10]],
+        pbc=True,
     )
 
     class OrderSensitive(Calculator):
@@ -103,7 +121,9 @@ def test_phonopy_force_calls_preserve_ase_atom_order():
             super().__init__()
             self.reference = make_supercell(primitive, np.diag([2, 2, 1])).positions
 
-        def calculate(self, atoms=None, properties=("forces",), system_changes=all_changes):
+        def calculate(
+            self, atoms=None, properties=("forces",), system_changes=all_changes
+        ):
             super().calculate(atoms, properties, system_changes)
             self.results["forces"] = -3 * (atoms.positions - self.reference)
 
@@ -124,7 +144,9 @@ def test_explicit_phonopy_asr_preserves_raw_diagnostic_and_closes_drift():
     assert report["raw_max_translational_drift_ev_per_A2"] == pytest.approx(2.0)
     assert report["corrected_max_translational_drift_ev_per_A2"] < 1e-12
     assert report["rotational_sum_rule"] is False
-    assert np.array_equal(original, legacy_to_phonopy_force_constants(make_phonopy(primitive, 2), phi))
+    assert np.array_equal(
+        original, legacy_to_phonopy_force_constants(make_phonopy(primitive, 2), phi)
+    )
     assert np.max(np.abs(corrected.sum(axis=(0, 1, 4)))) < 1e-12
 
 

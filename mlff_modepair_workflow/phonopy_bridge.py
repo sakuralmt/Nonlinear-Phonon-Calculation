@@ -24,7 +24,9 @@ def make_phonopy(primitive: Atoms, mesh_n: int):
     from phonopy.structure.atoms import PhonopyAtoms
 
     if phonopy_version != "2.38.0":
-        raise RuntimeError(f"Phonopy Stage1 is pinned to 2.38.0, found {phonopy_version}")
+        raise RuntimeError(
+            f"Phonopy Stage1 is pinned to 2.38.0, found {phonopy_version}"
+        )
     if mesh_n < 1 or not bool(np.all(primitive.pbc)):
         raise ValueError("Phonopy needs a positive mesh and a periodic primitive cell")
     unitcell = PhonopyAtoms(
@@ -36,8 +38,11 @@ def make_phonopy(primitive: Atoms, mesh_n: int):
     # The force constants are eV/Angstrom^2 regardless of whether the input
     # geometry was read from QE, so the QE Ry/Bohr frequency factor is wrong.
     return Phonopy(
-        unitcell, supercell_matrix=np.diag([mesh_n, mesh_n, 1]),
-        primitive_matrix=np.eye(3), is_symmetry=False, factor=CONV_TO_THZ,
+        unitcell,
+        supercell_matrix=np.diag([mesh_n, mesh_n, 1]),
+        primitive_matrix=np.eye(3),
+        is_symmetry=False,
+        factor=CONV_TO_THZ,
     )
 
 
@@ -143,14 +148,14 @@ def _stable_phase_fix(vector: np.ndarray) -> np.ndarray:
     return vector
 
 
-def force_constants_from_calculator(primitive: Atoms, calculator, mesh_n: int, step: float):
+def force_constants_from_calculator(
+    primitive: Atoms, calculator, mesh_n: int, step: float
+):
     """Use Phonopy to make +/- displacements and fit full force constants."""
     if step <= 0:
         raise ValueError("Displacement step must be positive")
     phonon = make_phonopy(primitive, mesh_n)
-    phonon.generate_displacements(
-        distance=step, is_plusminus=True, is_diagonal=False
-    )
+    phonon.generate_displacements(distance=step, is_plusminus=True, is_diagonal=False)
     supercells = phonon.supercells_with_displacements
     if len(supercells) != 6 * len(primitive):
         raise ValueError("Unexpected Phonopy displacement count")
@@ -164,7 +169,10 @@ def force_constants_from_calculator(primitive: Atoms, calculator, mesh_n: int, s
     order = np.lexsort((atom_index, shift[:, 1], shift[:, 0]))
     reference = make_supercell(primitive, np.diag([mesh_n, mesh_n, 1]))
     perfect = np.asarray(phonon.supercell.positions)[order]
-    if list(np.asarray(phonon.supercell.symbols)[order]) != reference.get_chemical_symbols():
+    if (
+        list(np.asarray(phonon.supercell.symbols)[order])
+        != reference.get_chemical_symbols()
+    ):
         raise ValueError("Phonopy and ASE supercell atom order cannot be aligned")
     difference = (perfect - reference.positions) @ np.linalg.inv(reference.cell.array)
     difference -= np.rint(difference)
@@ -200,8 +208,7 @@ def phonons_from_phonopy(primitive: Atoms, phi: np.ndarray, mesh_n: int):
     phonon = make_phonopy(primitive, mesh_n)
     phonon.force_constants = legacy_to_phonopy_force_constants(phonon, phi)
     qpoints = np.array(
-        [[i / mesh_n, j / mesh_n, 0.0]
-         for i in range(mesh_n) for j in range(mesh_n)]
+        [[i / mesh_n, j / mesh_n, 0.0] for i in range(mesh_n) for j in range(mesh_n)]
     )
     phonon.run_qpoints(qpoints, with_eigenvectors=True)
     results = phonon.get_qpoints_dict()
@@ -218,18 +225,20 @@ def phonons_from_phonopy(primitive: Atoms, phi: np.ndarray, mesh_n: int):
         vectors = np.column_stack(
             [phase_fix(vectors[:, mode]) for mode in range(len(freqs))]
         )
-        records.append({
-            "q_index": [int(round(q[0] * mesh_n)), int(round(q[1] * mesh_n))],
-            "q_frac": q.tolist(),
-            "freqs_thz": freqs.tolist(),
-            "eigenvectors": [
-                _encode_mode(vectors[:, mode], len(primitive))
-                for mode in range(len(freqs))
-            ],
-            "degenerate_groups_one_based": _degenerate_groups(freqs),
-            "hermitian_relative_error_before_symmetrizing": hermitian_error,
-            "phonon_engine": "phonopy",
-        })
+        records.append(
+            {
+                "q_index": [int(round(q[0] * mesh_n)), int(round(q[1] * mesh_n))],
+                "q_frac": q.tolist(),
+                "freqs_thz": freqs.tolist(),
+                "eigenvectors": [
+                    _encode_mode(vectors[:, mode], len(primitive))
+                    for mode in range(len(freqs))
+                ],
+                "degenerate_groups_one_based": _degenerate_groups(freqs),
+                "hermitian_relative_error_before_symmetrizing": hermitian_error,
+                "phonon_engine": "phonopy",
+            }
+        )
     return records, phonon
 
 
@@ -256,9 +265,7 @@ def compare_saved_stage1(stage1_dir: Path, structure: Path | None = None) -> dic
     for before, after in zip(old, converted):
         if before["q_index"] != after["q_index"]:
             raise ValueError("Saved q order differs from Phonopy mesh")
-        freq_errors.extend(np.abs(
-            np.asarray(before["freqs_thz"]) - after["freqs_thz"]
-        ))
+        freq_errors.extend(np.abs(np.asarray(before["freqs_thz"]) - after["freqs_thz"]))
         for vec1, vec2 in zip(before["eigenvectors"], after["eigenvectors"]):
             v1 = np.array([complex(*pair) for atom in vec1 for pair in atom])
             v2 = np.array([complex(*pair) for atom in vec2 for pair in atom])
@@ -278,7 +285,9 @@ def compare_saved_stage1(stage1_dir: Path, structure: Path | None = None) -> dic
         "symmetry_reduction": False,
         "acoustic_sum_rule_applied": bool(
             source.get("phonon_engine", {}).get("acoustic_sum_rule", False)
-        ) if isinstance(source.get("phonon_engine"), dict) else False,
+        )
+        if isinstance(source.get("phonon_engine"), dict)
+        else False,
         "non_analytical_correction_applied": False,
     }
 

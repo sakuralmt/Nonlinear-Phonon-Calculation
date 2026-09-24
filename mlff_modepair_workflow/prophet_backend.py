@@ -35,12 +35,20 @@ def sha256_file(path: Path) -> str:
 def process_resource_metrics(device: str) -> dict:
     maxrss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     rss_mb = maxrss / (1024 * 1024) if sys.platform == "darwin" else maxrss / 1024
-    metrics = {"peak_process_rss_mb": float(rss_mb), "peak_gpu_allocated_mb": None,
-               "peak_gpu_reserved_mb": None}
+    metrics = {
+        "peak_process_rss_mb": float(rss_mb),
+        "peak_gpu_allocated_mb": None,
+        "peak_gpu_reserved_mb": None,
+    }
     if device.startswith("cuda"):
         import torch
-        metrics["peak_gpu_allocated_mb"] = float(torch.cuda.max_memory_allocated() / 2**20)
-        metrics["peak_gpu_reserved_mb"] = float(torch.cuda.max_memory_reserved() / 2**20)
+
+        metrics["peak_gpu_allocated_mb"] = float(
+            torch.cuda.max_memory_allocated() / 2**20
+        )
+        metrics["peak_gpu_reserved_mb"] = float(
+            torch.cuda.max_memory_reserved() / 2**20
+        )
     return metrics
 
 
@@ -49,13 +57,17 @@ def resolve_checkpoint(model: str | Path | None) -> Path:
     if spec is None:
         spec = os.environ.get("NPC_PROPHET_CHECKPOINT")
     if not spec:
-        raise ValueError("Prophet requires --model/--prophet-checkpoint or NPC_PROPHET_CHECKPOINT")
+        raise ValueError(
+            "Prophet requires --model/--prophet-checkpoint or NPC_PROPHET_CHECKPOINT"
+        )
     path = Path(spec).expanduser().resolve()
     if not path.is_file():
         raise FileNotFoundError(f"Prophet checkpoint not found: {path}")
     found = sha256_file(path)
     if found != OAME_MBD_SHA256:
-        raise ValueError(f"Unverified Prophet checkpoint {path}: sha256={found}; expected {OAME_MBD_SHA256}")
+        raise ValueError(
+            f"Unverified Prophet checkpoint {path}: sha256={found}; expected {OAME_MBD_SHA256}"
+        )
     return path
 
 
@@ -72,19 +84,26 @@ def validate_source() -> Path:
     if explicit_source:
         source = Path(explicit_source).expanduser().resolve()
         if not (source / "prophet" / "__init__.py").is_file():
-            raise FileNotFoundError(f"NPC_PROPHET_SOURCE does not contain the prophet package: {source}")
+            raise FileNotFoundError(
+                f"NPC_PROPHET_SOURCE does not contain the prophet package: {source}"
+            )
         if str(source) not in sys.path:
             sys.path.insert(0, str(source))
     spec = importlib.util.find_spec("prophet")
     if spec is None or spec.origin is None:
-        raise ImportError("Pinned prophet-mlip is not installed; install source commit " + PROPHET_COMMIT)
+        raise ImportError(
+            "Pinned prophet-mlip is not installed; install source commit "
+            + PROPHET_COMMIT
+        )
     root = Path(spec.origin).resolve().parent
     if explicit_source and root != source / "prophet":
         raise ValueError(f"Imported Prophet from {root}, expected {source / 'prophet'}")
     for name, expected in SOURCE_SHA256.items():
         path = root / name
         if not path.is_file() or sha256_file(path) != expected:
-            raise ValueError(f"Prophet source differs from validated commit {PROPHET_COMMIT}: {path}")
+            raise ValueError(
+                f"Prophet source differs from validated commit {PROPHET_COMMIT}: {path}"
+            )
     return root
 
 
@@ -92,12 +111,16 @@ def validate_atoms(atoms, allowed_atomic_numbers: set[int]) -> None:
     numbers = set(map(int, atoms.get_atomic_numbers()))
     missing = sorted(numbers - allowed_atomic_numbers)
     if missing:
-        raise ValueError(f"Prophet checkpoint does not support atomic numbers {missing}")
+        raise ValueError(
+            f"Prophet checkpoint does not support atomic numbers {missing}"
+        )
     masses = np.asarray(atoms.get_masses(), dtype=float)
     if np.any(~np.isfinite(masses)) or np.any(masses <= 0):
         raise ValueError("All atomic masses must be finite and positive")
     if not bool(np.all(atoms.pbc)):
-        raise ValueError("Prophet 2D phonon workflow requires three periodic flags and explicit vacuum along c")
+        raise ValueError(
+            "Prophet 2D phonon workflow requires three periodic flags and explicit vacuum along c"
+        )
     if abs(float(np.linalg.det(atoms.cell.array))) < 1e-8:
         raise ValueError("Prophet requires a nonsingular cell")
 
@@ -127,14 +150,26 @@ def make_prophet_calculator(model: str | Path | None, device: str, atoms=None):
 
         def calculate(self, atoms=None, properties=None, system_changes=None):
             Calculator.calculate(self, atoms)
-            graph = dict_to_pytorch_geometric(preprocess_graph(atoms, self.atom_indices, self.cutoff))
-            graph.n_graph = torch.zeros(graph.x.shape[0], dtype=torch.int64).to(self.device)
+            graph = dict_to_pytorch_geometric(
+                preprocess_graph(atoms, self.atom_indices, self.cutoff)
+            )
+            graph.n_graph = torch.zeros(graph.x.shape[0], dtype=torch.int64).to(
+                self.device
+            )
             graph = graph.to(self.device)
             if not self.compile_state:
-                raise RuntimeError("The validated Prophet adapter does not enable torch.compile")
+                raise RuntimeError(
+                    "The validated Prophet adapter does not enable torch.compile"
+                )
             per_atom, forces, stress = self.model(
-                graph.x, graph.positions, graph.edge_attr, graph.edge_index,
-                getattr(graph, "cell", None), graph.n_node, graph.n_edge, graph.n_graph,
+                graph.x,
+                graph.positions,
+                graph.edge_attr,
+                graph.edge_index,
+                getattr(graph, "cell", None),
+                graph.n_node,
+                graph.n_edge,
+                graph.n_graph,
             )
             energy = float(per_atom.detach().to(torch.float64).sum().cpu())
             self.results["energy"] = energy
@@ -142,10 +177,13 @@ def make_prophet_calculator(model: str | Path | None, device: str, atoms=None):
             self.results["forces"] = np.asarray(forces.detach().cpu())
             self.results["stress"] = (
                 full_3x3_to_voigt_6_stress(np.asarray(stress.detach().cpu()[0]))
-                if stress is not None else None
+                if stress is not None
+                else None
             )
 
-    calc = PreciseSumKairosCalculator(model_path=path, use_kernel=False, use_compile=False, device=device)
+    calc = PreciseSumKairosCalculator(
+        model_path=path, use_kernel=False, use_compile=False, device=device
+    )
     meta = {
         "backend": "prophet",
         "checkpoint": str(path),

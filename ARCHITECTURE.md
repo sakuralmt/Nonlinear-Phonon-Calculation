@@ -1,165 +1,82 @@
-# Beta Architecture
+# Two-stage workflow and contract v5
 
-This file describes the current beta file structure by **actual call path**,
-not by historical folder names.
+The public interface is `npc stage1`, `npc stage2 screen|refine|audit`, and `npc status`.
+Stage1 defaults to TECE, with Prophet and EquiformerV3 alternatives. Stage2 uses
+the pinned MatterSim 5M calculator. Model environments remain separate.
 
-## Main entry chain
+## Structure and harmonic calculation
 
-```text
-npc
-  -> nonlinear_phonon_calculation/cli.py
-  -> start_release.py
-  -> server_highthroughput_workflow/run_modular_pipeline.py
-  -> server_highthroughput_workflow/handoff_bundle.py (for export/import only)
-```
+Each Stage1 model first relaxes the input with its own calculator. The current
+protocol preserves the QE-format input's atomic constraints and vacuum length,
+optimizes the permitted atomic coordinates with BFGS (`fmax=0.02 eV/Å`), and
+searches an isotropic in-plane scale in `[0.94, 1.06]`. It preserves the hexagonal
+cell shape. A failed ionic optimization or a lattice optimum at the search bound
+stops the run. This is a constrained monolayer relaxation, not a general 3D
+variable-cell optimizer. Reading a QE-format structure does not run QE.
 
-From there, the mainline splits by stage.
+Phonopy 2.38 constructs force constants from Cartesian central differences on a
+commensurate supercell. The default mesh is 6×6×1, and the two displacement sizes
+are 0.01 and 0.005 Å. Raw and ASR-corrected force constants are both retained.
+Phonopy's translational/index-exchange symmetrization is distinct from spatial
+point-group symmetry and from the rotational sum rule required for ideal 2D ZA.
 
-## Tuning mainline
+`structure_symmetry.py` verifies spglib's atomic permutations and translations,
+rejects operations that do not preserve the layer/mesh, and checks phonon
+covariance with transformed complex eigenvectors. Matched frequencies must also
+agree. Degenerate groups use singular values of the overlap matrix. Failed
+spatial covariance falls back to q/−q; failed time reversal stops the run.
+The workflow assumes a nonmagnetic scalar potential without external fields.
 
-```text
-run_modular_pipeline.py
-  -> server_highthroughput_workflow/real_stage1_phonon.py
-      -> qe_phonon_stage1_server_bundle/convergence/autotune.py
-      -> qe_phonon_stage1_server_bundle/convergence/family_profiles.py
-```
+## Gamma optical candidates
 
-Meaning:
+Only Γ optical modes enter coupling candidates. The three translations are
+identified using the normalized mass-weighted vectors
+`t_alpha(i,beta) = sqrt(m_i / sum(m)) delta_alpha,beta`. Each excluded mode must
+have at least 0.9 squared overlap with the translation subspace; each retained
+mode must have at most 0.1. Ambiguous acoustic/optical mixing stops the run.
+This also handles an unstable optical mode sorted before the acoustic modes.
 
-- `tune` is a TUI-driven stage, not a user-run helper script
-- it writes reusable profile selections into the stage1 runtime bundle
-- `step1_frontend.py` automatically consumes `qe_phonon_pes_run/results/selected_profiles.json`
+For N atoms and C verified finite-q orbits, the candidate count is
+`C × (3N−3) × 3N`. The validated three-atom TMD cells have C=6 and 324 candidates;
+this count is not hard coded. A one-atom primitive cell has no Γ optical
+candidates. Finite-q acoustic and optical branches are all retained.
 
-## Stage 1 mainline
+Stage1 groups near-degenerate Γ optical modes (default 0.01 THz) into channels.
+Stage2 ranks the norm of the complete Γ component vector. Finite-q degenerate
+branches are marked basis dependent and selection expands their sibling
+channels. These diagonal projections do not reconstruct the full finite-q
+degenerate coupling tensor and must not be described as that tensor's invariant.
 
-```text
-run_modular_pipeline.py
-  -> nonlinear_phonon_calculation/system_inputs.py
-  -> server_highthroughput_workflow/system_runtime.py
-  -> server_highthroughput_workflow/qe_relax_preflight.py
-  -> server_highthroughput_workflow/real_stage1_phonon.py
-      -> qe_phonon_stage1_server_bundle/run_all.py
-      -> qe_phonon_stage1_server_bundle/run_all_impl.py
-      -> qe_phonon_stage1_server_bundle/step1_frontend.py
-      -> qe_phonon_stage1_server_bundle/stage1_env.py
-      -> qe_phonon_stage1_server_bundle/common.py
-      -> qe_phonon_stage1_server_bundle/config.py
-      -> qe_phonon_stage1_server_bundle/scf_settings.py
-      -> qe_phonon_stage1_server_bundle/qpair_tools/*
-```
+## Energies, fitting and restart
 
-Meaning:
+The six-point proxy uses `QΓ=±1` and `Qq=−1,0,+1` Å√amu. All candidates are
+screened. The default top 20 channels, including required sibling components,
+receive the central 5×5 grid; `audit` extends the strongest five refined channels
+to 9×9. A 13-column polynomial fit supplies explicitly factorial-scaled third
+and fourth derivatives. The 13 terms are the documented fitting ansatz, not the
+full set of all symmetry-allowed quartic monomials for every possible q.
 
-- `structure.cif`, `system.json`, and `pseudos/*.UPF` are read from the
-  external input tree
-- internal `system.scf.inp` is generated under the run root
-- the phonon frontend runs inside `stage1/runtime/phonon_bundle/`
-- q-point screening and mode-pair generation live under
-  `qe_phonon_stage1_server_bundle/qpair_tools/`
+`core.py` normalizes each real supercell mode to unit mass-weighted norm,
+including q/−q standing waves and self-conjugate q points. Energies are eV per
+supercell; frequencies are THz. `units.py` defines all coordinate and derivative
+units. Energy conversion always requires a declared source unit.
 
-## Stage 2 mainline
+Run identity includes the pair-file hash, structure hash, MatterSim checkpoint
+hash, contract, normalization, grids and top-channel count. Stage2 additionally
+verifies the model-relaxation summary. An atomic JSON replacement after each
+energy evaluation and a per-pair file lock provide interruption recovery and
+prevent duplicate concurrent writes. Shards partition complete pairs. A phase
+is finalized only after every required point is finite and every fit has rank 13.
+Per-worker timing, process peak memory, host and Slurm identifiers are retained.
 
-```text
-run_modular_pipeline.py
-  -> mlff_modepair_workflow/run_pair_screening_optimized.py
-      -> mlff_modepair_workflow/core.py
-```
+## Source layout
 
-Meaning:
+- `nonlinear_phonon_calculation/cli.py`: public command dispatch.
+- `mlff_modepair_workflow/advanced_stage1.py`, `prophet_stage1.py`: model Stage1.
+- `model_relaxation.py`, `phonopy_bridge.py`, `structure_symmetry.py`: geometry,
+  force constants and verified reciprocal equivalence.
+- `screening_stage2.py`, `core.py`, `units.py`: staged sampling and numerical contract.
+- `tests/`: analytic, symmetry, displacement, checkpoint and provenance checks.
 
-- `stage2` reads only `contracts/stage1.manifest.json`
-- ranking outputs are written under `stage2/outputs/chgnet/screening/`
-- `contracts/stage2.manifest.json` is written from those outputs
-- `npc --handoff-export stage2` packages the minimal stage2 continuation payload
-
-## Stage 3 mainline
-
-```text
-run_modular_pipeline.py
-  -> server_highthroughput_workflow/stage23_pipeline.py
-      -> qe_modepair_handoff_workflow/prepare_top_pairs.py
-      -> qe_modepair_handoff_workflow/submit_top_pairs.py
-      -> qe_modepair_handoff_workflow/collect_top_pairs.py
-      -> qe_modepair_handoff_workflow/common.py
-      -> qe_modepair_handoff_workflow/scf_settings.py
-```
-
-Meaning:
-
-- `stage3` reads only `contracts/stage2.manifest.json`
-- QE recheck work is written under `stage3/qe/chgnet/`
-- `contracts/stage3.manifest.json` is written as soon as prepare finishes
-- rerunning stage3 reuses `run_manifest.json` when preparation already exists
-- rerunning stage3 after collection reuses `results/qe_ranking.json` instead of resubmitting
-- `modular_stage3_status.json` records `final_state`, `stage3_manifest`, and `resume_mode`
-
-## Status and handoff control path
-
-```text
-start_release.py --status
-  -> resolve latest or explicit run root
-  -> read contracts/stage*.manifest.json
-  -> read stage3/qe/<backend>/run_manifest.json
-  -> read stage3/qe/<backend>/submission_log.json
-  -> read stage3/qe/<backend>/modular_stage3_status.json
-  -> read stage3/qe/<backend>/results/qe_ranking.json
-```
-
-```text
-start_release.py --handoff-export stage1|stage2
-  -> server_highthroughput_workflow/handoff_bundle.py
-  -> tar.gz bundle with run-root-relative manifests and required payloads
-```
-
-```text
-start_release.py --handoff-import
-  -> server_highthroughput_workflow/handoff_bundle.py
-  -> secure extract
-  -> imported manifest validation
-```
-
-## Cross-machine invariant
-
-Cross-machine handoff depends on one beta rule:
-
-- paths recorded in `contracts/*.manifest.json` stay relative to `run_root`
-
-That is why import does not rewrite manifest payloads. It validates that the
-referenced files exist inside the newly imported run root.
-
-The current acceptance split is:
-
-1. `stage1` on `159.226.208.67`
-2. export `stage1` handoff bundle
-3. `stage2` and `stage3` on `100.101.235.12`
-
-## Files kept on purpose but not on the mainline
-
-These files are still useful, but they are not part of the normal `npc` path:
-
-- `qe_phonon_stage1_server_bundle/ops/assess_stage1_env.py`
-- `server_highthroughput_workflow/ops/assess_chgnet_env.py`
-- `server_highthroughput_workflow/ops/bootstrap_server_env.sh`
-- `server_highthroughput_workflow/ops/continue_after_screening.py`
-- `server_highthroughput_workflow/ops/CPU_QUICKSTART_zh.md`
-- `mlff_modepair_workflow/ops/benchmark_golden_pair.py`
-
-They are diagnostics or operator helpers.
-
-## Files and structures already removed from beta
-
-- top-level `nonlocal phonon/`
-- `hex_qgamma_qpair_workflow/`
-- old contract example under `examples/wse2/`
-- package-local duplicate `nonlinear_phonon_calculation/resources/nonlocal phonon/`
-- stage2 benchmarking and historical comparison scripts not used by the beta mainline
-
-## Current design rule
-
-If a file is not:
-
-1. on the `npc` mainline,
-2. a direct helper for that mainline, or
-3. a clearly labeled diagnostic helper,
-
-it should not stay in the beta tree.
+Historical v3/v4 results are diagnostic references, not v5 restart inputs.
+QE/GPTFF/EquFlash and Stage3 recomputation code are outside this release tree.

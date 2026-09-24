@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nonlinear-phonon-calculation"
-version = "0.1.0"
-description = "Operator-facing CLI for the nonlinear phonon stage1/stage2/stage3 workflow."
+version = "1.0.0"
+description = "Structure-aware hexagonal 2D phonon and MLFF coupling screening."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -14,6 +14,7 @@ dependencies = [
   "ase>=3.22",
   "matplotlib>=3.7",
   "phonopy==2.38.0",
+  "spglib>=2.0,<3",
 ]
 
 license = { text = "MIT" }
@@ -42,15 +43,11 @@ npc = "nonlinear_phonon_calculation.cli:main"
 
 [tool.setuptools]
 include-package-data = true
-py-modules = ["start_release"]
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = [
   "nonlinear_phonon_calculation*",
-  "server_highthroughput_workflow*",
-  "qe_phonon_stage1_server_bundle*",
   "mlff_modepair_workflow*",
-  "qe_modepair_handoff_workflow*",
 ]
 namespaces = true

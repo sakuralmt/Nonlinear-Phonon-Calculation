@@ -1,4 +1,4 @@
-"""Pinned MatterSim calculator for the v3 Stage2 comparison."""
+"""Pinned MatterSim calculator for the stable Stage2 workflow."""
 
 from __future__ import annotations
 
@@ -23,7 +23,9 @@ def make_mattersim_calculator(model: str | Path, device: str, atoms=None):
         raise ValueError(f"MatterSim checkpoint SHA256 mismatch: {digest}")
     installed = version("mattersim")
     if installed != MATTERSIM_VERSION:
-        raise RuntimeError(f"MatterSim {MATTERSIM_VERSION} is required; found {installed}")
+        raise RuntimeError(
+            f"MatterSim {MATTERSIM_VERSION} is required; found {installed}"
+        )
     if atoms is not None and (not all(atoms.pbc) or len(atoms) == 0):
         raise ValueError("MatterSim Stage2 requires a nonempty periodic structure")
     # MatterSim 1.2.1 still imports this name from ase.constraints; recent ASE

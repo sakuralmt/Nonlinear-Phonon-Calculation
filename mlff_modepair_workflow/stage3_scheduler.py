@@ -70,7 +70,8 @@ def _queue() -> dict[str, tuple[str, str]]:
 
 def _count_stage3_active(queue: dict[str, tuple[str, str]]) -> int:
     # Include older QE rechecks to keep the user-wide Stage3 concurrency safe.
-    return sum((name.startswith(("qv3_", "qe_")) or re.fullmatch(r".+_r\d{2}_\d{4}", name))
+    return sum(bool(name.startswith(("qv3_", "qe_"))
+                    or re.fullmatch(r".+_r\d{2}_\d{4}", name))
                and state not in {"COMPLETED", "FAILED", "CANCELLED", "TIMEOUT"}
                for name, state in queue.values())
 

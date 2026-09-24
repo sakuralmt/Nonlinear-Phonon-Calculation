@@ -57,6 +57,10 @@ def test_stage3_controller_enforces_userwide_cap_and_small_batch(tmp_path, monke
     assert status["submitted_at"] > 0
     assert stage3_scheduler._count_stage3_active(external) == 29
     assert stage3_scheduler._count_stage3_active({"old": ("prophet_r03_r01_0000", "RUNNING")}) == 1
+    assert stage3_scheduler._count_stage3_active({
+        "prophet": ("prophet-v3-cpu", "RUNNING"),
+        "stage3": ("qv3_mos2_0000", "PENDING"),
+    }) == 1
 
 
 def test_stage3_controller_recovers_unrecorded_active_job_without_duplicate(tmp_path, monkeypatch):

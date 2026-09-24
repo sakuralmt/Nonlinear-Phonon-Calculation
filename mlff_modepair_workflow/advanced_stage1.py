@@ -99,7 +99,8 @@ def make_advanced_calculator(model_name: str, checkpoint: Path, device: str, sou
         sys.path.insert(0, str(Path(source_root) / "src"))
     if model_name == "tece-oam-rra-1.0":
         from tace.interface.ase import TACEAseCalc
-        calculator = TACEAseCalc(str(checkpoint), device=device, dtype="float32")
+        calculator = TACEAseCalc(str(checkpoint), device=device, dtype="float32",
+                                 neighborlist_backend="ase" if device == "cpu" else "matscipy")
     elif model_name == "equflashv2-45m-oam":
         from GGNN.common.calculator import UCalculator
         calculator = UCalculator(checkpoint_path=str(checkpoint), cpu=device == "cpu")
@@ -174,13 +175,43 @@ def preflight_calculator(primitive, calculator, device: str, step: float = 0.005
     }
 
 
+def _ensure_run_identity(output_dir: Path, structure: Path, model_name: str,
+                         model_meta: dict, geometry_source: str,
+                         phonon_engine: str = "phonopy",
+                         phonopy_asr: bool = True) -> None:
+    identity = {
+        "model": model_name,
+        "geometry_source": geometry_source,
+        "initial_structure_sha256": sha256_file(structure),
+        "checkpoint_sha256": model_meta["checkpoint_sha256"],
+        "source_tree_sha256": model_meta.get("verified_source_tree_sha256"),
+    }
+    if phonon_engine != "custom":
+        identity["phonon_engine"] = phonon_engine
+        identity["phonopy_asr"] = phonopy_asr
+    output_dir.mkdir(parents=True, exist_ok=True)
+    path = output_dir / "run_identity.json"
+    if path.exists():
+        if json.loads(path.read_text()) != identity:
+            raise ValueError(f"Advanced Stage1 output belongs to another model, geometry or source structure: {path}")
+        return
+    if any((output_dir / name).exists() for name in
+           ("preflight.json", "preflight.initial.json", "phonon_dataset.json", "relax")):
+        raise ValueError(f"Advanced Stage1 output has results without a run identity: {output_dir}")
+    path.write_text(json.dumps(identity, indent=2) + "\n")
+
+
 def run_advanced_stage1(structure: Path, checkpoint: Path, source_root: Path,
                         model_name: str, output_dir: Path, *, device: str = "cuda",
                         mesh_n: int = 6, step: float = 0.01,
                         convergence_step: float = 0.005,
                         geometry_source: str = "shared_dft",
                         preflight_only: bool = False,
-                        relax_only: bool = False) -> tuple[Path, Path, Path] | Path:
+                        relax_only: bool = False,
+                        phonon_engine: str = "phonopy",
+                        phonopy_asr: bool = True) -> tuple[Path, Path, Path] | Path:
+    if phonon_engine not in {"custom", "phonopy"}:
+        raise ValueError("phonon_engine must be custom or phonopy")
     if geometry_source not in {"shared_dft", "model_relaxed"}:
         raise ValueError(f"Unsupported advanced Stage1 geometry source: {geometry_source}")
     if preflight_only and relax_only:
@@ -194,8 +225,9 @@ def run_advanced_stage1(structure: Path, checkpoint: Path, source_root: Path,
     if not hexagonal:
         raise ValueError(f"Advanced Stage1 requires a hexagonal in-plane cell: {details}")
     calculator, model_meta = make_advanced_calculator(model_name, checkpoint, device, source_root)
+    _ensure_run_identity(output_dir, structure, model_name, model_meta, geometry_source,
+                         phonon_engine, phonopy_asr)
     preflight = preflight_calculator(primitive, calculator, device)
-    output_dir.mkdir(parents=True, exist_ok=True)
     initial_preflight_path = output_dir / (
         "preflight.initial.json" if geometry_source == "model_relaxed" else "preflight.json"
     )
@@ -223,12 +255,25 @@ def run_advanced_stage1(structure: Path, checkpoint: Path, source_root: Path,
         if relax_only:
             return output_dir / "relax" / "relax_summary.json"
     start = time.perf_counter()
-    phi = real_space_force_constants(primitive, calculator, mesh_n, step)
-    records = phonons_from_force_constants(phi, primitive.get_masses(), mesh_n)
+    if phonon_engine == "phonopy":
+        from .phonopy_bridge import apply_phonopy_asr, force_constants_from_calculator, phonons_from_phonopy
+
+        raw_phi, fit_phonon = force_constants_from_calculator(primitive, calculator, mesh_n, step)
+        phi, asr = apply_phonopy_asr(fit_phonon, mesh_n) if phonopy_asr else (raw_phi, None)
+        records, _ = phonons_from_phonopy(primitive, phi, mesh_n)
+    else:
+        phi = real_space_force_constants(primitive, calculator, mesh_n, step)
+        records = phonons_from_force_constants(phi, primitive.get_masses(), mesh_n)
     convergence = None
     if convergence_step is not None:
-        smaller = real_space_force_constants(primitive, calculator, mesh_n, convergence_step)
-        other = phonons_from_force_constants(smaller, primitive.get_masses(), mesh_n)
+        if phonon_engine == "phonopy":
+            smaller, smaller_phonon = force_constants_from_calculator(primitive, calculator, mesh_n, convergence_step)
+            if phonopy_asr:
+                smaller, _ = apply_phonopy_asr(smaller_phonon, mesh_n)
+            other, _ = phonons_from_phonopy(primitive, smaller, mesh_n)
+        else:
+            smaller = real_space_force_constants(primitive, calculator, mesh_n, convergence_step)
+            other = phonons_from_force_constants(smaller, primitive.get_masses(), mesh_n)
         differences = np.asarray([abs(a - b) for left, right in zip(records, other)
                                   for a, b in zip(left["freqs_thz"], right["freqs_thz"])])
         convergence = {"step_A": convergence_step,
@@ -244,6 +289,15 @@ def run_advanced_stage1(structure: Path, checkpoint: Path, source_root: Path,
         "geometry_source": geometry_source, "normalization_version": NORMALIZATION_VERSION,
         "units": UNITS,
     }
+    if phonon_engine == "phonopy":
+        from phonopy import __version__ as phonopy_version
+
+        source["phonon_engine"] = {
+            "name": "phonopy", "version": phonopy_version,
+            "displacements": "Cartesian +/- finite difference, no diagonal or space-group reduction",
+            "acoustic_sum_rule": phonopy_asr, "non_analytical_correction": False,
+            "eigenvector_gauge": "v3_cell_periodic_phonopy_gamma_legacy_finiteq_tie_1e-3",
+        }
     if relaxation is not None:
         relax_path = output_dir / "relax" / "relax_summary.json"
         source["relaxation"] = {
@@ -253,7 +307,12 @@ def run_advanced_stage1(structure: Path, checkpoint: Path, source_root: Path,
             "protocol_version": relaxation["relaxation_protocol_version"],
         }
     output_dir.mkdir(parents=True, exist_ok=True)
+    if phonon_engine == "phonopy":
+        fit_phonon.save(str(output_dir / "phonopy_params.yaml"), settings={"force_constants": True})
+        source["phonon_engine"]["phonopy_params_sha256"] = sha256_file(output_dir / "phonopy_params.yaml")
     arrays = {"force_constants_ev_per_A2": phi}
+    if phonon_engine == "phonopy" and phonopy_asr:
+        arrays["force_constants_raw_ev_per_A2"] = raw_phi
     if convergence_step is not None:
         arrays["force_constants_convergence_ev_per_A2"] = smaller
     force_constants = output_dir / "force_constants.npz"
@@ -263,6 +322,7 @@ def run_advanced_stage1(structure: Path, checkpoint: Path, source_root: Path,
         "kind": "advanced_mlff_phonon_mesh", "version": CONTRACT_VERSION,
         "source": source, "q_points": records, "q_orbits": orbits,
         "diagnostics": {"preflight": preflight, "convergence": convergence,
+                        "phonopy_asr": asr if phonon_engine == "phonopy" else None,
                         "elapsed_seconds": time.perf_counter() - start,
                         "resources": process_resource_metrics(device)},
     }, indent=2) + "\n")
@@ -284,6 +344,10 @@ def main(argv=None):
     parser.add_argument("--mesh-n", type=int, default=6)
     parser.add_argument("--step", type=float, default=0.01)
     parser.add_argument("--convergence-step", type=float, default=0.005)
+    parser.add_argument("--phonon-engine", choices=["custom", "phonopy"], default="phonopy",
+                        help="Phonopy is the stable default; custom is only for historical regression")
+    parser.add_argument("--no-phonopy-asr", action="store_false", dest="phonopy_asr",
+                        help="Diagnostic only: retain raw Phonopy force constants")
     parser.add_argument("--geometry-source", choices=["shared_dft", "model_relaxed"], default="shared_dft",
                         help="Use the given DFT geometry or relax it with the selected Stage1 model first")
     parser.add_argument("--preflight-only", action="store_true",
@@ -297,7 +361,9 @@ def main(argv=None):
                               convergence_step=args.convergence_step,
                               geometry_source=args.geometry_source,
                               preflight_only=args.preflight_only,
-                              relax_only=args.relax_only))
+                              relax_only=args.relax_only,
+                              phonon_engine=args.phonon_engine,
+                              phonopy_asr=args.phonopy_asr))
 
 
 if __name__ == "__main__":

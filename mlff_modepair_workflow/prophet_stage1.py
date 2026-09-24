@@ -12,7 +12,7 @@ from pathlib import Path
 
 import numpy as np
 
-from .core import load_atoms_from_qe
+from .core import CONV_TO_THZ, load_atoms_from_qe
 from .phonon_eigenvectors import dynamical_matrix, frequencies_and_vectors, real_space_force_constants
 from .prophet_backend import make_prophet_calculator, process_resource_metrics, sha256_file, validate_atoms
 from .units import CONTRACT_VERSION, NORMALIZATION_VERSION, UNITS
@@ -161,9 +161,17 @@ def run_prophet_stage1(
     device: str = "cpu",
     convergence_step: float | None = 0.005,
     geometry_source: str = "shared_dft",
+    phonon_engine: str = "phonopy",
+    phonopy_asr: bool = True,
 ):
+    if phonon_engine not in {"custom", "phonopy"}:
+        raise ValueError("phonon_engine must be custom or phonopy")
     structure = Path(structure).resolve()
     output_dir = Path(output_dir).resolve()
+    if (phonon_engine == "phonopy" and output_dir.exists()
+            and any((output_dir / name).exists() for name in
+                    ("phonon_dataset.json", "mode_pairs.selected.json", "force_constants.npz"))):
+        raise ValueError("Phonopy Stage1 needs a fresh output directory; existing results are not overwritten")
     primitive = load_atoms_from_qe(structure)
     if not bool(np.all(primitive.pbc)):
         raise ValueError("Stage1 needs periodic x/y/z with explicit monolayer vacuum")
@@ -173,15 +181,28 @@ def run_prophet_stage1(
     calculator, model_meta = make_prophet_calculator(checkpoint, device, primitive)
     validate_atoms(primitive, set(model_meta["supported_atomic_numbers"]))
     start = time.perf_counter()
-    phi = real_space_force_constants(primitive, calculator, mesh_n, step)
+    if phonon_engine == "phonopy":
+        from .phonopy_bridge import apply_phonopy_asr, force_constants_from_calculator, phonons_from_phonopy
+
+        raw_phi, fit_phonon = force_constants_from_calculator(primitive, calculator, mesh_n, step)
+        phi, asr = apply_phonopy_asr(fit_phonon, mesh_n) if phonopy_asr else (raw_phi, None)
+        records, _ = phonons_from_phonopy(primitive, phi, mesh_n)
+    else:
+        phi = real_space_force_constants(primitive, calculator, mesh_n, step)
+        records = phonons_from_force_constants(phi, primitive.get_masses(), mesh_n)
     force_elapsed = time.perf_counter() - start
-    records = phonons_from_force_constants(phi, primitive.get_masses(), mesh_n)
     orbits = finite_q_orbits(mesh_n)
     pairs = mode_pairs_from_phonons(records, orbits, len(primitive))
     convergence = None
     if convergence_step is not None:
-        smaller = real_space_force_constants(primitive, calculator, mesh_n, convergence_step)
-        compare_records = phonons_from_force_constants(smaller, primitive.get_masses(), mesh_n)
+        if phonon_engine == "phonopy":
+            smaller, smaller_phonon = force_constants_from_calculator(primitive, calculator, mesh_n, convergence_step)
+            if phonopy_asr:
+                smaller, _ = apply_phonopy_asr(smaller_phonon, mesh_n)
+            compare_records, _ = phonons_from_phonopy(primitive, smaller, mesh_n)
+        else:
+            smaller = real_space_force_constants(primitive, calculator, mesh_n, convergence_step)
+            compare_records = phonons_from_force_constants(smaller, primitive.get_masses(), mesh_n)
         checks = {(0, 0), *(tuple(orbit["representative_index"]) for orbit in orbits)}
         differences = [
             abs(a - b)
@@ -198,7 +219,11 @@ def run_prophet_stage1(
             "max_hermitian_relative_error": max(record["hermitian_relative_error_before_symmetrizing"] for record in compare_records),
         }
     output_dir.mkdir(parents=True, exist_ok=True)
+    if phonon_engine == "phonopy":
+        fit_phonon.save(str(output_dir / "phonopy_params.yaml"), settings={"force_constants": True})
     force_arrays = {"force_constants_ev_per_A2": phi}
+    if phonon_engine == "phonopy" and phonopy_asr:
+        force_arrays["force_constants_raw_ev_per_A2"] = raw_phi
     if convergence_step is not None:
         force_arrays["force_constants_convergence_ev_per_A2"] = smaller
     np.savez_compressed(output_dir / "force_constants.npz", **force_arrays)
@@ -210,6 +235,17 @@ def run_prophet_stage1(
         "geometry_source": geometry_source,
         "normalization_version": NORMALIZATION_VERSION, "units": UNITS,
     }
+    if phonon_engine == "phonopy":
+        from phonopy import __version__ as phonopy_version
+
+        source["phonon_engine"] = {
+            "name": "phonopy", "version": phonopy_version,
+            "displacements": "Cartesian +/- finite difference, no diagonal or space-group reduction",
+            "acoustic_sum_rule": phonopy_asr, "non_analytical_correction": False,
+            "frequency_factor": CONV_TO_THZ,
+            "phonopy_params_sha256": sha256_file(output_dir / "phonopy_params.yaml"),
+            "eigenvector_gauge": "v3_cell_periodic_phonopy_gamma_legacy_finiteq_tie_1e-3",
+        }
     row_sum = float(np.max(np.abs(np.sum(phi, axis=(0, 1, 4)))))
     row_sum_ratio = row_sum / max(float(np.max(np.abs(phi))), 1e-12)
     hermitian_error = max(record["hermitian_relative_error_before_symmetrizing"] for record in records)
@@ -234,6 +270,7 @@ def run_prophet_stage1(
             "acoustic_row_sum_ratio_to_max_fc": row_sum_ratio,
             "max_net_force_column_sum_residual_ev_per_A2": float(np.max(np.abs(np.sum(phi, axis=(0, 1, 2))))),
             "convergence": convergence,
+            "phonopy_asr": asr if phonon_engine == "phonopy" else None,
             "quality_flags": quality_flags,
         },
     }

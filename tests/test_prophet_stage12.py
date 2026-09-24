@@ -246,6 +246,38 @@ def test_stage1_reuse_rejects_changed_model_or_mesh(tmp_path, monkeypatch):
         real_stage1_prophet.run_real_prophet_stage1(**{**kwargs, "mesh_n": 4})
 
 
+def test_phonopy_stage1_restart_reuses_verified_manifest(tmp_path, monkeypatch):
+    structure = tmp_path / "structure.scf.inp"
+    structure.write_text("fixed structure\n")
+    source_hash = real_stage1_prophet.sha256_file(structure)
+    pairs = tmp_path / "pairs.json"
+    pairs.write_text(json.dumps({"source": {"structure_sha256": source_hash}, "pairs": []}))
+    run_root = tmp_path / "run"
+    phonon = run_root / "phonon.json"
+    phonon.parent.mkdir(parents=True)
+    phonon.write_text(json.dumps({"source": {
+        "q_grid": [6, 6, 1], "finite_difference_step_angstrom": 0.01,
+        "phonon_engine": {"name": "phonopy", "acoustic_sum_rule": True},
+    }}))
+    constants = run_root / "force_constants.npz"
+    constants.write_bytes(b"already calculated")
+    checkpoint = tmp_path / "model.pt"
+    checkpoint.write_bytes(b"pinned checkpoint")
+    monkeypatch.setattr(real_stage1_prophet, "resolve_checkpoint", lambda _: checkpoint)
+    monkeypatch.setattr(real_stage1_prophet, "run_prophet_stage1",
+                        lambda *args, **kwargs: pytest.fail("Stage1 should be reused"))
+    manifest = create_stage1_manifest(
+        run_root, pairs, structure, backend="prophet", geometry_source="shared_dft",
+        phonon_dataset=phonon, force_constants=constants,
+        model={"checkpoint_sha256": real_stage1_prophet.sha256_file(checkpoint)},
+    )
+    assert real_stage1_prophet.run_real_prophet_stage1(
+        run_root=run_root, structure=structure, pseudo_dir=tmp_path,
+        checkpoint="dummy", device="cpu", mesh_n=6, step=0.01,
+        geometry_source="shared_dft",
+    ) == manifest
+
+
 def test_model_relaxed_geometry_round_trips_without_pseudopotentials(tmp_path):
     source = tmp_path / "source.inp"
     source.write_text("""&CONTROL

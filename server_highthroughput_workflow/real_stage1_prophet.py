@@ -95,6 +95,8 @@ def run_real_prophet_stage1(
     system_id: str | None = None, system_dir: Path | None = None,
     source_cif: Path | None = None, system_meta: Path | None = None,
     provenance: str | None = None,
+    phonon_engine: str = "phonopy",
+    phonopy_asr: bool = True,
 ):
     run_root = Path(run_root).resolve()
     structure = Path(structure).resolve()
@@ -111,7 +113,10 @@ def run_real_prophet_stage1(
         if previous_phonon:
             previous_source = load_json(run_root / previous_phonon)["source"]
             if (previous_source.get("q_grid") != [mesh_n, mesh_n, 1]
-                    or previous_source.get("finite_difference_step_angstrom") != step):
+                    or previous_source.get("finite_difference_step_angstrom") != step
+                    or previous_source.get("phonon_engine", {}).get("name", "custom") != phonon_engine
+                    or (phonon_engine == "phonopy" and
+                        previous_source.get("phonon_engine", {}).get("acoustic_sum_rule") != phonopy_asr)):
                 raise ValueError("Run root already contains a different q grid or finite-difference step")
         previous_source = previous.get("structure_sha256")
         if geometry_source == "shared_dft" and previous_source != sha256_file(structure):
@@ -126,6 +131,17 @@ def run_real_prophet_stage1(
                 raise ValueError("Stored model-relaxed structure is missing or changed")
             if previous_source != sha256_file(structure):
                 raise ValueError("Stored model-relaxed structure differs from the Stage1 manifest")
+        required = ("mode_pairs_json", "phonon_dataset", "force_constants", "structure")
+        if any(name not in previous.get("files", {}) for name in required):
+            raise ValueError("Existing Prophet Stage1 manifest is incomplete")
+        for name in required:
+            if not (run_root / previous["files"][name]).is_file():
+                raise ValueError(f"Existing Prophet Stage1 {name} is missing")
+        pair_source = load_json(run_root / previous["files"]["mode_pairs_json"])["source"]
+        if (pair_source["structure_sha256"] != previous_source
+                or sha256_file(run_root / previous["files"]["structure"]) != previous_source):
+            raise ValueError("Existing Prophet Stage1 structure or mode pairs changed")
+        return previous_manifest
     if geometry_source == "model_relaxed" and relax_summary is None:
         structure, relax_summary = relax_prophet_structure(
             structure, pseudo_dir, run_root / "stage1" / "prophet_relax", checkpoint, device
@@ -135,7 +151,8 @@ def run_real_prophet_stage1(
     output_dir = run_root / "stage1" / "prophet_outputs" / geometry_source
     pair_file, phonon_file, force_file = run_prophet_stage1(
         structure, checkpoint, output_dir, mesh_n=mesh_n, step=step,
-        device=device, geometry_source=geometry_source,
+        device=device, geometry_source=geometry_source, phonon_engine=phonon_engine,
+        phonopy_asr=phonopy_asr,
     )
     phonon = json.loads(phonon_file.read_text())
     manifest = create_stage1_manifest(

@@ -1,5 +1,11 @@
 # Prophet + MatterSim v3: controlled QE recheck
 
+**Paused 2026-09-24:** The user requested other MLFF/Phonopy tests first. Do
+not execute the Stage3 submission commands below until that work is explicitly
+resumed. The older 30-point-job/5-per-poll limits in this runbook predate the
+current global limit of **10 Slurm nodes for all tasks combined** and must be
+revised before any future QE launch.
+
 This is the test-worktree runbook for the static phonon and nonlinear PES project. The Git-managed stable repository remains the release baseline; this worktree is the validation surface. No molecular dynamics calculation is included.
 
 ## Data contract
@@ -85,7 +91,7 @@ Each replacement model now has its **own model-relaxed structure line** for both
 
 For substitution, compare each advanced model's own-relaxed Stage1 followed by the **same fixed MatterSim Stage2** against Prophet's own-relaxed Stage1 plus MatterSim Stage2. Keep a shared-DFT-geometry line for both models as a control: at fixed structure it isolates the Stage1 model effect, while the within-model shared-versus-own comparison shows the structure effect. Do not directly compare couplings between unmatched mode bases or geometries, and do not add DFT grids on the model-relaxed structures in this campaign.
 
-EquiformerV3 passed the strengthened real-checkpoint GPU preflight for MoS₂ and WSe₂ on the shared DFT structures (Slurm job 1019360). An optional `pyg_lib` wheel required a newer system glibc, so it was removed from the isolated environment; the installed `torch_sparse` and `torch_scatter` still import. The preflight reads raw calculator forces because QE input relaxation flags become ASE constraints, and checks force against a finite energy derivative at a deliberately displaced structure. The numerical evidence and pinned hashes are in `equiformer_v3_preflight.md`. No full EquiformerV3 Stage1 mesh has been launched. Do not include an advanced model's Stage1 results in the comparison report before its full mesh and 486-pair MatterSim Stage2 run pass.
+EquiformerV3 passed the strengthened real-checkpoint preflight on both GPU and CPU. An optional `pyg_lib` wheel required a newer system glibc, so it was removed from the isolated environment; the installed `torch_sparse` and `torch_scatter` still import. The preflight reads raw calculator forces because QE input relaxation flags become ASE constraints, and checks force against a finite energy derivative at a deliberately displaced structure. A single CPU Slurm job (`1019377`) completed all four 6×6 EquiformerV3 Stage1 meshes (MoS₂/WSe₂ × own-relaxed/shared-DFT), each with 36 q points and 486 candidates. The numerical evidence and pinned hashes are in `equiformer_v3_preflight.md`. The advanced model's MatterSim Stage2 486-pair runs remain outstanding; do not treat Stage1 completion as a coupling accuracy result.
 
 ## Release gates
 

@@ -1,6 +1,7 @@
 """Model-specific geometry must survive the advanced Stage1/Stage2 handoff."""
 
 import json
+import sys
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -103,6 +104,38 @@ def test_advanced_stage1_uses_its_own_relaxed_structure_and_hash(tmp_path, monke
     assert phonon["source"]["structure_sha256"] == summary["optimized_structure_sha256"]
     assert pairs["source"]["relaxation"]["source_structure_sha256"] == sha256_file(source)
     assert len(pairs["pairs"]) == 54
+    with pytest.raises(ValueError, match="another model, geometry or source structure"):
+        advanced_stage1.run_advanced_stage1(
+            source, checkpoint, tmp_path, "equiformer-v3-oam", output,
+            device="cpu", geometry_source="shared_dft", preflight_only=True,
+        )
+
+
+def test_advanced_phonopy_route_records_asr_and_keeps_raw_constants(tmp_path, monkeypatch):
+    pytest.importorskip("phonopy")
+    source = _qe_input(tmp_path / "initial.inp")
+    checkpoint = tmp_path / "model.pt"
+    checkpoint.write_bytes(b"toy model")
+    model = {"backend": "equiformer-v3-oam", "checkpoint_sha256": sha256_file(checkpoint)}
+    monkeypatch.setattr(advanced_stage1, "make_advanced_calculator",
+                        lambda *args: (ToyPeriodicPotential(), model))
+    output = tmp_path / "phonopy_stage1"
+    pairs, phonon, force = advanced_stage1.run_advanced_stage1(
+        source, checkpoint, tmp_path, "equiformer-v3-oam", output,
+        device="cpu", convergence_step=None, phonon_engine="phonopy",
+    )
+    dataset = json.loads(phonon.read_text())
+    arrays = np.load(force)
+    assert len(json.loads(pairs.read_text())["pairs"]) == 54
+    assert dataset["source"]["phonon_engine"]["acoustic_sum_rule"] is True
+    assert dataset["diagnostics"]["phonopy_asr"]["corrected_max_translational_drift_ev_per_A2"] < 1e-10
+    assert "force_constants_raw_ev_per_A2" in arrays
+    assert (output / "phonopy_params.yaml").is_file()
+    with pytest.raises(ValueError, match="another model, geometry or source structure"):
+        advanced_stage1.run_advanced_stage1(
+            source, checkpoint, tmp_path, "equiformer-v3-oam", output,
+            device="cpu", preflight_only=True, phonon_engine="custom",
+        )
 
 
 def test_modular_advanced_stage1_manifest_hands_off_own_structure(tmp_path, monkeypatch):
@@ -138,3 +171,10 @@ def test_modular_advanced_stage1_manifest_hands_off_own_structure(tmp_path, monk
         run_modular_pipeline.run_stage1(
             SimpleNamespace(**{**vars(args), "geometry_source": "shared_dft"}), run_root, spec
         )
+
+
+def test_modular_mlff_defaults_to_phonopy_with_asr(monkeypatch):
+    monkeypatch.setattr(sys, "argv", ["run_modular_pipeline.py"])
+    args = run_modular_pipeline.parse_args()
+    assert args.phonon_engine == "phonopy"
+    assert args.phonopy_asr is True

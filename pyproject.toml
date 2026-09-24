@@ -13,6 +13,7 @@ dependencies = [
   "scipy>=1.10",
   "ase>=3.22",
   "matplotlib>=3.7",
+  "phonopy==2.38.0",
 ]
 
 license = { text = "MIT" }

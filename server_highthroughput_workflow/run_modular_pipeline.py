@@ -102,6 +102,10 @@ def parse_args():
     p.add_argument("--stage2-device", choices=["auto", "cpu", "cuda"], default="auto")
     p.add_argument("--q-grid-n", type=int, default=6)
     p.add_argument("--fd-step", type=float, default=0.01)
+    p.add_argument("--phonon-engine", choices=["custom", "phonopy"], default="phonopy",
+                   help="Phonopy 2.38.0 is the MLFF Stage1 default; custom is historical")
+    p.add_argument("--no-phonopy-asr", action="store_false", dest="phonopy_asr",
+                   help="Diagnostic only: retain raw Phonopy force constants")
 
     p.add_argument(
         "--stage2-model",
@@ -253,6 +257,8 @@ def run_stage1(args, run_root: Path, spec):
             checkpoint=args.prophet_checkpoint or "prophet_oame_mbd",
             device=resolve_prophet_device(args.stage1_device), mesh_n=args.q_grid_n,
             step=args.fd_step, geometry_source=args.geometry_source,
+            phonon_engine=getattr(args, "phonon_engine", "phonopy"),
+            phonopy_asr=getattr(args, "phonopy_asr", True),
             system_id=spec.system_id, system_dir=spec.system_dir,
             source_cif=spec.structure_cif, system_meta=spec.metadata_path,
             provenance=args.structure_provenance or (
@@ -273,6 +279,15 @@ def run_stage1(args, run_root: Path, spec):
                     or previous.get("model", {}).get("checkpoint_sha256")
                     != sha256_file(Path(args.stage1_checkpoint).expanduser().resolve())):
                 raise ValueError("Run root already belongs to another Stage1 model or geometry source")
+            previous_phonon = previous.get("files", {}).get("phonon_dataset")
+            if previous_phonon:
+                engine = load_json(run_root / previous_phonon)["source"].get("phonon_engine", {}).get("name", "custom")
+                if engine != getattr(args, "phonon_engine", "phonopy"):
+                    raise ValueError("Run root already contains a different phonon engine")
+                if engine == "phonopy":
+                    previous_asr = load_json(run_root / previous_phonon)["source"]["phonon_engine"].get("acoustic_sum_rule")
+                    if previous_asr != getattr(args, "phonopy_asr", True):
+                        raise ValueError("Run root already contains a different Phonopy ASR policy")
             if (args.geometry_source == "shared_dft"
                     and previous.get("structure_sha256") != sha256_file(structure_for_stage1)):
                 raise ValueError("Run root already contains a different shared-DFT structure")
@@ -283,6 +298,8 @@ def run_stage1(args, run_root: Path, spec):
             output_dir=advanced_output,
             device=resolve_prophet_device(args.stage1_device), mesh_n=args.q_grid_n,
             step=args.fd_step, geometry_source=args.geometry_source,
+            phonon_engine=getattr(args, "phonon_engine", "phonopy"),
+            phonopy_asr=getattr(args, "phonopy_asr", True),
         )
         advanced_source = load_json(phonon_file)["source"]
         model_meta = advanced_source["model"]

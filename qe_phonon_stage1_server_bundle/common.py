@@ -322,6 +322,18 @@ def load_qe_template(scf_file: Path) -> dict:
             break
     if nat is None:
         raise ValueError("Could not parse nat= from template")
+    species_header = next((i for i, line in enumerate(lines)
+                           if line.strip().upper().startswith("ATOMIC_SPECIES")), None)
+    if species_header is None:
+        raise ValueError("ATOMIC_SPECIES not found in template")
+    species_entries = []
+    for line in lines[species_header + 1:]:
+        parts = line.split()
+        if len(parts) < 3:
+            break
+        species_entries.append({"symbol": parts[0], "mass": float(parts[1]), "pseudo": parts[2]})
+    if not species_entries or len({entry["symbol"] for entry in species_entries}) != len(species_entries):
+        raise ValueError("Invalid or duplicate ATOMIC_SPECIES entries")
 
     cell_header = None
     for i, line in enumerate(lines):
@@ -383,6 +395,7 @@ def load_qe_template(scf_file: Path) -> dict:
         "frac": frac,
         "constraints": constraints,
         "k_points": k_points,
+        "atomic_species_entries": species_entries,
     }
 
 
@@ -698,6 +711,7 @@ def write_qe_input(
     k_mesh: list[int],
     pseudo_dir_rel: str,
     scf_settings: dict,
+    atomic_species_entries: list[dict] | None = None,
 ) -> None:
     nat = len(symbols)
     calculation = scf_settings.get("calculation", "scf")
@@ -728,7 +742,11 @@ def write_qe_input(
 
         f.write("&SYSTEM\n")
         f.write("  ibrav = 0\n")
-        f.write(f"  nat = {nat}, ntyp = 2\n")
+        entries = atomic_species_entries or [
+            {"symbol": "W", "mass": 183.84, "pseudo": "W.pz-spn-rrkjus_psl.1.0.0.UPF"},
+            {"symbol": "Se", "mass": 78.960, "pseudo": "Se.pz-n-rrkjus_psl.0.2.UPF"},
+        ]
+        f.write(f"  nat = {nat}, ntyp = {len(entries)}\n")
         if scf_settings.get("occupations") == "smearing":
             f.write(
                 "  occupations = 'smearing', "
@@ -759,8 +777,9 @@ def write_qe_input(
             f.write("/\n\n")
 
         f.write("ATOMIC_SPECIES\n")
-        f.write("W  183.84 W.pz-spn-rrkjus_psl.1.0.0.UPF\n")
-        f.write("Se 78.960 Se.pz-n-rrkjus_psl.0.2.UPF\n\n")
+        for entry in entries:
+            f.write(f"{entry['symbol']}  {entry['mass']} {entry['pseudo']}\n")
+        f.write("\n")
 
         f.write("CELL_PARAMETERS (angstrom)\n")
         for i in range(3):
@@ -786,6 +805,7 @@ def write_scf_input(
     k_mesh: list[int],
     pseudo_dir_rel: str,
     scf_settings: dict,
+    atomic_species_entries: list[dict] | None = None,
 ) -> None:
     write_qe_input(
         out_file=out_file,
@@ -796,6 +816,7 @@ def write_scf_input(
         k_mesh=k_mesh,
         pseudo_dir_rel=pseudo_dir_rel,
         scf_settings=scf_settings,
+        atomic_species_entries=atomic_species_entries,
     )
 
 
@@ -817,6 +838,7 @@ def prepare_primitive_qe_input(
         k_mesh=template["k_points"] if k_mesh is None else list(k_mesh),
         pseudo_dir_rel=pseudo_dir_rel,
         scf_settings=scf_settings,
+        atomic_species_entries=template["atomic_species_entries"],
     )
     return {"prefix": prefix}
 

@@ -2,6 +2,10 @@
 
 The pinned Prophet Stage1/Stage2 v3 workflow, unit conventions, checkpointing,
 and validation commands are documented in [docs/prophet_stage12_v3.md](docs/prophet_stage12_v3.md).
+The current Prophet+MatterSim v3 Stage3 joint top-30 run and global Slurm
+concurrency controller are documented in
+[docs/prophet_mattersim_stage3_v3.md](docs/prophet_mattersim_stage3_v3.md).
+The top-5 Stage3 examples below describe the older v2 handoff.
 
 [English](README.md) | [中文](README_zh.md)
 

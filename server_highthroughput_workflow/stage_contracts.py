@@ -85,6 +85,7 @@ def create_stage1_manifest(
     geometry_source: str | None = None,
     model: dict | None = None,
     structure_provenance: str | None = None,
+    contract_version: int | None = None,
 ):
     run_root = Path(run_root).expanduser().resolve()
     dsts = stage1_defaults(run_root)
@@ -103,7 +104,9 @@ def create_stage1_manifest(
         _copy_file(pseudo, dst)
         copied_pseudos.append(dst)
 
-    contract_version = MANIFEST_VERSION if backend == "prophet" else 2
+    contract_version = contract_version if contract_version is not None else (MANIFEST_VERSION if backend == "prophet" else 2)
+    if contract_version not in {2, MANIFEST_VERSION}:
+        raise ValueError(f"Unsupported Stage1 contract version: {contract_version}")
     payload = {
         "kind": STAGE1_KIND,
         "version": contract_version,
@@ -120,7 +123,7 @@ def create_stage1_manifest(
         "pseudo_files": [_rel(path, run_root) for path in copied_pseudos],
         "next_stage": STAGE2_KIND,
     }
-    if backend == "prophet":
+    if contract_version >= 3:
         payload.update({
             "backend": backend,
             "geometry_source": geometry_source,
@@ -152,6 +155,7 @@ def create_stage2_manifest(
     run_meta: Path | None,
     pair_ranking_json: Path | None = None,
     raw_pairs_dir: Path | None = None,
+    backend: str | None = None,
 ):
     run_root = Path(run_root).expanduser().resolve()
     stage1 = load_json(stage1_manifest)
@@ -162,6 +166,7 @@ def create_stage2_manifest(
         "run_root": str(run_root),
         "system_id": stage1.get("system_id"),
         "stage1_backend": stage1.get("backend"),
+        "stage2_backend": backend,
         "geometry_source": stage1.get("geometry_source"),
         "structure_sha256": stage1.get("structure_sha256"),
         "stage1_manifest": _rel(Path(stage1_manifest).resolve(), run_root),
@@ -186,12 +191,13 @@ def create_stage2_manifest(
         payload["runtime_files"]["pair_ranking_json"] = _rel(Path(pair_ranking_json).resolve(), run_root)
     if raw_pairs_dir is not None and Path(raw_pairs_dir).is_dir():
         payload["runtime_files"]["raw_pairs_dir"] = _rel(Path(raw_pairs_dir).resolve(), run_root)
-    out = manifest_path(run_root, STAGE2_KIND)
+    out = (run_root / "contracts" / f"stage2.{backend}.manifest.json") if backend else manifest_path(run_root, STAGE2_KIND)
     dump_json(out, payload)
     return out
 
 
-def create_stage3_manifest(run_root: Path, stage2_manifest: Path, qe_run_root: Path, qe_ranking_json: Path | None = None):
+def create_stage3_manifest(run_root: Path, stage2_manifest: Path, qe_run_root: Path,
+                           qe_ranking_json: Path | None = None, *, tag: str | None = None):
     run_root = Path(run_root).expanduser().resolve()
     stage2 = load_json(stage2_manifest)
     payload = {
@@ -209,6 +215,6 @@ def create_stage3_manifest(run_root: Path, stage2_manifest: Path, qe_run_root: P
     }
     if qe_ranking_json is not None and Path(qe_ranking_json).exists():
         payload["qe_files"]["qe_ranking_json"] = _rel(Path(qe_ranking_json).resolve(), run_root)
-    out = manifest_path(run_root, STAGE3_KIND)
+    out = (run_root / "contracts" / f"stage3.{tag}.manifest.json") if tag else manifest_path(run_root, STAGE3_KIND)
     dump_json(out, payload)
     return out

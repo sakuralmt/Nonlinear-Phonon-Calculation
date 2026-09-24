@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 import shutil
 import subprocess
@@ -15,6 +16,7 @@ if str(ROOT) not in sys.path:
 
 from nonlinear_phonon_calculation.workflow_families import resolve_workflow_family
 from server_highthroughput_workflow.stage_contracts import create_stage1_manifest, dump_json
+from mlff_modepair_workflow.qe_stage1_v3 import import_qe_mesh
 
 
 STAGE1_SOURCE = ROOT / "qe_phonon_stage1_server_bundle"
@@ -91,6 +93,62 @@ def _write_requested_pairs(screening_json: Path, out_json: Path, out_csv: Path):
                 ]
             )
     return requests
+
+
+def _write_full_mesh_requests(mesh_n: int, out_json: Path) -> None:
+    requests = [
+        {"request_id": f"q_{i}_{j}", "target_q_frac": [i / mesh_n, j / mesh_n, 0.0],
+         "gamma_mode_number": 1, "target_mode_number": 1}
+        for i in range(mesh_n) for j in range(mesh_n) if (i, j) != (0, 0)
+    ]
+    out_json.write_text(json.dumps({"requests": requests}, indent=2) + "\n")
+
+
+def run_real_stage1_v3(
+    run_root: Path, structure: Path, pseudo_dir: Path, *, mesh_n: int = 6,
+    matdyn_input: Path | None = None, qe_eig: Path | None = None,
+    qe_source_structure: Path | None = None,
+    system_id: str | None = None, system_dir: Path | None = None,
+    source_cif: Path | None = None, system_meta: Path | None = None,
+    structure_provenance: str | None = None,
+):
+    """Use a complete QE q mesh, or import an existing complete matdyn result."""
+    run_root, structure, pseudo_dir = (Path(p).expanduser().resolve()
+                                       for p in (run_root, structure, pseudo_dir))
+    if (matdyn_input is None) != (qe_eig is None):
+        raise ValueError("QE v3 Stage1 needs both --qe-matdyn-input and --qe-eig, or neither")
+    if matdyn_input is not None and qe_source_structure is None:
+        raise ValueError("Formal imported QE Stage1 needs --qe-source-structure to verify its geometry")
+    output = run_root / "stage1" / "qe_v3"
+    generated_this_run = matdyn_input is None
+    if matdyn_input is None:
+        if mesh_n != 6:
+            raise ValueError("The QE phonon frontend currently supports a 6x6x1 grid")
+        runtime = run_root / PHONON_RUNTIME_NAME / "qe_phonon_stage1_server_bundle"
+        if runtime.exists():
+            existing = runtime / "inputs" / "scf.inp"
+            if not existing.exists() or hashlib.sha256(existing.read_bytes()).digest() != hashlib.sha256(structure.read_bytes()).digest():
+                raise ValueError("Existing QE frontend has a different or missing structure; use a new run root")
+        else:
+            _copytree_clean(STAGE1_SOURCE, runtime)
+            _sync_stage1_inputs(runtime, structure, pseudo_dir)
+            _write_full_mesh_requests(mesh_n, runtime / "inputs" / "requested_pairs.json")
+        _run_python(runtime / "run_all.py", cwd=runtime)
+        matdyn_input = runtime / "qe_phonon_pes_run" / "matdyn" / "matdyn.inp"
+        qe_eig = runtime / "qe_phonon_pes_run" / "matdyn" / "qeph.eig"
+    pair_file, phonon = import_qe_mesh(
+        structure, Path(matdyn_input), Path(qe_eig), output, mesh_n=mesh_n,
+        qe_source_structure=structure if generated_this_run else qe_source_structure,
+    )
+    manifest = create_stage1_manifest(
+        run_root=run_root, mode_pairs_json=pair_file, structure=structure,
+        pseudo_dir=pseudo_dir, system_id=system_id, system_dir=system_dir,
+        source_cif=source_cif, system_meta=system_meta, backend="qe",
+        phonon_dataset=phonon, geometry_source="shared_dft",
+        structure_provenance=structure_provenance or "qe_matdyn_complete_mesh",
+        contract_version=3,
+    )
+    return manifest
 
 
 def run_real_stage1(

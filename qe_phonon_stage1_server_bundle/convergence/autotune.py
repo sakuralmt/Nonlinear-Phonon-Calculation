@@ -173,6 +173,7 @@ def _write_candidate_jobs(run_root: Path, structure_template: Path, strict_setti
             k_mesh=k_mesh,
             pseudo_dir_rel=relpath(job_dir, PSEUDO_DIR.resolve()),
             scf_settings=item["settings"],
+            atomic_species_entries=template["atomic_species_entries"],
         )
         _submit_script(job_dir, f"autotune_{run_root.name}_{item['name']}")
         dump_json(

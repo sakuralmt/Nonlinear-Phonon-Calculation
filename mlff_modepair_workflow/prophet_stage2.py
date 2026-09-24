@@ -284,6 +284,8 @@ def main(argv=None):
     payload = json.loads(pair_file.read_text())
     if payload.get("version") != CONTRACT_VERSION or payload.get("source", {}).get("normalization_version") != NORMALIZATION_VERSION:
         raise ValueError("Stage2 requires v3 mode pairs with the real-unit-mass normalization")
+    if payload["source"].get("backend") == "qe" and not payload["source"].get("qe_geometry_verified"):
+        raise ValueError("QE Stage1 geometry is unverified; formal Stage2 cannot use historical phonons as exact-structure modes")
     if payload["source"].get("structure_sha256") != sha256_file(structure):
         raise ValueError("Stage2 structure does not match the Stage1 structure hash")
     pairs = payload["pairs"]

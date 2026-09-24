@@ -14,6 +14,7 @@ from pathlib import Path
 import numpy as np
 
 from .core import load_atoms_from_qe
+from .model_relaxation import relax_structure_with_calculator
 from .phonon_eigenvectors import real_space_force_constants
 from .prophet_backend import process_resource_metrics, sha256_file
 from .prophet_stage1 import finite_q_orbits, mode_pairs_from_phonons, phonons_from_force_constants
@@ -177,7 +178,15 @@ def run_advanced_stage1(structure: Path, checkpoint: Path, source_root: Path,
                         model_name: str, output_dir: Path, *, device: str = "cuda",
                         mesh_n: int = 6, step: float = 0.01,
                         convergence_step: float = 0.005,
-                        preflight_only: bool = False) -> tuple[Path, Path, Path] | Path:
+                        geometry_source: str = "shared_dft",
+                        preflight_only: bool = False,
+                        relax_only: bool = False) -> tuple[Path, Path, Path] | Path:
+    if geometry_source not in {"shared_dft", "model_relaxed"}:
+        raise ValueError(f"Unsupported advanced Stage1 geometry source: {geometry_source}")
+    if preflight_only and relax_only:
+        raise ValueError("Choose preflight-only or relax-only, not both")
+    if relax_only and geometry_source != "model_relaxed":
+        raise ValueError("Relax-only requires model_relaxed geometry source")
     structure = Path(structure).resolve()
     output_dir = Path(output_dir).resolve()
     primitive = load_atoms_from_qe(structure)
@@ -187,12 +196,32 @@ def run_advanced_stage1(structure: Path, checkpoint: Path, source_root: Path,
     calculator, model_meta = make_advanced_calculator(model_name, checkpoint, device, source_root)
     preflight = preflight_calculator(primitive, calculator, device)
     output_dir.mkdir(parents=True, exist_ok=True)
-    (output_dir / "preflight.json").write_text(json.dumps({"model": model_meta,
-                                                           "preflight": preflight}, indent=2) + "\n")
+    initial_preflight_path = output_dir / (
+        "preflight.initial.json" if geometry_source == "model_relaxed" else "preflight.json"
+    )
+    initial_preflight_path.write_text(json.dumps({
+        "model": model_meta, "structure": str(structure),
+        "structure_sha256": sha256_file(structure), "preflight": preflight,
+    }, indent=2) + "\n")
     if not preflight["passed"]:
-        raise ValueError(f"Advanced Stage1 preflight failed; inspect {output_dir / 'preflight.json'}")
+        raise ValueError(f"Advanced Stage1 preflight failed; inspect {initial_preflight_path}")
     if preflight_only:
-        return output_dir / "preflight.json"
+        return initial_preflight_path
+    relaxation = None
+    if geometry_source == "model_relaxed":
+        structure, relaxation = relax_structure_with_calculator(
+            structure, output_dir / "relax", calculator, model_meta, model_name
+        )
+        primitive = load_atoms_from_qe(structure)
+        preflight = preflight_calculator(primitive, calculator, device)
+        (output_dir / "preflight.json").write_text(json.dumps({
+            "model": model_meta, "structure": str(structure),
+            "structure_sha256": sha256_file(structure), "preflight": preflight,
+        }, indent=2) + "\n")
+        if not preflight["passed"]:
+            raise ValueError(f"Relaxed advanced Stage1 preflight failed; inspect {output_dir / 'preflight.json'}")
+        if relax_only:
+            return output_dir / "relax" / "relax_summary.json"
     start = time.perf_counter()
     phi = real_space_force_constants(primitive, calculator, mesh_n, step)
     records = phonons_from_force_constants(phi, primitive.get_masses(), mesh_n)
@@ -212,9 +241,17 @@ def run_advanced_stage1(structure: Path, checkpoint: Path, source_root: Path,
         "structure_sha256": sha256_file(structure), "natoms_primitive": len(primitive),
         "symbols": primitive.get_chemical_symbols(), "masses_amu": primitive.get_masses().tolist(),
         "q_grid": [mesh_n, mesh_n, 1], "finite_difference_step_angstrom": step,
-        "geometry_source": "shared_dft", "normalization_version": NORMALIZATION_VERSION,
+        "geometry_source": geometry_source, "normalization_version": NORMALIZATION_VERSION,
         "units": UNITS,
     }
+    if relaxation is not None:
+        relax_path = output_dir / "relax" / "relax_summary.json"
+        source["relaxation"] = {
+            "source_structure_sha256": relaxation["source_structure_sha256"],
+            "optimized_structure_sha256": relaxation["optimized_structure_sha256"],
+            "summary": str(relax_path), "summary_sha256": sha256_file(relax_path),
+            "protocol_version": relaxation["relaxation_protocol_version"],
+        }
     output_dir.mkdir(parents=True, exist_ok=True)
     arrays = {"force_constants_ev_per_A2": phi}
     if convergence_step is not None:
@@ -247,14 +284,20 @@ def main(argv=None):
     parser.add_argument("--mesh-n", type=int, default=6)
     parser.add_argument("--step", type=float, default=0.01)
     parser.add_argument("--convergence-step", type=float, default=0.005)
+    parser.add_argument("--geometry-source", choices=["shared_dft", "model_relaxed"], default="shared_dft",
+                        help="Use the given DFT geometry or relax it with the selected Stage1 model first")
     parser.add_argument("--preflight-only", action="store_true",
                         help="Check periodic energy, forces, repeatability and force-energy consistency without a phonon run")
+    parser.add_argument("--relax-only", action="store_true",
+                        help="Preflight and relax this model's own geometry, then stop before the phonon mesh")
     args = parser.parse_args(argv)
     print(run_advanced_stage1(args.structure, args.checkpoint, args.source_root,
                               args.model, args.output_dir, device=args.device,
                               mesh_n=args.mesh_n, step=args.step,
                               convergence_step=args.convergence_step,
-                              preflight_only=args.preflight_only))
+                              geometry_source=args.geometry_source,
+                              preflight_only=args.preflight_only,
+                              relax_only=args.relax_only))
 
 
 if __name__ == "__main__":

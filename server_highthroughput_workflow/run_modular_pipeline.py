@@ -264,21 +264,41 @@ def run_stage1(args, run_root: Path, spec):
         if not args.stage1_checkpoint or not args.stage1_source_root:
             raise ValueError("Advanced Stage1 requires --stage1-checkpoint and --stage1-source-root")
         from mlff_modepair_workflow.advanced_stage1 import run_advanced_stage1
+        from mlff_modepair_workflow.prophet_backend import sha256_file
+        previous_manifest = manifest_path(run_root, STAGE1_KIND)
+        if previous_manifest.exists():
+            previous = load_json(previous_manifest)
+            if (previous.get("backend") != args.stage1_backend
+                    or previous.get("geometry_source") != args.geometry_source
+                    or previous.get("model", {}).get("checkpoint_sha256")
+                    != sha256_file(Path(args.stage1_checkpoint).expanduser().resolve())):
+                raise ValueError("Run root already belongs to another Stage1 model or geometry source")
+            if (args.geometry_source == "shared_dft"
+                    and previous.get("structure_sha256") != sha256_file(structure_for_stage1)):
+                raise ValueError("Run root already contains a different shared-DFT structure")
+        advanced_output = run_root / "stage1" / args.stage1_backend / args.geometry_source
         pair_file, phonon_file, force_constants = run_advanced_stage1(
             structure=structure_for_stage1, checkpoint=Path(args.stage1_checkpoint),
             source_root=Path(args.stage1_source_root), model_name=args.stage1_backend,
-            output_dir=run_root / "stage1" / args.stage1_backend,
+            output_dir=advanced_output,
             device=resolve_prophet_device(args.stage1_device), mesh_n=args.q_grid_n,
-            step=args.fd_step,
+            step=args.fd_step, geometry_source=args.geometry_source,
         )
-        model_meta = load_json(phonon_file)["source"]["model"]
+        advanced_source = load_json(phonon_file)["source"]
+        model_meta = advanced_source["model"]
+        structure_for_stage1 = Path(advanced_source["structure"])
+        if args.geometry_source == "model_relaxed":
+            relax_summary = load_json(advanced_output / "relax" / "relax_summary.json")
         manifest = create_stage1_manifest(
             run_root=run_root, mode_pairs_json=pair_file, structure=structure_for_stage1,
             pseudo_dir=pseudo_dir, system_id=spec.system_id, system_dir=spec.system_dir,
             source_cif=spec.structure_cif, system_meta=spec.metadata_path,
             backend=args.stage1_backend, phonon_dataset=phonon_file,
-            force_constants=force_constants, geometry_source="shared_dft",
-            structure_provenance=args.structure_provenance or "shared_dft_input",
+            force_constants=force_constants, geometry_source=args.geometry_source,
+            structure_provenance=args.structure_provenance or (
+                f"{args.stage1_backend}_relax_from_shared_dft"
+                if args.geometry_source == "model_relaxed" else "shared_dft_input"
+            ),
             model=model_meta, contract_version=3,
         )
     else:
@@ -300,7 +320,7 @@ def run_stage1(args, run_root: Path, spec):
             "scheduler_mode": resolve_scheduler_mode(args.scheduler),
             "qe_relax": args.qe_relax,
             "stage1_backend": args.stage1_backend,
-            "geometry_source": args.geometry_source if args.stage1_backend == "prophet" else None,
+            "geometry_source": args.geometry_source,
             "prepared_system": system_summary,
             "relax_summary": relax_summary,
         },

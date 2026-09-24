@@ -2,6 +2,11 @@
 
 Prophet Stage1/Stage2 v3 的固定版本、单位、断点续算和验收命令见
 [docs/prophet_stage12_v3.md](docs/prophet_stage12_v3.md)。
+MLFF Stage1 现默认使用固定的 Phonopy 2.38.0 与平移 ASR，见
+[docs/phonopy_stage1_standardization.md](docs/phonopy_stage1_standardization.md)。
+静态主线为 Prophet Stage1＋MatterSim Stage2 排序；QE Stage3 当前暂停。
+MoS₂/WSe₂ 的模型替代与历史 QE 数据对照见
+[docs/phonopy_model_comparison_report.md](docs/phonopy_model_comparison_report.md)。
 
 [English](README.md) | [中文](README_zh.md)
 

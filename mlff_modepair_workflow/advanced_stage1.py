@@ -152,7 +152,8 @@ def preflight_calculator(primitive, calculator, device: str, step: float = 0.005
 def run_advanced_stage1(structure: Path, checkpoint: Path, source_root: Path,
                         model_name: str, output_dir: Path, *, device: str = "cuda",
                         mesh_n: int = 6, step: float = 0.01,
-                        convergence_step: float = 0.005) -> tuple[Path, Path, Path]:
+                        convergence_step: float = 0.005,
+                        preflight_only: bool = False) -> tuple[Path, Path, Path] | Path:
     structure = Path(structure).resolve()
     output_dir = Path(output_dir).resolve()
     primitive = load_atoms_from_qe(structure)
@@ -166,6 +167,8 @@ def run_advanced_stage1(structure: Path, checkpoint: Path, source_root: Path,
                                                            "preflight": preflight}, indent=2) + "\n")
     if not preflight["passed"]:
         raise ValueError(f"Advanced Stage1 preflight failed; inspect {output_dir / 'preflight.json'}")
+    if preflight_only:
+        return output_dir / "preflight.json"
     start = time.perf_counter()
     phi = real_space_force_constants(primitive, calculator, mesh_n, step)
     records = phonons_from_force_constants(phi, primitive.get_masses(), mesh_n)
@@ -220,11 +223,14 @@ def main(argv=None):
     parser.add_argument("--mesh-n", type=int, default=6)
     parser.add_argument("--step", type=float, default=0.01)
     parser.add_argument("--convergence-step", type=float, default=0.005)
+    parser.add_argument("--preflight-only", action="store_true",
+                        help="Check periodic energy, forces, repeatability and force-energy consistency without a phonon run")
     args = parser.parse_args(argv)
     print(run_advanced_stage1(args.structure, args.checkpoint, args.source_root,
                               args.model, args.output_dir, device=args.device,
                               mesh_n=args.mesh_n, step=args.step,
-                              convergence_step=args.convergence_step))
+                              convergence_step=args.convergence_step,
+                              preflight_only=args.preflight_only))
 
 
 if __name__ == "__main__":

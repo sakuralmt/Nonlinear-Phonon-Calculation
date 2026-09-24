@@ -122,22 +122,35 @@ def preflight_calculator(primitive, calculator, device: str, step: float = 0.005
     atoms.calc = calculator
     start = time.perf_counter()
     energy = float(atoms.get_potential_energy())
-    forces = np.asarray(atoms.get_forces(), dtype=float)
+    forces = np.asarray(atoms.get_forces(apply_constraint=False), dtype=float)
     if forces.shape != (len(atoms), 3) or not np.isfinite(energy) or not np.isfinite(forces).all():
         raise ValueError("Advanced model returned nonfinite or wrong-shaped energy/forces")
     repeated = atoms.copy()
     repeated.calc = calculator
     repeat_energy = float(repeated.get_potential_energy())
-    repeat_forces = np.asarray(repeated.get_forces(), dtype=float)
-    plus, minus = primitive.copy(), primitive.copy()
+    repeat_forces = np.asarray(repeated.get_forces(apply_constraint=False), dtype=float)
+    # A relaxed high-symmetry atom can have both F_x and dE/dx exactly zero.
+    # Probe a displaced configuration so the conservative-force check is not
+    # passed vacuously by a model with a flat or inconsistent response.
+    probe_displacement = max(0.03, 6 * step)
+    probe = primitive.copy()
+    probe.positions[0, 0] += probe_displacement
+    probe.calc = calculator
+    probe_forces = np.asarray(probe.get_forces(apply_constraint=False), dtype=float)
+    if probe_forces.shape != forces.shape or not np.isfinite(probe_forces).all():
+        raise ValueError("Advanced model returned invalid displaced forces")
+    plus, minus = probe.copy(), probe.copy()
     plus.positions[0, 0] += step
     minus.positions[0, 0] -= step
     plus.calc = minus.calc = calculator
-    slope = (float(plus.get_potential_energy()) - float(minus.get_potential_energy())) / (2 * step)
+    energy_plus = float(plus.get_potential_energy())
+    energy_minus = float(minus.get_potential_energy())
+    slope = (energy_plus - energy_minus) / (2 * step)
     repeat_e = abs(repeat_energy - energy)
     repeat_f = float(np.max(np.abs(repeat_forces - forces)))
-    conservative_error = abs(slope + float(forces[0, 0]))
-    conservative_limit = max(0.1, 0.2 * float(np.max(np.abs(forces))))
+    probe_force = float(probe_forces[0, 0])
+    conservative_error = abs(slope + probe_force)
+    conservative_limit = max(0.02, 0.2 * abs(probe_force))
     return {
         "natoms": len(primitive), "symbols": primitive.get_chemical_symbols(),
         "energy_eV": energy, "force_shape": list(forces.shape),
@@ -145,10 +158,15 @@ def preflight_calculator(primitive, calculator, device: str, step: float = 0.005
         "repeat_force_max_difference_eV_per_A": repeat_f,
         "force_energy_difference_eV_per_A": conservative_error,
         "force_energy_difference_step_A": step,
+        "force_energy_probe_displacement_A": probe_displacement,
+        "force_energy_probe_force_eV_per_A": probe_force,
+        "force_energy_probe_slope_eV_per_A": slope,
+        "force_energy_probe_energy_span_eV": energy_plus - energy_minus,
         "preflight_limits": {"repeat_energy_eV": 1e-3,
                              "repeat_force_eV_per_A": 1e-3,
                              "force_energy_eV_per_A": conservative_limit},
         "passed": bool(repeat_e <= 1e-3 and repeat_f <= 1e-3
+                       and abs(probe_force) > 1e-4
                        and conservative_error <= conservative_limit),
         "elapsed_seconds": time.perf_counter() - start,
         "resources": process_resource_metrics(device),

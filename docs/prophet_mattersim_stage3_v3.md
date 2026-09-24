@@ -81,7 +81,7 @@ If MLFF force metrics are needed, run `stage3_force_grid` once per backend and m
 
 `advanced_stage1.py` accepts three isolated ASE backends: `tece-oam-rra-1.0`, `equflashv2-45m-oam`, and `equiformer-v3-oam`. Their source commits and full source-tree hashes are pinned in the adapter. Each needs its own Python environment and weight file. Run `--preflight-only` on periodic MoS₂ and WSe₂ first; it checks energy and forces, repeated inference, and force-versus-energy finite differences without launching a full phonon mesh. Only then run the full 6×6 calculation. It produces the same v3 mode-pair file, which can be passed to **MatterSim only** for Stage2. The public Matbench discovery rank is not treated as evidence of phonon accuracy.
 
-No advanced model has yet passed a real checkpoint preflight on this campaign. Do not include its Stage1 results in the comparison report before that test and the 486-pair MatterSim Stage2 run pass.
+EquiformerV3 passed the strengthened real-checkpoint GPU preflight for MoS₂ and WSe₂ on the shared DFT structures (Slurm job 1019360). An optional `pyg_lib` wheel required a newer system glibc, so it was removed from the isolated environment; the installed `torch_sparse` and `torch_scatter` still import. The preflight reads raw calculator forces because QE input relaxation flags become ASE constraints, and checks force against a finite energy derivative at a deliberately displaced structure. The numerical evidence and pinned hashes are in `equiformer_v3_preflight.md`. No full EquiformerV3 Stage1 mesh has been launched. Do not include an advanced model's Stage1 results in the comparison report before its full mesh and 486-pair MatterSim Stage2 run pass.
 
 ## Release gates
 

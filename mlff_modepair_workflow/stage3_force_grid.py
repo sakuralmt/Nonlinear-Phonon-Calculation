@@ -46,7 +46,7 @@ def evaluate_force_pair(pair: dict, primitive, calc, pair_dir: Path, signature: 
                 continue
             atoms = builder.build_atoms(float(a1), float(a2))
             atoms.calc = calc
-            forces = np.asarray(atoms.get_forces(), dtype=float)
+            forces = np.asarray(atoms.get_forces(apply_constraint=False), dtype=float)
             if forces.shape != (builder.nat_super, 3) or not np.isfinite(forces).all():
                 raise ValueError(f"Nonfinite MLFF force grid at {pair['pair_code']} ({i}, {j})")
             grid[i, j] = forces

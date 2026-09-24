@@ -1,0 +1,16 @@
+# EquiformerV3 OAM GPU preflight (2026-09-24)
+
+The isolated EquiformerV3 environment passed a sequential MoS₂/WSe₂ checkpoint preflight on the shared DFT structures. This is an interface and force-consistency check, **not** a 6×6 phonon accuracy result. The only successful strengthened run was Slurm job `1019360` (`gpu`, one GPU, eight CPUs, 64 GB requested, 29 s elapsed). It did not occupy any of the running Prophet CPU nodes.
+
+| Material | Probe force, eV/Å | Energy slope, eV/Å | Absolute mismatch, eV/Å | Repeat E/F difference | Peak process RSS | Peak GPU reserved |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| MoS₂ | −0.628234 | +0.628281 | 0.000046 | 0 / 0 | 4928 MB | 436 MB |
+| WSe₂ | −0.587130 | +0.587082 | 0.000048 | 0 / 0 | 4928 MB | 436 MB |
+
+Both checks used a 0.03 Å probe displacement and ±0.005 Å central difference. The energy span is 0.006283 eV for MoS₂ and 0.005871 eV for WSe₂; the test therefore measures a nonzero response. The periodic cells contain three atoms and the correct Mo/S or W/Se elements. Raw output is at `validation/equiformer-v3/{mos2,wse2}/preflight/preflight.json` on the huairou campaign directory.
+
+The source commit is `a7300c58df683dc99cb48027d5bfd4c887486c48`, with full source-tree SHA-256 `3e15a029e8e1ea534e979f5548293eb1e10841d4c86317fd4576ee1d7acc922e`; the checkpoint SHA-256 is `429ccded98163122e7ba588d78e2441653f37f3e091e106c432807fe373c8f98`. The current isolated package lock is `validation/equiformer-env-locked.txt` on the server. The optional `pyg_lib` wheel was removed because its binary requires GLIBC 2.27, unavailable on this cluster; `torch_sparse` and `torch_scatter` import successfully without it.
+
+The first successful import run (`1019357`) tested the high-symmetry primitive at its equilibrium position. QE relaxation flags were read by ASE as fixed-atom constraints, so its zero Mo force was a false reassurance. The strengthened test first displaces an atom, then requests unconstrained calculator forces. The intermediate run (`1019359`) deliberately exposed the constraint masking before the force-reading fix; it is retained for diagnosis, not counted as a passed preflight. The existing Prophet Stage1 force constants are unaffected: ASE's `make_supercell` dropped those primitive constraints in the installed version, and the saved force constants have nonzero components for every atom and Cartesian direction. The test code now explicitly ignores geometry-optimization constraints for finite-displacement forces, and the builder clears them for frozen-phonon structures.
+
+Next scientific gate: run the full 6×6 EquiformerV3 Stage1 for both materials, then compare frequencies and eigenvector subspaces to QE before considering its fixed-MatterSim Stage2. This preflight alone supports only model operability and local force/energy consistency.

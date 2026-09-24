@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes
+from ase.constraints import FixAtoms
 
 from mlff_modepair_workflow.core import ModePairFrozenPhononBuilder
 from mlff_modepair_workflow.phonon_eigenvectors import (
@@ -59,6 +60,7 @@ class _ToySprings(Calculator):
 
 def test_force_constants_fourier_transform_on_whole_mesh():
     primitive = Atoms("H", positions=[[0, 0, 0]], cell=np.diag([3.0, 3.0, 15.0]), pbc=True)
+    primitive.set_constraint(FixAtoms(indices=[0]))
     mesh_n = 6
     from ase.build import make_supercell
 

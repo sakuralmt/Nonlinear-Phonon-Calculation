@@ -89,9 +89,9 @@ def real_space_force_constants(primitive, calculator, mesh_n: int = 6, step: flo
                 atoms = supercell.copy()
                 moved = positions.copy()
                 moved[source, axis] += sign * step
-                atoms.set_positions(moved)
+                atoms.set_positions(moved, apply_constraint=False)
                 atoms.calc = calculator
-                forces.append(np.asarray(atoms.get_forces(), dtype=float))
+                forces.append(np.asarray(atoms.get_forces(apply_constraint=False), dtype=float))
             response = -(forces[0] - forces[1]) / (2 * step)
             phi[:, :, :, :, source, axis] = response.reshape(mesh_n, mesh_n, nat, 3)
     return phi

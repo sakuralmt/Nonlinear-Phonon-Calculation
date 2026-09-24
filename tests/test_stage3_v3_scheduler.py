@@ -7,6 +7,7 @@ import numpy as np
 import pytest
 from ase import Atoms
 from ase.calculators.calculator import Calculator, all_changes
+from ase.constraints import FixAtoms
 
 from mlff_modepair_workflow import stage3_scheduler, stage3_v3
 from mlff_modepair_workflow.stage3_compare import compare
@@ -232,6 +233,7 @@ def test_advanced_source_verification_on_compute_node_without_git(tmp_path, monk
 
 def test_advanced_stage1_preflight_checks_conservative_energy_force_units():
     atoms = Atoms("H", positions=[[0.1, 0, 0]], cell=np.diag([3.0, 3.0, 15.0]), pbc=True)
+    atoms.set_constraint(FixAtoms(indices=[0]))
 
     class Harmonic(Calculator):
         implemented_properties = ["energy", "forces"]
@@ -243,6 +245,8 @@ def test_advanced_stage1_preflight_checks_conservative_energy_force_units():
 
     result = preflight_calculator(atoms, Harmonic(), "cpu")
     assert result["repeat_energy_difference_eV"] == pytest.approx(0)
+    assert result["force_energy_probe_force_eV_per_A"] != 0
+    assert result["force_energy_probe_energy_span_eV"] != 0
     assert result["force_energy_difference_eV_per_A"] == pytest.approx(0, abs=1e-10)
 
 

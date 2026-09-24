@@ -603,6 +603,9 @@ class ModePairFrozenPhononBuilder:
         self.nat_prim = len(self.prim_atoms)
 
         self.supercell = make_supercell(self.prim_atoms, [[self.n_super, 0, 0], [0, self.n_super, 0], [0, 0, 1]])
+        # QE relaxation flags are constraints for geometry optimization, not
+        # for frozen-phonon displacements or force-grid validation.
+        self.supercell.set_constraint()
         self.n_cells = self.n_super * self.n_super
         self.base_cell = self.supercell.get_cell().array.copy()
         self.base_frac = self.supercell.get_scaled_positions().copy()

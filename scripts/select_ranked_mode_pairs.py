@@ -22,7 +22,7 @@ def _gamma_groups(dataset: dict, threshold_thz: float) -> list[list[int]]:
 
 def select(mode_pairs: dict, ranking: dict, dataset: dict, *,
            pair_sha256: str, ranking_sha256: str, top_k_channels: int,
-           degeneracy_thz: float = 0.1) -> dict:
+           degeneracy_thz: float = 0.01) -> dict:
     if top_k_channels < 1 or degeneracy_thz <= 0:
         raise ValueError("Positive top-k and degeneracy threshold required")
     if (ranking["signature"]["mode_pairs_sha256"] != pair_sha256
@@ -90,7 +90,7 @@ def main() -> None:
     parser.add_argument("--screening-ranking", type=Path, required=True)
     parser.add_argument("--phonon-dataset", type=Path, required=True)
     parser.add_argument("--top-k-channels", type=int, default=20)
-    parser.add_argument("--gamma-degeneracy-thz", type=float, default=0.1)
+    parser.add_argument("--gamma-degeneracy-thz", type=float, default=0.01)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     pair_file, rank_file, dataset_file = args.mode_pairs_json, args.screening_ranking, args.phonon_dataset

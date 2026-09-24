@@ -118,11 +118,13 @@ def _frequency_metrics(qe: dict, dataset: dict) -> dict:
 
 
 def _physical_channels(reference: tuple[dict, dict, dict], candidate: tuple[dict, dict, dict],
-                       *, allow_different_structures: bool = False) -> dict:
+                       *, allow_different_structures: bool = False,
+                       degeneracy_thz: float = 0.1) -> dict:
     ref_dataset, ref_pairs, ref_rank = reference
     cand_dataset, cand_pairs, cand_rank = candidate
     mapping = compare_meshes(ref_dataset, cand_dataset,
-                             allow_different_structures=allow_different_structures)
+                             allow_different_structures=allow_different_structures,
+                             degeneracy_thz=degeneracy_thz)
     rec = {tuple(row["q_index"]): row for row in mapping["q_records"]}
     n = ref_dataset["source"]["q_grid"][0]
     ref_codes = {_key(pair, n): pair["pair_code"] for pair in ref_pairs["pairs"]}
@@ -244,9 +246,12 @@ def _legacy_five(root: Path, material: str, candidate: tuple[dict, dict, dict]) 
                     "basis-invariant five-pair DFT MAE or a 486-pair QE ranking."}
 
 
-def analyze(root: Path) -> dict:
+def analyze(root: Path, *, physical_channel_degeneracy_thz: float = 0.1) -> dict:
+    if physical_channel_degeneracy_thz <= 0:
+        raise ValueError("physical_channel_degeneracy_thz must be positive")
     result = {"kind": "phonopy_stage1_mattersim_stage2_model_campaign", "materials": {},
               "qe_stage3_new_jobs": 0,
+              "physical_channel_degeneracy_threshold_thz": physical_channel_degeneracy_thz,
               "note": "Archived QE geometry provenance is not independently verified; no new DFT jobs were run."}
     for material in ("mos2", "wse2"):
         qe = _read(root / "historical_qe_v3" / material / "phonon_dataset.json")
@@ -309,7 +314,9 @@ def analyze(root: Path) -> dict:
             }
         for model, run in runs.items():
             if model != "prophet":
-                material_result["vs_prophet"][model] = _physical_channels(runs["prophet"], run)
+                material_result["vs_prophet"][model] = _physical_channels(
+                    runs["prophet"], run,
+                    degeneracy_thz=physical_channel_degeneracy_thz)
         for model in MODELS:
             paths = _paths(root, material, model, "model_relaxed")
             if not all(path.is_file() for path in paths):
@@ -360,7 +367,8 @@ def analyze(root: Path) -> dict:
         for model, run in own_runs.items():
             if model != "prophet":
                 material_result["own_vs_prophet"][model] = _physical_channels(
-                    own_runs["prophet"], run, allow_different_structures=True
+                    own_runs["prophet"], run, allow_different_structures=True,
+                    degeneracy_thz=physical_channel_degeneracy_thz
                 )
         result["materials"][material] = material_result
     return result
@@ -370,8 +378,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--physical-channel-degeneracy-thz", type=float, default=0.1)
     args = parser.parse_args()
-    report = analyze(args.data_root)
+    report = analyze(args.data_root,
+                     physical_channel_degeneracy_thz=args.physical_channel_degeneracy_thz)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2, allow_nan=False) + "\n")
     print(args.output)

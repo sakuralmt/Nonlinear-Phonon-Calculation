@@ -68,7 +68,7 @@ def _encode_mode(vector: np.ndarray, natoms: int):
     return [[[float(value.real), float(value.imag)] for value in row] for row in vector.reshape(natoms, 3)]
 
 
-def _degenerate_groups(freq: np.ndarray, tolerance_thz: float = 0.1):
+def _degenerate_groups(freq: np.ndarray, tolerance_thz: float = 0.01):
     groups = []
     start = 0
     for end in range(1, len(freq) + 1):
@@ -151,7 +151,7 @@ def mode_pairs_from_phonons(records: list[dict], orbits: list[dict], natoms: int
     return pairs
 
 
-def gamma_subspaces(records: list[dict], natoms: int, tolerance_thz: float = 0.1) -> list[list[int]]:
+def gamma_subspaces(records: list[dict], natoms: int, tolerance_thz: float = 0.01) -> list[list[int]]:
     """Group Gamma optical modes while keeping the three translations together."""
     if natoms < 1 or tolerance_thz <= 0:
         raise ValueError("A positive atom count and degeneracy tolerance are required")
@@ -163,7 +163,7 @@ def gamma_subspaces(records: list[dict], natoms: int, tolerance_thz: float = 0.1
 
 
 def equivalent_pair_channels(records: list[dict], orbits: list[dict], pairs: list[dict],
-                             natoms: int, tolerance_thz: float = 0.1) -> dict:
+                             natoms: int, tolerance_thz: float = 0.01) -> dict:
     """Precompute complete Gamma-subspace channels at representative finite q points.
 
     The q-orbit reduction assumes the structure has the encoded hexagonal point

@@ -21,7 +21,10 @@ def _vectors(record: dict) -> np.ndarray:
 
 
 def compare(reference: dict, candidate: dict, *,
-            allow_different_structures: bool = False) -> dict:
+            allow_different_structures: bool = False,
+            degeneracy_thz: float = 0.1) -> dict:
+    if degeneracy_thz <= 0:
+        raise ValueError("degeneracy_thz must be positive")
     for name, dataset in (("reference", reference), ("candidate", candidate)):
         if (dataset.get("version") != CONTRACT_VERSION
                 or dataset["source"].get("normalization_version") != NORMALIZATION_VERSION):
@@ -45,7 +48,8 @@ def compare(reference: dict, candidate: dict, *,
         a = np.asarray(refs[key]["freqs_thz"], dtype=float)
         b = np.asarray(cands[key]["freqs_thz"], dtype=float)
         assignment, overlaps, groups = compare_modes(
-            a, _vectors(refs[key]), b, _vectors(cands[key]), gamma_acoustic=key == (0, 0)
+            a, _vectors(refs[key]), b, _vectors(cands[key]),
+            degeneracy_thz=degeneracy_thz, gamma_acoustic=key == (0, 0)
         )
         groups = [{"reference_modes_one_based": group["qe_modes"],
                    "candidate_modes_one_based": group["ml_modes"],
@@ -69,6 +73,7 @@ def compare(reference: dict, candidate: dict, *,
         "reference_structure_sha256": left["structure_sha256"],
         "candidate_structure_sha256": right["structure_sha256"],
         "same_structure": same_structure,
+        "degeneracy_thz": degeneracy_thz,
         "comparison_status": "fixed_geometry_model_difference" if same_structure else
         "descriptive_model_plus_geometry_difference",
         "q_count": len(rows),
@@ -89,10 +94,12 @@ def main(argv=None):
     parser.add_argument("--candidate-dataset", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--allow-different-structures", action="store_true")
+    parser.add_argument("--degeneracy-thz", type=float, default=0.1)
     args = parser.parse_args(argv)
     result = compare(json.loads(args.reference_dataset.read_text()),
                      json.loads(args.candidate_dataset.read_text()),
-                     allow_different_structures=args.allow_different_structures)
+                     allow_different_structures=args.allow_different_structures,
+                     degeneracy_thz=args.degeneracy_thz)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, indent=2, allow_nan=False) + "\n")
     print(args.output)

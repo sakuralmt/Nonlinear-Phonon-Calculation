@@ -19,7 +19,7 @@ def _fixture():
             phi[0, 0, atom, axis, atom, axis] = 1 + 0.1 * atom + axis
     records = phonons_from_force_constants(phi, np.ones(3), 6)
     gamma = next(row for row in records if row["q_index"] == [0, 0])
-    gamma["freqs_thz"] = [0, 0, 0, 5, 5.01, 8, 9, 10, 11]
+    gamma["freqs_thz"] = [0, 0, 0, 5, 5.001, 8, 9, 10, 11]
     orbits = finite_q_orbits(6)
     pairs = mode_pairs_from_phonons(records, orbits, 3)
     source = {"structure_sha256": "structure", "symbols": ["Mo", "S", "S"]}

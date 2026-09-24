@@ -116,7 +116,7 @@ def test_gamma_multiplet_is_not_replaced_by_one_arbitrary_component():
     orbits = finite_q_orbits(6)
     records = _toy_records(6, 3)
     gamma = next(row for row in records if row["q_index"] == [0, 0])
-    gamma["freqs_thz"] = [0, 0, 0, 5, 5.01, 8, 9, 10, 11]
+    gamma["freqs_thz"] = [0, 0, 0, 5, 5.001, 8, 9, 10, 11]
     pairs = mode_pairs_from_phonons(records, orbits, 3)
     plan = equivalent_pair_channels(records, orbits, pairs, 3)
     assert plan["gamma_groups_one_based"][:2] == [[1, 2, 3], [4, 5]]
@@ -124,6 +124,18 @@ def test_gamma_multiplet_is_not_replaced_by_one_arbitrary_component():
     multiplet = next(row for row in plan["channels"] if row["gamma_modes_one_based"] == [4, 5])
     assert len(multiplet["pair_codes"]) == 2
     assert multiplet["requires_all_gamma_components"]
+
+
+def test_default_gamma_threshold_does_not_merge_accidentally_close_optical_mode():
+    orbits = finite_q_orbits(6)
+    records = _toy_records(6, 3)
+    gamma = next(row for row in records if row["q_index"] == [0, 0])
+    gamma["freqs_thz"] = [0, 0, 0, 4.8773, 4.8774, 7.0839, 7.0842, 7.1769, 8.9327]
+    pairs = mode_pairs_from_phonons(records, orbits, 3)
+    plan = equivalent_pair_channels(records, orbits, pairs, 3)
+    assert plan["gamma_groups_one_based"] == [[1, 2, 3], [4, 5], [6, 7], [8], [9]]
+    assert plan["channel_count"] == 270
+    assert equivalent_pair_channels(records, orbits, pairs, 3, 0.1)["channel_count"] == 216
 
 
 def test_checkpoint_covers_each_point_and_recovers_from_interruption(tmp_path):

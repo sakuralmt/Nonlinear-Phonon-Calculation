@@ -23,7 +23,8 @@ Submit the two-task Slurm array with
 NPC_CAMPAIGN_ROOT=/absolute/server/campaign/root sbatch scripts/slurm_mattersim_stage2_cpu_campaign.sh
 ```
 
-The script defaults to six workers with four CPU threads each per material.
+The script requests an exclusive 56-core, 256-GB server node and defaults to
+12 workers with four CPU threads each per material (48 active cores).
 Set `NPC_CPU_WORKERS` and `NPC_CPU_THREADS` only within the allocated Slurm
 CPU count. A successful run writes `run_meta.json`, `pair_ranking.csv`, and
 `pair_ranking.json` after verifying 486 complete 81-point grids. Compare

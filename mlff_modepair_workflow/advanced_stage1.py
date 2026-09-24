@@ -68,9 +68,15 @@ def _check_source(model_name: str, source_root: Path) -> dict:
     tree_hash = _source_tree_sha256(source_root)
     if tree_hash != spec["source_tree_sha256"]:
         raise ValueError(f"{model_name} source files differ from pinned commit export: {tree_hash}")
-    result = subprocess.run(["git", "rev-parse", "HEAD"], cwd=source_root,
-                            capture_output=True, text=True)
-    head = result.stdout.strip() if result.returncode == 0 else None
+    try:
+        result = subprocess.run(["git", "rev-parse", "HEAD"], cwd=source_root,
+                                capture_output=True, text=True)
+    except FileNotFoundError:
+        # Compute nodes may not provide Git; the pinned full source-tree hash
+        # above still verifies the exact code used for inference.
+        head = None
+    else:
+        head = result.stdout.strip() if result.returncode == 0 else None
     if head is not None and head != spec["source_commit"]:
         raise ValueError(f"{model_name} source checkout differs from pinned commit: {head}")
     return {**spec, "source_root": str(source_root), "actual_source_commit": head or spec["source_commit"],

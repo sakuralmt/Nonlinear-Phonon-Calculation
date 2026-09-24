@@ -11,6 +11,7 @@ from ase.calculators.calculator import Calculator, all_changes
 from mlff_modepair_workflow import stage3_scheduler, stage3_v3
 from mlff_modepair_workflow.stage3_compare import compare
 from mlff_modepair_workflow.stage3_force_grid import evaluate_force_pair
+from mlff_modepair_workflow import advanced_stage1
 from mlff_modepair_workflow.advanced_stage1 import preflight_calculator
 from mlff_modepair_workflow.compare_stage1_qe_v3 import compare as compare_stage1
 from mlff_modepair_workflow.prophet_stage1 import finite_q_orbits, mode_pairs_from_phonons, phonons_from_force_constants
@@ -212,6 +213,21 @@ def test_force_grid_resumes_without_recomputing_saved_points(tmp_path):
     assert np.isfinite(grid).all()
     with pytest.raises(ValueError, match="signature changed"):
         evaluate_force_pair(pair, primitive, calc, root, {"different": True})
+
+
+def test_advanced_source_verification_on_compute_node_without_git(tmp_path, monkeypatch):
+    name = "equiformer-v3-oam"
+    expected = advanced_stage1.MODEL_SOURCES[name]
+    monkeypatch.setattr(advanced_stage1, "_source_tree_sha256",
+                        lambda _: expected["source_tree_sha256"])
+
+    def no_git(*args, **kwargs):
+        raise FileNotFoundError("git is unavailable on the compute node")
+
+    monkeypatch.setattr(advanced_stage1.subprocess, "run", no_git)
+    source = advanced_stage1._check_source(name, tmp_path)
+    assert source["verified_source_tree_sha256"] == expected["source_tree_sha256"]
+    assert source["actual_source_commit"] == expected["source_commit"]
 
 
 def test_advanced_stage1_preflight_checks_conservative_energy_force_units():

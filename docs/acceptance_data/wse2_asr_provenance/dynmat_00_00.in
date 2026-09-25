@@ -1,0 +1,6 @@
+&input
+  fildyn='/home/lmtsakura/qiyan/WSe2_new/WSe2_phonon/WSe2.dyn1'
+  asr='no'
+  filout='wse2_q_00_00.disp'
+  fileig='wse2_q_00_00.eig'
+/

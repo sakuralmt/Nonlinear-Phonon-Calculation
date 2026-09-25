@@ -54616,7 +54616,7 @@
   },
   "limits": [
     "No new DFT labels. Historical QE structure provenance is not fully verified.",
-    "Historical WSe2 Gamma ASR is unreliable; finite-q and full-grid frequency statistics are separate.",
+    "The WSe2 full-grid reference is the older 65/650 Ry 12x12 raw-QE subset re-exported with dynmat asr='no'; its nonzero Gamma acoustic frequencies must not be scored against ASR-corrected MLFF modes. This does not diagnose the separate 80/800 Ry selected-mode/PES archive as defective.",
     "Old finite-q real-coordinate amplitudes are recovered before refitting; K fit samples span a different actual Q window.",
     "Raw fourth-order QE grids available for five MoS2 pairs and one WSe2 pair; missing four WSe2 raw grids are not imputed.",
     "Finite-q degenerate branches remain directional and basis dependent."

@@ -38,6 +38,12 @@ def main():
     figures.mkdir(exist_ok=True)
     comparison = read(a.comparison / "matched_comparisons.json")
     archive = read(a.comparison / "archived_dft_comparison.json")
+    corrected_top5_path = a.output / "acceptance_data/model_dft_top5.csv"
+    corrected_top5 = (
+        list(csv.DictReader(corrected_top5_path.open()))
+        if corrected_top5_path.exists()
+        else []
+    )
     campaign = read(a.evidence / "campaign_audit_accepted.json")
     details = read(a.evidence / "release_details_accepted.json")
     parallel = read(a.evidence / "parallel_accepted.json")
@@ -203,6 +209,8 @@ def main():
         "",
         "本报告修正初版验收范围不足的问题。正式方案保持三条路线：**Phonopy＋TECE／Prophet／EquiformerV3 Stage1，各接 MatterSim Stage2**；每模型只用自行弛豫结构，Γ 只取光学模。MoSe₂、WS₂ 是两种验收材料，共六组实验。未新增 DFT 或 MD。",
         "",
+        "研究的主要科学对照已单独整理为[模型路线与DFT精算的定量比较](MODEL_DFT_COMPARISON.md)：按本科论文的图表框架，包含各网络路线与DFT五对的三/四阶系数、MAE/RMSE/最大误差、势能面、频率、拟合残差、其他三阶项及窗口敏感性。本文侧重软件验收；模型间一致性不代替DFT标准。",
+        "",
         "## 原计划验收清单",
         "",
         "| 工作项 | 状态与证据 |",
@@ -302,9 +310,12 @@ def main():
         "",
         "自弛豫便于高通量，但“候选排名相近”不等于“频率及耦合数值相同”。本数据中自弛豫相对历史 QE 的频率差明显增大，应作为结构敏感性记录，不能套用共用结构下更好的误差数字。",
         "",
-        "## 5. 历史高耦合声子对：三阶及四阶",
+        "## 5. DFT精算五对：三阶及四阶",
         "",
         "逐对从旧本征矢恢复实际质量归一化实位移，能量显式按Ry转换。MoS₂五条、WSe₂一条原始网格可重拟合；WSe₂其余四条只保留归档三阶幅值，四阶留空。K类旧坐标的实模范数约1/√2，实际拟合采样窗口不同；四阶的窗口差异尤其需要保留。下表只列当前采用的自弛豫结构方向对照，完整CSV另含历史共用结构。",
+        "下表MLFF数值使用总能量累加修正后的30对专项复算。DFT标签保持已有五对；完整误差、论文原QE＋MatterSim基线及图示分析见上述科学对照报告。"
+        if corrected_top5
+        else "下表为修正前历史MLFF归档值；以科学对照报告中的专项复算为准。",
         "",
         "| 材料/旧QE方向 | QE 三阶 / 四阶 | TECE＋MS | Prophet＋MS | Equiformer＋MS |",
         "|---|---:|---:|---:|---:|",
@@ -332,6 +343,18 @@ def main():
 
             short = code.split("__")[1]
             vals = [f"{fmt(r['ml_abs_phi122'])} / {fmt(r['ml_phi1122'])}" for r in rows]
+            if corrected_top5:
+                updated = [
+                    next(
+                        r
+                        for r in corrected_top5
+                        if r["material"] == mat
+                        and r["model"] == model
+                        and r["qe_pair"] == code
+                    )
+                    for model in MODELS
+                ]
+                vals = [f"{fmt(r['phi122'])} / {fmt(r['phi1122'])}" for r in updated]
             lines.append(
                 f"| {mat}/{short} | {fmt(rows[0]['qe_abs_phi122'])} / {fmt(rows[0]['qe_phi1122'])} | {' | '.join(vals)} |"
             )

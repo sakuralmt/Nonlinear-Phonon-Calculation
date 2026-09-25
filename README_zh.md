@@ -53,6 +53,8 @@ Phonopy 的此处力常数修正处理平移声学求和及指标交换，**不*
 代码结构：`nonlinear_phonon_calculation/cli.py` 是公开入口；`mlff_modepair_workflow/` 实现 Phonopy、结构对称性、模型接口、实模位移及势能面拟合；`tests/` 为解析和稳定性测试；`scripts/` 保留可选 CPU 计时工具。输入、模型权重与运行结果均放在仓库之外。
 
 详细数值验收见[验证报告](docs/VALIDATION.md)和[可追溯数据](docs/validation_v5.json)。
+
+以DFT为参照的科学结果见[模型路线与DFT精算的定量比较](docs/MODEL_DFT_COMPARISON.md)（[PDF](output/pdf/model_dft_comparison_1_0_1.pdf)）：按论文框架比较五对精算耦合、MAE/RMSE/最大误差、频率、本征矢、势能面、拟合残差、三阶余项、四阶窗口敏感性与CPU成本，保留原QE＋MatterSim历史基线。软件稳定性和模型间一致性不替代DFT精度标准。
 这里是三条模型路线，在 MoSe₂、WS₂ 上共六组实验；全部自行弛豫。
 Γ 光学简并阈值可用 `--gamma-degeneracy-thz` 设置，默认 0.01 THz。
 已完成的 Stage1 目录拒绝覆盖，修改参数需要新目录。

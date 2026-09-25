@@ -14,6 +14,8 @@ Lengths are Å, masses amu, total supercell energies eV, forces eV/Å, force con
 
 See the [completed acceptance and comparison report](docs/ACCEPTANCE.md) for version 1.0.1, including the full q-orbit checks, precision correction and historical DFT limits.
 
+The [model-versus-DFT scientific report](docs/MODEL_DFT_COMPARISON.md) ([PDF](output/pdf/model_dft_comparison_1_0_1.pdf)) compares the rechecked five pairs, third/fourth derivatives, frequencies, mode overlaps, energy surfaces, fit residuals, window sensitivity and CPU cost. It includes the archived QE + MatterSim baseline and the three self-relaxed MLFF routes; no new DFT calculations were required.
+
 See [installation and Slurm execution](docs/INSTALL.md) and the
 [numerical architecture](ARCHITECTURE.md). The [validation report](docs/VALIDATION.md)
 documents three model routes tested on two additional materials, with

@@ -4,13 +4,15 @@
 
 ## What is compared
 
-Stage1 uses all non-Γ q points and every finite-q phonon branch, but only Γ **optical** modes. It identifies the three Γ acoustic translations by mass-weighted eigenvector overlap with rigid translations, not by a frequency index. It discovers the **atomic** symmetry of the supplied structure with spglib and reduces q points only when transformed frequencies and eigenvectors agree. A hexagonal cell with a lower-symmetry atomic motif therefore has more candidates. If the phonons fail the symmetry check, the run records why and falls back to q/−q pairing. It never removes a candidate because of a little-group rule or a predicted coupling. The `mode_maps` in each q orbit record atom permutation, operation, time reversal, branch mapping and overlap diagnostics. A near-degenerate branch number is not treated as a unique physical direction.
+Stage1 uses all non-Γ q points and every finite-q phonon branch, but only Γ **optical** modes. It identifies the three Γ acoustic translations by mass-weighted eigenvector overlap with rigid translations, not by a frequency index. It discovers the **atomic** symmetry of the supplied structure with spglib and reduces q points only when transformed frequencies and eigenvectors agree. A hexagonal cell with a lower-symmetry atomic motif therefore has more candidates. If the phonons fail the symmetry check, the run records why and falls back to q/−q pairing. It never removes a candidate because of a little-group rule or a predicted coupling. Both Γ and finite-q covariance are checked; a failed Γ multiplet cannot authorize a q reduction. The `mode_maps` in each q orbit record atom permutation, operation, time reversal, branch mapping and overlap diagnostics. A near-degenerate branch number is not treated as a unique physical direction.
 
 Stage2 first evaluates six energies for **every** candidate at `QΓ=±1`, `Qq=−1,0,+1` Å√amu. It ranks complete Γ-subspace channels by the norm of the third-order `Φ122` proxy. The best **20 channels by default** are expanded to all component pairs and calculated on the central 5×5 grid (`−1` to `+1` in 0.5 steps). `audit` optionally extends the strongest five refined channels to 9×9 (`−2` to `+2`). Six points are only a ranking proxy; report fourth-order results from the central fit with its fit quality and window sensitivity. The 20-channel default supersedes earlier 30-channel drafts.
 
 Lengths are Å, masses amu, total supercell energies eV, forces eV/Å, force constants eV/Å², frequencies THz and real normal coordinates Å√amu. Third and fourth derivatives are meV/(Å³·amu³ᐟ²) and meV/(Å⁴·amu²). Outputs use contract **v5** and reject older mode-pair files, including v4 files with Γ acoustic candidates.
 
 ## Requirements
+
+See the [completed acceptance and comparison report](docs/ACCEPTANCE.md) for version 1.0.1, including the full q-orbit checks, precision correction and historical DFT limits.
 
 See [installation and Slurm execution](docs/INSTALL.md) and the
 [numerical architecture](ARCHITECTURE.md). The [validation report](docs/VALIDATION.md)
@@ -62,3 +64,9 @@ Phonopy's force-constant symmetrizer enforces translational and index-exchange c
 ## Repository
 
 `nonlinear_phonon_calculation/cli.py` provides the public interface. `mlff_modepair_workflow/` contains the Phonopy bridge, atomic-symmetry mapping, model adapters, frozen-mode builder and staged PES fit. `tests/` has analytic, structure-symmetry and checkpoint tests. `scripts/` contains optional CPU timing tools. All runtime inputs, checkpoints and model weights stay outside the repository.
+
+### Precision and momentum diagnostics (1.0.1)
+
+MatterSim retains float32 model inference and promotes per-atom energies to float64 **before** summing the supercell energy. This prevents the dominant accumulation error observed for 108-atom cells; it is not full float64 inference. The accumulation protocol is part of every checkpoint identity. Earlier v5 checkpoints and Stage1 files lacking the Γ covariance check are read-only references and cannot be silently resumed with this version.
+
+For a Γ multiplet, each component separately couples to q and −q; the score is the norm of those `Φ122` components. It is not a two-Γ/one-q interaction. Fitted `Φ112` (`QΓ² Qq`) is momentum-forbidden at finite q and is labeled a numerical diagnostic. The 13-term fit retains such terms to expose numerical contamination; ranking never uses them. For a complete Γ multiplet and isolated finite-q mode, comparisons use the third-order vector norm and the fourth-order `Φ1122` trace.

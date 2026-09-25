@@ -419,7 +419,7 @@ def analyze_pair_grid(
         "gamma_freq_thz": float(pair_record["gamma_mode"]["freq_thz"]),
         "target_freq_thz": float(pair_record["target_mode"]["freq_thz"]),
     }
-    return {
+    result = {
         "fit_window": fit_window,
         "fit_points": int(len(design)),
         "fit_design_rank": int(np.linalg.matrix_rank(design)),
@@ -437,4 +437,46 @@ def analyze_pair_grid(
         "reference": mode_pair_reference,
         "units": UNITS,
         "normalization_version": NORMALIZATION_VERSION,
+    }
+    if "q_frac" in pair_record["target_mode"]:
+        result["momentum_diagnostics"] = momentum_diagnostics(pair_record, physics)
+    return result
+
+
+def momentum_diagnostics(pair_record: dict, physics: dict) -> dict:
+    """Label polynomial terms by primitive-lattice momentum conservation.
+
+    A real finite-q coordinate contains both q and -q. A y**n monomial is
+    translation-allowed if one of its (2*k-n)*q harmonics is reciprocal. This
+    is a necessary condition only; point-group selection rules are separate.
+    Forbidden fitted coefficients remain visible as numerical diagnostics.
+    """
+    q = np.asarray(pair_record["target_mode"]["q_frac"], dtype=float)
+    gamma = np.asarray(pair_record["gamma_mode"].get("q_frac", [0, 0, 0]))
+    if not np.allclose(gamma, np.rint(gamma), atol=1e-9, rtol=0):
+        raise ValueError("This analysis requires a Gamma first coordinate")
+    if np.allclose(q, np.rint(q), atol=1e-9, rtol=0):
+        raise ValueError("This analysis requires a non-Gamma second coordinate")
+    terms = {}
+    for name, value in physics["coefficients_ev"].items():
+        q_power = int(name[2])
+        allowed = any(
+            np.allclose(
+                (2 * k - q_power) * q, np.rint((2 * k - q_power) * q), atol=1e-8, rtol=0
+            )
+            for k in range(q_power + 1)
+        )
+        terms[name] = {
+            "translation_allowed": allowed,
+            "role": "projected_polynomial" if allowed else "numerical_diagnostic_only",
+            "coefficient_ev": value,
+        }
+    return {
+        "q_frac": q.tolist(),
+        "terms": terms,
+        "phi122_role": "Gamma_q_minus_q_coupling",
+        "phi112_role": "momentum_forbidden_numerical_diagnostic_only",
+        "phi1122_role": "Gamma_Gamma_q_minus_q_coupling",
+        "forbidden_phi112_mev_per_A3amu32": physics["phi_112_mev_per_A3amu32"],
+        "note": "Momentum allowance does not imply point-group allowance; no forbidden term is ranked.",
     }

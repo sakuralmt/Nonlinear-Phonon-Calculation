@@ -13,7 +13,7 @@ from pathlib import Path
 import numpy as np
 
 from .core import ModePairFrozenPhononBuilder, analyze_pair_grid, load_atoms_from_qe
-from .mattersim_backend import make_mattersim_calculator
+from .mattersim_backend import ENERGY_ACCUMULATION, make_mattersim_calculator
 from .prophet_backend import process_resource_metrics, sha256_file
 from .units import CONTRACT_VERSION, NORMALIZATION_VERSION, UNITS
 
@@ -69,6 +69,7 @@ def _identity(
         "mode_pairs_sha256": sha256_file(pair_path),
         "structure_sha256": sha256_file(structure),
         "checkpoint_sha256": sha256_file(checkpoint),
+        "energy_accumulation": ENERGY_ACCUMULATION,
         "top_channels": top_channels,
         "coarse_step": 1.0,
         "center_fit_window": 1.0,
@@ -83,6 +84,8 @@ def validate_relaxed_stage1(payload: dict, structure: Path) -> None:
     structure_hash = sha256_file(structure)
     if source.get("geometry_source") != "model_relaxed":
         raise ValueError("Stage2 requires a model-relaxed Stage1 structure")
+    if source.get("symmetry", {}).get("covariance_contract") != "gamma_and_finite_q_v2":
+        raise ValueError("Stage1 must verify Gamma and finite-q symmetry covariance")
     if (
         source.get("structure_sha256") != structure_hash
         or relaxation.get("optimized_structure_sha256") != structure_hash

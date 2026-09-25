@@ -1,0 +1,25 @@
+reference_channel,reason
+line_p3_m7__Gamma_4_5,finite-q isolated overlap below 0.9
+line_p3_m7__Gamma_6,finite-q isolated overlap below 0.9
+line_p3_m7__Gamma_7_8,finite-q isolated overlap below 0.9
+line_p3_m7__Gamma_9,finite-q isolated overlap below 0.9
+line_p3_m8__Gamma_4_5,finite-q isolated overlap below 0.9
+line_p3_m8__Gamma_6,finite-q isolated overlap below 0.9
+line_p3_m8__Gamma_7_8,finite-q isolated overlap below 0.9
+line_p3_m8__Gamma_9,finite-q isolated overlap below 0.9
+K_p4_m5__Gamma_4_5,finite-q degenerate branch
+K_p4_m5__Gamma_6,finite-q degenerate branch
+K_p4_m5__Gamma_7_8,finite-q degenerate branch
+K_p4_m5__Gamma_9,finite-q degenerate branch
+K_p4_m6__Gamma_4_5,finite-q degenerate branch
+K_p4_m6__Gamma_6,finite-q degenerate branch
+K_p4_m6__Gamma_7_8,finite-q degenerate branch
+K_p4_m6__Gamma_9,finite-q degenerate branch
+K_p4_m7__Gamma_4_5,finite-q degenerate branch
+K_p4_m7__Gamma_6,finite-q degenerate branch
+K_p4_m7__Gamma_7_8,finite-q degenerate branch
+K_p4_m7__Gamma_9,finite-q degenerate branch
+K_p4_m8__Gamma_4_5,finite-q degenerate branch
+K_p4_m8__Gamma_6,finite-q degenerate branch
+K_p4_m8__Gamma_7_8,finite-q degenerate branch
+K_p4_m8__Gamma_9,finite-q degenerate branch

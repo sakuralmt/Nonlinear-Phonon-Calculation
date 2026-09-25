@@ -1,0 +1,1432 @@
+{
+  "scope": "historical_directional_reference_not_same_displacement_DFT_error",
+  "runs": {
+    "mos2/model_relaxed/tece": {
+      "source_hashes": {
+        "qe": "851a7dd3f076654d17e4b7d843081b6e04cf332df958f8bb05d415bdbb9fc225",
+        "ml_phonon": "1096b2dced3059ffeb1a5d3a28d15699d88c9e259081d0bdf0d9b479070d4866",
+        "ranking": "381ec74e4c2173fce5cdac45ae4bd39b7e1e2b666e80c36a6342d29ac69c231f",
+        "old_pairs": "6f94899efbea8e652614724cd1577cd6c105cfdc0da760c667ed04b63baf4a22"
+      },
+      "qe_geometry_verified": false,
+      "all_frequency_mae_thz": 0.4586264915124795,
+      "all_frequency_rmse_thz": 0.5115568584730624,
+      "finite_q_frequency_mae_thz": 0.4611394318029284,
+      "finite_q_frequency_rmse_thz": 0.512758580202819,
+      "isolated_finite_q_median_overlap_squared": 0.9991810215294716,
+      "mode_count": 324
+    },
+    "mos2/model_relaxed/prophet": {
+      "source_hashes": {
+        "qe": "851a7dd3f076654d17e4b7d843081b6e04cf332df958f8bb05d415bdbb9fc225",
+        "ml_phonon": "98b49f718b19fab2fc4e3977efabdc63400047f6223f9aebc23b1d5080309281",
+        "ranking": "6f736d501e31a5c609cd9da2996d27cbcb21c44a6c0e02aa1ebc35fd981d7d60",
+        "old_pairs": "6f94899efbea8e652614724cd1577cd6c105cfdc0da760c667ed04b63baf4a22"
+      },
+      "qe_geometry_verified": false,
+      "all_frequency_mae_thz": 0.5271622444158579,
+      "all_frequency_rmse_thz": 0.6024448291652422,
+      "finite_q_frequency_mae_thz": 0.5290936901830686,
+      "finite_q_frequency_rmse_thz": 0.6034446850075871,
+      "isolated_finite_q_median_overlap_squared": 0.9977779399132551,
+      "mode_count": 324
+    },
+    "mos2/model_relaxed/equiformer-v3": {
+      "source_hashes": {
+        "qe": "851a7dd3f076654d17e4b7d843081b6e04cf332df958f8bb05d415bdbb9fc225",
+        "ml_phonon": "4443a18150ac4c534bb9cbd2da5d829a79076c8a7cdec9ee61d94a6287452917",
+        "ranking": "f73cc1012cb0c330241a4e655358644fc13c10f4d97c5505567226f7e4bc35da",
+        "old_pairs": "6f94899efbea8e652614724cd1577cd6c105cfdc0da760c667ed04b63baf4a22"
+      },
+      "qe_geometry_verified": false,
+      "all_frequency_mae_thz": 0.5316800567596952,
+      "all_frequency_rmse_thz": 0.5920023126885984,
+      "finite_q_frequency_mae_thz": 0.534320817918354,
+      "finite_q_frequency_rmse_thz": 0.5931191622721246,
+      "isolated_finite_q_median_overlap_squared": 0.997492336498599,
+      "mode_count": 324
+    },
+    "mos2/shared_dft/tece": {
+      "source_hashes": {
+        "qe": "851a7dd3f076654d17e4b7d843081b6e04cf332df958f8bb05d415bdbb9fc225",
+        "ml_phonon": "01014b19f7b05a73be0de5848c6273d12bd171cd083993947a6d1288fd7f3be7",
+        "ranking": "403137651ac26ce4588205324b16fdc05f76daace9ba0248322d729bf9bc1982",
+        "old_pairs": "6f94899efbea8e652614724cd1577cd6c105cfdc0da760c667ed04b63baf4a22"
+      },
+      "qe_geometry_verified": false,
+      "all_frequency_mae_thz": 0.06596065101074089,
+      "all_frequency_rmse_thz": 0.08518456998099519,
+      "finite_q_frequency_mae_thz": 0.06634070123228879,
+      "finite_q_frequency_rmse_thz": 0.0856065563709722,
+      "isolated_finite_q_median_overlap_squared": 0.9995779416037623,
+      "mode_count": 324
+    },
+    "mos2/shared_dft/prophet": {
+      "source_hashes": {
+        "qe": "851a7dd3f076654d17e4b7d843081b6e04cf332df958f8bb05d415bdbb9fc225",
+        "ml_phonon": "83be7365569039cc619d026da1eafd84167b5e510f57c9fe295cfeb8f4a6cbed",
+        "ranking": "ea71ce825efeba188486e3d58ca11e68c8961ae8bc5506c501c74f7319b9739c",
+        "old_pairs": "6f94899efbea8e652614724cd1577cd6c105cfdc0da760c667ed04b63baf4a22"
+      },
+      "qe_geometry_verified": false,
+      "all_frequency_mae_thz": 0.164511446854669,
+      "all_frequency_rmse_thz": 0.2012643113243338,
+      "finite_q_frequency_mae_thz": 0.16577262144874352,
+      "finite_q_frequency_rmse_thz": 0.202432856316302,
+      "isolated_finite_q_median_overlap_squared": 0.9987986051647634,
+      "mode_count": 324
+    },
+    "mos2/shared_dft/equiformer-v3": {
+      "source_hashes": {
+        "qe": "851a7dd3f076654d17e4b7d843081b6e04cf332df958f8bb05d415bdbb9fc225",
+        "ml_phonon": "ace07f928a03604dab9b4d750a57843699a6015044e4a45595b3d373d14d0219",
+        "ranking": "b77bf993a4390f48989fd7e0e6148a18c3388a9ff203f88a6f2d429d2c686b83",
+        "old_pairs": "6f94899efbea8e652614724cd1577cd6c105cfdc0da760c667ed04b63baf4a22"
+      },
+      "qe_geometry_verified": false,
+      "all_frequency_mae_thz": 0.08215239074583867,
+      "all_frequency_rmse_thz": 0.10101635063883942,
+      "finite_q_frequency_mae_thz": 0.08181095161683503,
+      "finite_q_frequency_rmse_thz": 0.1002903400694219,
+      "isolated_finite_q_median_overlap_squared": 0.9991583440840662,
+      "mode_count": 324
+    },
+    "wse2/model_relaxed/tece": {
+      "source_hashes": {
+        "qe": "362240113e88a4d596afcd788667b904ae18ffecc078773ab641ad1517c62b00",
+        "ml_phonon": "b946678ee062905c3dde26f631331aa4c14880fb4c1b41aabddca14157681cfa",
+        "ranking": "99d063035f6ee81cc77d91839e14cdeeff2778d26ac492edabe623b7e0e233b7",
+        "old_pairs": "56acd9f16a394c44a7a1cb04cbe58d3699d0b3687cdc28f09f829d1f8c47e9ce"
+      },
+      "qe_geometry_verified": false,
+      "all_frequency_mae_thz": 0.3474912291793917,
+      "all_frequency_rmse_thz": 0.37386373668534234,
+      "finite_q_frequency_mae_thz": 0.3456997373807446,
+      "finite_q_frequency_rmse_thz": 0.3725128805071384,
+      "isolated_finite_q_median_overlap_squared": 0.999405948816989,
+      "mode_count": 324
+    },
+    "wse2/model_relaxed/prophet": {
+      "source_hashes": {
+        "qe": "362240113e88a4d596afcd788667b904ae18ffecc078773ab641ad1517c62b00",
+        "ml_phonon": "a35744468d0ed6b845646f49653c78bd07a7a9f75f999e4bea14be3db475be45",
+        "ranking": "09ce3e5e1285b68ad66ad2c1a608273f143646b85f224e0d411610305935c077",
+        "old_pairs": "56acd9f16a394c44a7a1cb04cbe58d3699d0b3687cdc28f09f829d1f8c47e9ce"
+      },
+      "qe_geometry_verified": false,
+      "all_frequency_mae_thz": 0.3846717187116145,
+      "all_frequency_rmse_thz": 0.41577047140344225,
+      "finite_q_frequency_mae_thz": 0.3833031710215104,
+      "finite_q_frequency_rmse_thz": 0.4152065921438561,
+      "isolated_finite_q_median_overlap_squared": 0.9971651374643512,
+      "mode_count": 324
+    },
+    "wse2/model_relaxed/equiformer-v3": {
+      "source_hashes": {
+        "qe": "362240113e88a4d596afcd788667b904ae18ffecc078773ab641ad1517c62b00",
+        "ml_phonon": "313036b90b2c18096e47e648c37a2e754bbba762f2e4e6df532be810aa0878fa",
+        "ranking": "6d7ad4ea4112eaa28f2a1262d79881f2e9efd3b9d410ff60ebf3d6f9e4e7c64d",
+        "old_pairs": "56acd9f16a394c44a7a1cb04cbe58d3699d0b3687cdc28f09f829d1f8c47e9ce"
+      },
+      "qe_geometry_verified": false,
+      "all_frequency_mae_thz": 0.36955590160853286,
+      "all_frequency_rmse_thz": 0.4037047996847256,
+      "finite_q_frequency_mae_thz": 0.367538701242267,
+      "finite_q_frequency_rmse_thz": 0.4023892731445228,
+      "isolated_finite_q_median_overlap_squared": 0.9979015557040095,
+      "mode_count": 324
+    },
+    "wse2/shared_dft/tece": {
+      "source_hashes": {
+        "qe": "362240113e88a4d596afcd788667b904ae18ffecc078773ab641ad1517c62b00",
+        "ml_phonon": "4dc5c15bab931a04e5ed38799707a7115a456d441a381d89fc250948ce18a78e",
+        "ranking": "a010771fb21cc14153f78315210bccb584fb102486a8a0a08a49f08cd8a0278f",
+        "old_pairs": "56acd9f16a394c44a7a1cb04cbe58d3699d0b3687cdc28f09f829d1f8c47e9ce"
+      },
+      "qe_geometry_verified": false,
+      "all_frequency_mae_thz": 0.12585224276457296,
+      "all_frequency_rmse_thz": 0.1439197723712794,
+      "finite_q_frequency_mae_thz": 0.12242087034547773,
+      "finite_q_frequency_rmse_thz": 0.13678653949863218,
+      "isolated_finite_q_median_overlap_squared": 0.9990703233865397,
+      "mode_count": 324
+    },
+    "wse2/shared_dft/prophet": {
+      "source_hashes": {
+        "qe": "362240113e88a4d596afcd788667b904ae18ffecc078773ab641ad1517c62b00",
+        "ml_phonon": "b7ea0545ef8bce67ad0078923b859838452bc2735acbc1ab708ea3fae948f7b9",
+        "ranking": "60889bd4c13fd8174e58907c51f2a1df2a08ab0d65dec84dac707fef52375b27",
+        "old_pairs": "56acd9f16a394c44a7a1cb04cbe58d3699d0b3687cdc28f09f829d1f8c47e9ce"
+      },
+      "qe_geometry_verified": false,
+      "all_frequency_mae_thz": 0.16249555891854062,
+      "all_frequency_rmse_thz": 0.2019296150736128,
+      "finite_q_frequency_mae_thz": 0.16013893708495633,
+      "finite_q_frequency_rmse_thz": 0.198272376198728,
+      "isolated_finite_q_median_overlap_squared": 0.997560348377146,
+      "mode_count": 324
+    },
+    "wse2/shared_dft/equiformer-v3": {
+      "source_hashes": {
+        "qe": "362240113e88a4d596afcd788667b904ae18ffecc078773ab641ad1517c62b00",
+        "ml_phonon": "17bb0242228c2d32d1ce5a15eb5b37f195862fbc3fc733d8c1bd5aa8298d81ea",
+        "ranking": "ab5c7fee0ba7a48004e336a69d3f432a5e9af5a358f48423cfe2b2f1f03a2730",
+        "old_pairs": "56acd9f16a394c44a7a1cb04cbe58d3699d0b3687cdc28f09f829d1f8c47e9ce"
+      },
+      "qe_geometry_verified": false,
+      "all_frequency_mae_thz": 0.10786859616090977,
+      "all_frequency_rmse_thz": 0.1307176312811914,
+      "finite_q_frequency_mae_thz": 0.10459178782296817,
+      "finite_q_frequency_rmse_thz": 0.12267062857844224,
+      "isolated_finite_q_median_overlap_squared": 0.9985087004118691,
+      "mode_count": 324
+    }
+  },
+  "legacy_fits": {
+    "mos2": {
+      "Gamma_p0_m8__M_q_0.500_0.000_0.000_m9": {
+        "status": "recovered_real_coordinate_fit",
+        "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m9",
+        "energy_unit_explicit": "Ry",
+        "grid_layout": "a2_rows_a1_columns",
+        "grid_sha256": "53ab418e8989f3ff27ac7b9085eef06e4a90c76df4a3daeb93f5d44bfc1e5df0",
+        "metadata_sha256": "a0713eaca0bc7456c9885aa2973d7f40e42a12a1aaf2a343b57a378d646be9e3",
+        "gamma_real_norm": 1.0000003094489522,
+        "finite_q_real_norm": 0.9999995042938771,
+        "fit_x_values": [
+          -1.0000003094489522,
+          -0.5000001547244761,
+          0.0,
+          0.5000001547244761,
+          1.0000003094489522
+        ],
+        "fit_y_values": [
+          -0.9999995042938771,
+          -0.49999975214693854,
+          0.0,
+          0.49999975214693854,
+          0.9999995042938771
+        ],
+        "analysis": {
+          "fit_window": 1.001,
+          "fit_points": 25,
+          "fit_design_rank": 13,
+          "fit_condition_number": 28.24059146908642,
+          "r2": 0.9999997903905558,
+          "center_fit_r2": 0.9999999924381302,
+          "rmse_ev_supercell": 0.0003180303507292267,
+          "center_fit_rmse_ev_supercell": 1.6546931453510612e-05,
+          "max_abs_residual_ev_supercell": 0.0007834251078968624,
+          "physics": {
+            "freq_mode1": {
+              "stable": true,
+              "thz": 12.30845027680276,
+              "cm1": 410.5657079873157
+            },
+            "freq_mode2": {
+              "stable": true,
+              "thz": 12.508933037443605,
+              "cm1": 417.2530930529148
+            },
+            "phi_122_mev_per_A3amu32": 106.13408735786474,
+            "phi_112_mev_per_A3amu32": 2.2327409205978567e-13,
+            "phi_111_mev_per_A3amu32": 103.7794495734129,
+            "phi_222_mev_per_A3amu32": 2.1411857830469013e-13,
+            "phi_1122_mev_per_A4amu2": 8.453436797996394,
+            "phi_1111_mev_per_A4amu2": 10.980760247453922,
+            "phi_2222_mev_per_A4amu2": 9.315455561016831,
+            "coefficients_ev": {
+              "c20": 0.30993826378629047,
+              "c02": 0.3201171783065794,
+              "c12": 0.05306704367893237,
+              "c21": 1.1163704602989283e-16,
+              "c30": 0.01729657492890215,
+              "c03": 3.5686429717448355e-17,
+              "c11": -1.8913722235019385e-17,
+              "c40": 0.00045753167697724673,
+              "c04": 0.0003881439817090346,
+              "c22": 0.0021133591994990986,
+              "c10": 0.0004116051277569806,
+              "c01": -2.4542313154176926e-17,
+              "c00": -1.9458251609278794e-05
+            },
+            "coefficient_units": "eV/(Angstrom*sqrt(amu))^degree; c00 is eV/supercell",
+            "normalization_version": "real_mass_weighted_unit_v2"
+          },
+          "axis_checks": {
+            "mode1_axis_fit": {
+              "c2": 0.30992665255769625,
+              "c3": 0.017349870164922107,
+              "c4": 0.00045956358622934715,
+              "c1": 0.00035943412499980445,
+              "c0": -1.1238175607203783e-05,
+              "rmse": 2.352724026519165e-05,
+              "freq": {
+                "stable": true,
+                "thz": 12.30821971868031,
+                "cm1": 410.5580173961651
+              }
+            },
+            "mode2_axis_fit": {
+              "c2": 0.32005065198924865,
+              "c3": -4.213173866187804e-17,
+              "c4": 0.0004437177322677962,
+              "c1": 6.433193716412689e-17,
+              "c0": -5.435934587363492e-06,
+              "rmse": 1.2552049570714298e-05,
+              "freq": {
+                "stable": true,
+                "thz": 12.507633175166777,
+                "cm1": 417.20973431448954
+              }
+            }
+          },
+          "mode_pair_reference": {
+            "reference_kind": "mode_pair_frequency",
+            "reference_label": "selected_mode_pair_frequency",
+            "gamma_freq_thz": 12.297423,
+            "target_freq_thz": 12.50735
+          },
+          "reference": {
+            "reference_kind": "mode_pair_frequency",
+            "reference_label": "selected_mode_pair_frequency",
+            "gamma_freq_thz": 12.297423,
+            "target_freq_thz": 12.50735
+          },
+          "units": {
+            "length": "Angstrom",
+            "mass": "amu",
+            "energy": "eV/supercell",
+            "force": "eV/Angstrom",
+            "force_constant": "eV/Angstrom^2",
+            "frequency": "THz",
+            "normal_coordinate": "Angstrom*sqrt(amu)",
+            "third_order": "meV/(Angstrom^3*amu^(3/2))",
+            "fourth_order": "meV/(Angstrom^4*amu^2)",
+            "eigenvector": "dimensionless mass-weighted Cartesian"
+          },
+          "normalization_version": "real_mass_weighted_unit_v2",
+          "momentum_diagnostics": {
+            "q_frac": [
+              0.5,
+              0.0,
+              0.0
+            ],
+            "terms": {
+              "c20": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.30993826378629047
+              },
+              "c02": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.3201171783065794
+              },
+              "c12": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.05306704367893237
+              },
+              "c21": {
+                "translation_allowed": false,
+                "role": "numerical_diagnostic_only",
+                "coefficient_ev": 1.1163704602989283e-16
+              },
+              "c30": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.01729657492890215
+              },
+              "c03": {
+                "translation_allowed": false,
+                "role": "numerical_diagnostic_only",
+                "coefficient_ev": 3.5686429717448355e-17
+              },
+              "c11": {
+                "translation_allowed": false,
+                "role": "numerical_diagnostic_only",
+                "coefficient_ev": -1.8913722235019385e-17
+              },
+              "c40": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.00045753167697724673
+              },
+              "c04": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.0003881439817090346
+              },
+              "c22": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.0021133591994990986
+              },
+              "c10": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.0004116051277569806
+              },
+              "c01": {
+                "translation_allowed": false,
+                "role": "numerical_diagnostic_only",
+                "coefficient_ev": -2.4542313154176926e-17
+              },
+              "c00": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": -1.9458251609278794e-05
+              }
+            },
+            "phi122_role": "Gamma_q_minus_q_coupling",
+            "phi112_role": "momentum_forbidden_numerical_diagnostic_only",
+            "phi1122_role": "Gamma_Gamma_q_minus_q_coupling",
+            "forbidden_phi112_mev_per_A3amu32": 2.2327409205978567e-13,
+            "note": "Momentum allowance does not imply point-group allowance; no forbidden term is ranked."
+          }
+        }
+      },
+      "Gamma_p0_m8__M_q_0.500_0.000_0.000_m8": {
+        "status": "recovered_real_coordinate_fit",
+        "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m8",
+        "energy_unit_explicit": "Ry",
+        "grid_layout": "a2_rows_a1_columns",
+        "grid_sha256": "e6c5cfcd5bfaac1e8ab4df11ae4a294bf77570e152a6bc63aff96eeca04f056c",
+        "metadata_sha256": "de681841408b180ae3f79d5d86417fe83f57f1d482240ce53395ea549ec13e42",
+        "gamma_real_norm": 1.0000003094489522,
+        "finite_q_real_norm": 0.999999990084,
+        "fit_x_values": [
+          -1.0000003094489522,
+          -0.5000001547244761,
+          0.0,
+          0.5000001547244761,
+          1.0000003094489522
+        ],
+        "fit_y_values": [
+          -0.999999990084,
+          -0.499999995042,
+          0.0,
+          0.499999995042,
+          0.999999990084
+        ],
+        "analysis": {
+          "fit_window": 1.001,
+          "fit_points": 25,
+          "fit_design_rank": 13,
+          "fit_condition_number": 28.24058474456277,
+          "r2": 0.9999949319308483,
+          "center_fit_r2": 0.999999998076536,
+          "rmse_ev_supercell": 0.001480164431101018,
+          "center_fit_rmse_ev_supercell": 7.90789341567287e-06,
+          "max_abs_residual_ev_supercell": 0.0060394909010894615,
+          "physics": {
+            "freq_mode1": {
+              "stable": true,
+              "thz": 12.308894567338646,
+              "cm1": 410.58052792437644
+            },
+            "freq_mode2": {
+              "stable": true,
+              "thz": 11.835159071366121,
+              "cm1": 394.7784127166442
+            },
+            "phi_122_mev_per_A3amu32": 98.76601380339066,
+            "phi_112_mev_per_A3amu32": 1.2482771971966443e-14,
+            "phi_111_mev_per_A3amu32": 103.49362143125572,
+            "phi_222_mev_per_A3amu32": 8.939132336425899e-13,
+            "phi_1122_mev_per_A4amu2": 8.554010690251433,
+            "phi_1111_mev_per_A4amu2": 9.830481981217028,
+            "phi_2222_mev_per_A4amu2": 7.6644680941607195,
+            "coefficients_ev": {
+              "c20": 0.3099606394907041,
+              "c02": 0.28656070946367707,
+              "c12": 0.04938300690169533,
+              "c21": 6.241385985983222e-18,
+              "c30": 0.017248936905209285,
+              "c03": 1.4898553894043163e-16,
+              "c11": 6.496787651397016e-18,
+              "c40": 0.00040960341588404284,
+              "c04": 0.00031935283725669666,
+              "c22": 0.0021385026725628583,
+              "c10": 0.0004521954342989953,
+              "c01": -9.16415971664968e-17,
+              "c00": -1.027657456186811e-05
+            },
+            "coefficient_units": "eV/(Angstrom*sqrt(amu))^degree; c00 is eV/supercell",
+            "normalization_version": "real_mass_weighted_unit_v2"
+          },
+          "axis_checks": {
+            "mode1_axis_fit": {
+              "c2": 0.30992665255769625,
+              "c3": 0.017349870164922107,
+              "c4": 0.00045956358622934715,
+              "c1": 0.00035943412499980445,
+              "c0": -1.1238175607203783e-05,
+              "rmse": 2.352724026519165e-05,
+              "freq": {
+                "stable": true,
+                "thz": 12.30821971868031,
+                "cm1": 410.5580173961651
+              }
+            },
+            "mode2_axis_fit": {
+              "c2": 0.28676450940011633,
+              "c3": -4.662069341687669e-18,
+              "c4": 0.00013047891830268707,
+              "c1": 7.130587412850006e-18,
+              "c0": -2.8806645748756416e-05,
+              "rmse": 1.3150991657558238e-05,
+              "freq": {
+                "stable": true,
+                "thz": 11.839366863797435,
+                "cm1": 394.91876956415746
+              }
+            }
+          },
+          "mode_pair_reference": {
+            "reference_kind": "mode_pair_frequency",
+            "reference_label": "selected_mode_pair_frequency",
+            "gamma_freq_thz": 12.297423,
+            "target_freq_thz": 11.837592
+          },
+          "reference": {
+            "reference_kind": "mode_pair_frequency",
+            "reference_label": "selected_mode_pair_frequency",
+            "gamma_freq_thz": 12.297423,
+            "target_freq_thz": 11.837592
+          },
+          "units": {
+            "length": "Angstrom",
+            "mass": "amu",
+            "energy": "eV/supercell",
+            "force": "eV/Angstrom",
+            "force_constant": "eV/Angstrom^2",
+            "frequency": "THz",
+            "normal_coordinate": "Angstrom*sqrt(amu)",
+            "third_order": "meV/(Angstrom^3*amu^(3/2))",
+            "fourth_order": "meV/(Angstrom^4*amu^2)",
+            "eigenvector": "dimensionless mass-weighted Cartesian"
+          },
+          "normalization_version": "real_mass_weighted_unit_v2",
+          "momentum_diagnostics": {
+            "q_frac": [
+              0.5,
+              0.0,
+              0.0
+            ],
+            "terms": {
+              "c20": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.3099606394907041
+              },
+              "c02": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.28656070946367707
+              },
+              "c12": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.04938300690169533
+              },
+              "c21": {
+                "translation_allowed": false,
+                "role": "numerical_diagnostic_only",
+                "coefficient_ev": 6.241385985983222e-18
+              },
+              "c30": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.017248936905209285
+              },
+              "c03": {
+                "translation_allowed": false,
+                "role": "numerical_diagnostic_only",
+                "coefficient_ev": 1.4898553894043163e-16
+              },
+              "c11": {
+                "translation_allowed": false,
+                "role": "numerical_diagnostic_only",
+                "coefficient_ev": 6.496787651397016e-18
+              },
+              "c40": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.00040960341588404284
+              },
+              "c04": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.00031935283725669666
+              },
+              "c22": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.0021385026725628583
+              },
+              "c10": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.0004521954342989953
+              },
+              "c01": {
+                "translation_allowed": false,
+                "role": "numerical_diagnostic_only",
+                "coefficient_ev": -9.16415971664968e-17
+              },
+              "c00": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": -1.027657456186811e-05
+              }
+            },
+            "phi122_role": "Gamma_q_minus_q_coupling",
+            "phi112_role": "momentum_forbidden_numerical_diagnostic_only",
+            "phi1122_role": "Gamma_Gamma_q_minus_q_coupling",
+            "forbidden_phi112_mev_per_A3amu32": 1.2482771971966443e-14,
+            "note": "Momentum allowance does not imply point-group allowance; no forbidden term is ranked."
+          }
+        }
+      },
+      "Gamma_p0_m8__M_q_0.500_0.000_0.000_m7": {
+        "status": "recovered_real_coordinate_fit",
+        "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m7",
+        "energy_unit_explicit": "Ry",
+        "grid_layout": "a2_rows_a1_columns",
+        "grid_sha256": "e4bd6a5b1270244e501831facccd4cb21b5682ccb50c472c258138145f4d0d3c",
+        "metadata_sha256": "84b80884859ced0394f5ec219ba468fc42c4faa68020abb0616fed286e4c6a5c",
+        "gamma_real_norm": 1.0000003094489522,
+        "finite_q_real_norm": 0.999999642365936,
+        "fit_x_values": [
+          -1.0000003094489522,
+          -0.5000001547244761,
+          0.0,
+          0.5000001547244761,
+          1.0000003094489522
+        ],
+        "fit_y_values": [
+          -0.999999642365936,
+          -0.499999821182968,
+          0.0,
+          0.499999821182968,
+          0.999999642365936
+        ],
+        "analysis": {
+          "fit_window": 1.001,
+          "fit_points": 25,
+          "fit_design_rank": 13,
+          "fit_condition_number": 28.240589557714923,
+          "r2": 0.9999984802133303,
+          "center_fit_r2": 0.999999996645978,
+          "rmse_ev_supercell": 0.000768050360351066,
+          "center_fit_rmse_ev_supercell": 9.940617632483357e-06,
+          "max_abs_residual_ev_supercell": 0.003286106820967305,
+          "physics": {
+            "freq_mode1": {
+              "stable": true,
+              "thz": 12.307486365042582,
+              "cm1": 410.5335553519022
+            },
+            "freq_mode2": {
+              "stable": true,
+              "thz": 11.224303284764401,
+              "cm1": 374.40245694120836
+            },
+            "phi_122_mev_per_A3amu32": 78.02281895945994,
+            "phi_112_mev_per_A3amu32": 1.578018614963018e-13,
+            "phi_111_mev_per_A3amu32": 103.77596651170781,
+            "phi_222_mev_per_A3amu32": 7.882243176150431e-13,
+            "phi_1122_mev_per_A4amu2": 9.81369290674895,
+            "phi_1111_mev_per_A4amu2": 11.271595233563307,
+            "phi_2222_mev_per_A4amu2": -3.903642246583039,
+            "coefficients_ev": {
+              "c20": 0.30988972129189896,
+              "c02": 0.2577432086345948,
+              "c12": 0.03901140947972997,
+              "c21": 7.89009307481509e-17,
+              "c30": 0.01729599441861797,
+              "c03": 1.3137071960250719e-16,
+              "c11": -3.796002428529163e-17,
+              "c40": 0.0004696498013984711,
+              "c04": -0.0001626517602742933,
+              "c22": 0.0024534232266872373,
+              "c10": 0.0004174957445446369,
+              "c01": -8.121798596459919e-17,
+              "c00": -3.371986457516418e-07
+            },
+            "coefficient_units": "eV/(Angstrom*sqrt(amu))^degree; c00 is eV/supercell",
+            "normalization_version": "real_mass_weighted_unit_v2"
+          },
+          "axis_checks": {
+            "mode1_axis_fit": {
+              "c2": 0.30992665255769625,
+              "c3": 0.017349870164922107,
+              "c4": 0.00045956358622934715,
+              "c1": 0.00035943412499980445,
+              "c0": -1.1238175607203783e-05,
+              "rmse": 2.352724026519165e-05,
+              "freq": {
+                "stable": true,
+                "thz": 12.30821971868031,
+                "cm1": 410.5580173961651
+              }
+            },
+            "mode2_axis_fit": {
+              "c2": 0.2578126243051717,
+              "c3": 5.998338993202533e-18,
+              "c4": -0.0002073574009680668,
+              "c1": -8.339387550000207e-18,
+              "c0": -1.2251465830078101e-05,
+              "rmse": 1.0646168930112574e-05,
+              "freq": {
+                "stable": true,
+                "thz": 11.225814653561644,
+                "cm1": 374.45287077774464
+              }
+            }
+          },
+          "mode_pair_reference": {
+            "reference_kind": "mode_pair_frequency",
+            "reference_label": "selected_mode_pair_frequency",
+            "gamma_freq_thz": 12.297423,
+            "target_freq_thz": 11.223817
+          },
+          "reference": {
+            "reference_kind": "mode_pair_frequency",
+            "reference_label": "selected_mode_pair_frequency",
+            "gamma_freq_thz": 12.297423,
+            "target_freq_thz": 11.223817
+          },
+          "units": {
+            "length": "Angstrom",
+            "mass": "amu",
+            "energy": "eV/supercell",
+            "force": "eV/Angstrom",
+            "force_constant": "eV/Angstrom^2",
+            "frequency": "THz",
+            "normal_coordinate": "Angstrom*sqrt(amu)",
+            "third_order": "meV/(Angstrom^3*amu^(3/2))",
+            "fourth_order": "meV/(Angstrom^4*amu^2)",
+            "eigenvector": "dimensionless mass-weighted Cartesian"
+          },
+          "normalization_version": "real_mass_weighted_unit_v2",
+          "momentum_diagnostics": {
+            "q_frac": [
+              0.5,
+              0.0,
+              0.0
+            ],
+            "terms": {
+              "c20": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.30988972129189896
+              },
+              "c02": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.2577432086345948
+              },
+              "c12": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.03901140947972997
+              },
+              "c21": {
+                "translation_allowed": false,
+                "role": "numerical_diagnostic_only",
+                "coefficient_ev": 7.89009307481509e-17
+              },
+              "c30": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.01729599441861797
+              },
+              "c03": {
+                "translation_allowed": false,
+                "role": "numerical_diagnostic_only",
+                "coefficient_ev": 1.3137071960250719e-16
+              },
+              "c11": {
+                "translation_allowed": false,
+                "role": "numerical_diagnostic_only",
+                "coefficient_ev": -3.796002428529163e-17
+              },
+              "c40": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.0004696498013984711
+              },
+              "c04": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": -0.0001626517602742933
+              },
+              "c22": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.0024534232266872373
+              },
+              "c10": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.0004174957445446369
+              },
+              "c01": {
+                "translation_allowed": false,
+                "role": "numerical_diagnostic_only",
+                "coefficient_ev": -8.121798596459919e-17
+              },
+              "c00": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": -3.371986457516418e-07
+              }
+            },
+            "phi122_role": "Gamma_q_minus_q_coupling",
+            "phi112_role": "momentum_forbidden_numerical_diagnostic_only",
+            "phi1122_role": "Gamma_Gamma_q_minus_q_coupling",
+            "forbidden_phi112_mev_per_A3amu32": 1.578018614963018e-13,
+            "note": "Momentum allowance does not imply point-group allowance; no forbidden term is ranked."
+          }
+        }
+      },
+      "Gamma_p0_m8__K_q_0.333_0.333_0.000_m9": {
+        "status": "recovered_real_coordinate_fit",
+        "pair_code": "Gamma_p0_m8__K_q_0.333_0.333_0.000_m9",
+        "energy_unit_explicit": "Ry",
+        "grid_layout": "a2_rows_a1_columns",
+        "grid_sha256": "26e890585fe5738db910250bbce918d656098a31110c51e437e072e506694152",
+        "metadata_sha256": "1390fbce6fdedbdfa7b3ef9d9aa797db202f4ee74347a5c947c6b416b7ca53e5",
+        "gamma_real_norm": 1.0000003094489522,
+        "finite_q_real_norm": 0.7071065537958193,
+        "fit_x_values": [
+          -1.0000003094489522,
+          -0.5000001547244761,
+          0.0,
+          0.5000001547244761,
+          1.0000003094489522
+        ],
+        "fit_y_values": [
+          -0.7071065537958193,
+          -0.35355327689790966,
+          0.0,
+          0.35355327689790966,
+          0.7071065537958193
+        ],
+        "analysis": {
+          "fit_window": 1.001,
+          "fit_points": 25,
+          "fit_design_rank": 13,
+          "fit_condition_number": 73.75579963077156,
+          "r2": 0.9999951337588984,
+          "center_fit_r2": 0.9999999433758355,
+          "rmse_ev_supercell": 0.0011361042207330742,
+          "center_fit_rmse_ev_supercell": 3.4501479261328717e-05,
+          "max_abs_residual_ev_supercell": 0.004334267664663827,
+          "physics": {
+            "freq_mode1": {
+              "stable": true,
+              "thz": 12.308338539082964,
+              "cm1": 410.56198081817536
+            },
+            "freq_mode2": {
+              "stable": true,
+              "thz": 12.076868697841492,
+              "cm1": 402.84097800223816
+            },
+            "phi_122_mev_per_A3amu32": 74.29895723998388,
+            "phi_112_mev_per_A3amu32": -0.014799350494548242,
+            "phi_111_mev_per_A3amu32": 69.38722839702683,
+            "phi_222_mev_per_A3amu32": -55.771353818075205,
+            "phi_1122_mev_per_A4amu2": 4.190064861633541,
+            "phi_1111_mev_per_A4amu2": 4.949418464075432,
+            "phi_2222_mev_per_A4amu2": 24.03835156098408,
+            "coefficients_ev": {
+              "c20": 0.30993263649172476,
+              "c02": 0.2983851009043008,
+              "c12": 0.03714947861999194,
+              "c21": -7.399675247274121e-06,
+              "c30": 0.011564538066171139,
+              "c03": -0.009295225636345867,
+              "c11": -0.0002505609358186199,
+              "c40": 0.00020622576933647632,
+              "c04": 0.00100159798170767,
+              "c22": 0.0010475162154083852,
+              "c10": 0.0006091059555372844,
+              "c01": 2.7398782587232228e-05,
+              "c00": -8.181407522726075e-06
+            },
+            "coefficient_units": "eV/(Angstrom*sqrt(amu))^degree; c00 is eV/supercell",
+            "normalization_version": "real_mass_weighted_unit_v2"
+          },
+          "axis_checks": {
+            "mode1_axis_fit": {
+              "c2": 0.3099119736450059,
+              "c3": 0.011550693072838515,
+              "c4": 0.00020657919865901022,
+              "c1": 0.0006010379462710626,
+              "c0": 4.6145149296305206e-07,
+              "rmse": 2.0619682567392808e-05,
+              "freq": {
+                "stable": true,
+                "thz": 12.307928240970268,
+                "cm1": 410.54829474630304
+              }
+            },
+            "mode2_axis_fit": {
+              "c2": 0.2987036939745318,
+              "c3": -0.009204189712266483,
+              "c4": 0.00044738621007555805,
+              "c1": -3.907421553273098e-05,
+              "c0": -2.8102573209318952e-05,
+              "rmse": 1.5742144600201607e-05,
+              "freq": {
+                "stable": true,
+                "thz": 12.083314361796495,
+                "cm1": 403.0559822087484
+              }
+            }
+          },
+          "mode_pair_reference": {
+            "reference_kind": "mode_pair_frequency",
+            "reference_label": "selected_mode_pair_frequency",
+            "gamma_freq_thz": 12.297423,
+            "target_freq_thz": 12.075427
+          },
+          "reference": {
+            "reference_kind": "mode_pair_frequency",
+            "reference_label": "selected_mode_pair_frequency",
+            "gamma_freq_thz": 12.297423,
+            "target_freq_thz": 12.075427
+          },
+          "units": {
+            "length": "Angstrom",
+            "mass": "amu",
+            "energy": "eV/supercell",
+            "force": "eV/Angstrom",
+            "force_constant": "eV/Angstrom^2",
+            "frequency": "THz",
+            "normal_coordinate": "Angstrom*sqrt(amu)",
+            "third_order": "meV/(Angstrom^3*amu^(3/2))",
+            "fourth_order": "meV/(Angstrom^4*amu^2)",
+            "eigenvector": "dimensionless mass-weighted Cartesian"
+          },
+          "normalization_version": "real_mass_weighted_unit_v2",
+          "momentum_diagnostics": {
+            "q_frac": [
+              0.3333333333333333,
+              0.3333333333333333,
+              0.0
+            ],
+            "terms": {
+              "c20": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.30993263649172476
+              },
+              "c02": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.2983851009043008
+              },
+              "c12": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.03714947861999194
+              },
+              "c21": {
+                "translation_allowed": false,
+                "role": "numerical_diagnostic_only",
+                "coefficient_ev": -7.399675247274121e-06
+              },
+              "c30": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.011564538066171139
+              },
+              "c03": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": -0.009295225636345867
+              },
+              "c11": {
+                "translation_allowed": false,
+                "role": "numerical_diagnostic_only",
+                "coefficient_ev": -0.0002505609358186199
+              },
+              "c40": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.00020622576933647632
+              },
+              "c04": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.00100159798170767
+              },
+              "c22": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.0010475162154083852
+              },
+              "c10": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.0006091059555372844
+              },
+              "c01": {
+                "translation_allowed": false,
+                "role": "numerical_diagnostic_only",
+                "coefficient_ev": 2.7398782587232228e-05
+              },
+              "c00": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": -8.181407522726075e-06
+              }
+            },
+            "phi122_role": "Gamma_q_minus_q_coupling",
+            "phi112_role": "momentum_forbidden_numerical_diagnostic_only",
+            "phi1122_role": "Gamma_Gamma_q_minus_q_coupling",
+            "forbidden_phi112_mev_per_A3amu32": -0.014799350494548242,
+            "note": "Momentum allowance does not imply point-group allowance; no forbidden term is ranked."
+          }
+        }
+      },
+      "Gamma_p0_m8__line_q_0.333_0.667_0.000_m8": {
+        "status": "recovered_real_coordinate_fit",
+        "pair_code": "Gamma_p0_m8__line_q_0.333_0.667_0.000_m8",
+        "energy_unit_explicit": "Ry",
+        "grid_layout": "a2_rows_a1_columns",
+        "grid_sha256": "1af70a839a5202b477c418b44e6d1dd1c2a71793ebf1148c6c5af8cb3b2282c6",
+        "metadata_sha256": "585caa6e198e59add6ce9cc9cd551a4f30b9b5a8006b36c6e39fc0fc2297049c",
+        "gamma_real_norm": 1.0000003094489522,
+        "finite_q_real_norm": 0.7071065653739894,
+        "fit_x_values": [
+          -1.0000003094489522,
+          -0.5000001547244761,
+          0.0,
+          0.5000001547244761,
+          1.0000003094489522
+        ],
+        "fit_y_values": [
+          -0.7071065653739894,
+          -0.3535532826869947,
+          0.0,
+          0.3535532826869947,
+          0.7071065653739894
+        ],
+        "analysis": {
+          "fit_window": 1.001,
+          "fit_points": 25,
+          "fit_design_rank": 13,
+          "fit_condition_number": 73.7557955434714,
+          "r2": 0.9999988522800098,
+          "center_fit_r2": 0.9999999966292872,
+          "rmse_ev_supercell": 0.0005535532677125765,
+          "center_fit_rmse_ev_supercell": 8.47264565299365e-06,
+          "max_abs_residual_ev_supercell": 0.0021765842365866206,
+          "physics": {
+            "freq_mode1": {
+              "stable": true,
+              "thz": 12.308129598152604,
+              "cm1": 410.5550112989368
+            },
+            "freq_mode2": {
+              "stable": true,
+              "thz": 12.32781152498068,
+              "cm1": 411.21152971035315
+            },
+            "phi_122_mev_per_A3amu32": 67.77577718712004,
+            "phi_112_mev_per_A3amu32": 3.54526608330449e-14,
+            "phi_111_mev_per_A3amu32": 69.33672410125943,
+            "phi_222_mev_per_A3amu32": -2.926579821783653e-13,
+            "phi_1122_mev_per_A4amu2": 1.6407687933034638,
+            "phi_1111_mev_per_A4amu2": 4.98076597479647,
+            "phi_2222_mev_per_A4amu2": 11.302534505619162,
+            "coefficients_ev": {
+              "c20": 0.3099221140213582,
+              "c02": 0.31091409927267516,
+              "c12": 0.03388788859356002,
+              "c21": 1.7726330416522452e-17,
+              "c30": 0.011556120683543239,
+              "c03": -4.8776330363060883e-17,
+              "c11": -2.6538275088200825e-18,
+              "c40": 0.0002075319156165196,
+              "c04": 0.0004709389377341318,
+              "c22": 0.00041019219832586596,
+              "c10": 0.0006126874920044617,
+              "c01": 5.167032685296815e-18,
+              "c00": -3.4752819388179275e-06
+            },
+            "coefficient_units": "eV/(Angstrom*sqrt(amu))^degree; c00 is eV/supercell",
+            "normalization_version": "real_mass_weighted_unit_v2"
+          },
+          "axis_checks": {
+            "mode1_axis_fit": {
+              "c2": 0.3099119736450059,
+              "c3": 0.011550693072838515,
+              "c4": 0.00020657919865901022,
+              "c1": 0.0006010379462710626,
+              "c0": 4.6145149296305206e-07,
+              "rmse": 2.0619682567392808e-05,
+              "freq": {
+                "stable": true,
+                "thz": 12.307928240970268,
+                "cm1": 410.54829474630304
+              }
+            },
+            "mode2_axis_fit": {
+              "c2": 0.31110108601628383,
+              "c3": -1.984089975648473e-17,
+              "c4": 0.00016393833308743952,
+              "c1": 3.285574916779666e-17,
+              "c0": -1.6843783279115394e-05,
+              "rmse": 7.419177956482071e-06,
+              "freq": {
+                "stable": true,
+                "thz": 12.331518000273185,
+                "cm1": 411.335164418085
+              }
+            }
+          },
+          "mode_pair_reference": {
+            "reference_kind": "mode_pair_frequency",
+            "reference_label": "selected_mode_pair_frequency",
+            "gamma_freq_thz": 12.297423,
+            "target_freq_thz": 12.331607
+          },
+          "reference": {
+            "reference_kind": "mode_pair_frequency",
+            "reference_label": "selected_mode_pair_frequency",
+            "gamma_freq_thz": 12.297423,
+            "target_freq_thz": 12.331607
+          },
+          "units": {
+            "length": "Angstrom",
+            "mass": "amu",
+            "energy": "eV/supercell",
+            "force": "eV/Angstrom",
+            "force_constant": "eV/Angstrom^2",
+            "frequency": "THz",
+            "normal_coordinate": "Angstrom*sqrt(amu)",
+            "third_order": "meV/(Angstrom^3*amu^(3/2))",
+            "fourth_order": "meV/(Angstrom^4*amu^2)",
+            "eigenvector": "dimensionless mass-weighted Cartesian"
+          },
+          "normalization_version": "real_mass_weighted_unit_v2",
+          "momentum_diagnostics": {
+            "q_frac": [
+              0.3333333333333333,
+              0.6666666666666666,
+              0.0
+            ],
+            "terms": {
+              "c20": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.3099221140213582
+              },
+              "c02": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.31091409927267516
+              },
+              "c12": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.03388788859356002
+              },
+              "c21": {
+                "translation_allowed": false,
+                "role": "numerical_diagnostic_only",
+                "coefficient_ev": 1.7726330416522452e-17
+              },
+              "c30": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.011556120683543239
+              },
+              "c03": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": -4.8776330363060883e-17
+              },
+              "c11": {
+                "translation_allowed": false,
+                "role": "numerical_diagnostic_only",
+                "coefficient_ev": -2.6538275088200825e-18
+              },
+              "c40": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.0002075319156165196
+              },
+              "c04": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.0004709389377341318
+              },
+              "c22": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.00041019219832586596
+              },
+              "c10": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.0006126874920044617
+              },
+              "c01": {
+                "translation_allowed": false,
+                "role": "numerical_diagnostic_only",
+                "coefficient_ev": 5.167032685296815e-18
+              },
+              "c00": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": -3.4752819388179275e-06
+              }
+            },
+            "phi122_role": "Gamma_q_minus_q_coupling",
+            "phi112_role": "momentum_forbidden_numerical_diagnostic_only",
+            "phi1122_role": "Gamma_Gamma_q_minus_q_coupling",
+            "forbidden_phi112_mev_per_A3amu32": 3.54526608330449e-14,
+            "note": "Momentum allowance does not imply point-group allowance; no forbidden term is ranked."
+          }
+        }
+      }
+    },
+    "wse2": {
+      "Gamma_p0_m8__M_q_0.500_0.000_0.000_m9": {
+        "status": "recovered_real_coordinate_fit",
+        "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m9",
+        "energy_unit_explicit": "Ry",
+        "grid_layout": "a2_rows_a1_columns",
+        "grid_sha256": "59868cfb6bf1a16ec550b76f4d1b82ccd55b3238b75c1b7e0a2b0ae495b9b153",
+        "metadata_sha256": "71b8fe9ba8659b812c930bd83db8f3c880a516f900056256e80cde39d8dc6a8d",
+        "gamma_real_norm": 1.0000002031419795,
+        "finite_q_real_norm": 0.9999999690449995,
+        "fit_x_values": [
+          -1.0000002031419795,
+          -0.5000001015709897,
+          0.0,
+          0.5000001015709897,
+          1.0000002031419795
+        ],
+        "fit_y_values": [
+          -0.9999999690449995,
+          -0.4999999845224998,
+          0.0,
+          0.4999999845224998,
+          0.9999999690449995
+        ],
+        "analysis": {
+          "fit_window": 1.001,
+          "fit_points": 25,
+          "fit_design_rank": 13,
+          "fit_condition_number": 28.240586506886505,
+          "r2": 0.9999990883762819,
+          "center_fit_r2": 0.9999999967111888,
+          "rmse_ev_supercell": 0.00025696512100735784,
+          "center_fit_rmse_ev_supercell": 4.317051268339009e-06,
+          "max_abs_residual_ev_supercell": 0.0008423230200452769,
+          "physics": {
+            "freq_mode1": {
+              "stable": true,
+              "thz": 7.545678827504709,
+              "cm1": 251.69675307524608
+            },
+            "freq_mode2": {
+              "stable": true,
+              "thz": 8.11107893077865,
+              "cm1": 270.5564704625975
+            },
+            "phi_122_mev_per_A3amu32": 30.581270840938974,
+            "phi_112_mev_per_A3amu32": -0.007899073064527161,
+            "phi_111_mev_per_A3amu32": 25.0545962935944,
+            "phi_222_mev_per_A3amu32": -0.045170906935082585,
+            "phi_1122_mev_per_A4amu2": 1.9043965254678332,
+            "phi_1111_mev_per_A4amu2": 2.413321514060342,
+            "phi_2222_mev_per_A4amu2": 3.667224454749888,
+            "coefficients_ev": {
+              "c20": 0.11648367846809121,
+              "c02": 0.13459399998324273,
+              "c12": 0.015290635420469486,
+              "c21": -3.9495365322635806e-06,
+              "c30": 0.0041757660489324,
+              "c03": -7.528484489180431e-06,
+              "c11": -3.004136298159298e-06,
+              "c40": 0.00010055506308584758,
+              "c04": 0.000152801018947912,
+              "c22": 0.0004760991313669583,
+              "c10": 0.0004105257879161636,
+              "c01": 9.925029089734765e-06,
+              "c00": 1.673000329849251e-06
+            },
+            "coefficient_units": "eV/(Angstrom*sqrt(amu))^degree; c00 is eV/supercell",
+            "normalization_version": "real_mass_weighted_unit_v2"
+          },
+          "axis_checks": {
+            "mode1_axis_fit": {
+              "c2": 0.11650359884908823,
+              "c3": 0.0041724347176561845,
+              "c4": 7.814989560266344e-05,
+              "c1": 0.00041320893563120834,
+              "c0": 5.439102045656797e-07,
+              "rmse": 2.477046548265705e-06,
+              "freq": {
+                "stable": true,
+                "thz": 7.546324009616228,
+                "cm1": 251.7182740339728
+              }
+            },
+            "mode2_axis_fit": {
+              "c2": 0.13463669230356984,
+              "c3": -3.0143249122982334e-07,
+              "c4": 0.00011242490173476121,
+              "c1": 1.7101023285318172e-06,
+              "c0": -3.293592511391118e-06,
+              "rmse": 5.039930890374685e-06,
+              "freq": {
+                "stable": true,
+                "thz": 8.112365218892606,
+                "cm1": 270.59937641568706
+              }
+            }
+          },
+          "mode_pair_reference": {
+            "reference_kind": "mode_pair_frequency",
+            "reference_label": "selected_mode_pair_frequency",
+            "gamma_freq_thz": 7.545686,
+            "target_freq_thz": 8.110738
+          },
+          "reference": {
+            "reference_kind": "mode_pair_frequency",
+            "reference_label": "selected_mode_pair_frequency",
+            "gamma_freq_thz": 7.545686,
+            "target_freq_thz": 8.110738
+          },
+          "units": {
+            "length": "Angstrom",
+            "mass": "amu",
+            "energy": "eV/supercell",
+            "force": "eV/Angstrom",
+            "force_constant": "eV/Angstrom^2",
+            "frequency": "THz",
+            "normal_coordinate": "Angstrom*sqrt(amu)",
+            "third_order": "meV/(Angstrom^3*amu^(3/2))",
+            "fourth_order": "meV/(Angstrom^4*amu^2)",
+            "eigenvector": "dimensionless mass-weighted Cartesian"
+          },
+          "normalization_version": "real_mass_weighted_unit_v2",
+          "momentum_diagnostics": {
+            "q_frac": [
+              0.5,
+              0.0,
+              0.0
+            ],
+            "terms": {
+              "c20": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.11648367846809121
+              },
+              "c02": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.13459399998324273
+              },
+              "c12": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.015290635420469486
+              },
+              "c21": {
+                "translation_allowed": false,
+                "role": "numerical_diagnostic_only",
+                "coefficient_ev": -3.9495365322635806e-06
+              },
+              "c30": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.0041757660489324
+              },
+              "c03": {
+                "translation_allowed": false,
+                "role": "numerical_diagnostic_only",
+                "coefficient_ev": -7.528484489180431e-06
+              },
+              "c11": {
+                "translation_allowed": false,
+                "role": "numerical_diagnostic_only",
+                "coefficient_ev": -3.004136298159298e-06
+              },
+              "c40": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.00010055506308584758
+              },
+              "c04": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.000152801018947912
+              },
+              "c22": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.0004760991313669583
+              },
+              "c10": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 0.0004105257879161636
+              },
+              "c01": {
+                "translation_allowed": false,
+                "role": "numerical_diagnostic_only",
+                "coefficient_ev": 9.925029089734765e-06
+              },
+              "c00": {
+                "translation_allowed": true,
+                "role": "projected_polynomial",
+                "coefficient_ev": 1.673000329849251e-06
+              }
+            },
+            "phi122_role": "Gamma_q_minus_q_coupling",
+            "phi112_role": "momentum_forbidden_numerical_diagnostic_only",
+            "phi1122_role": "Gamma_Gamma_q_minus_q_coupling",
+            "forbidden_phi112_mev_per_A3amu32": -0.007899073064527161,
+            "note": "Momentum allowance does not imply point-group allowance; no forbidden term is ranked."
+          }
+        }
+      },
+      "Gamma_p0_m8__M_q_0.500_0.000_0.000_m8": {
+        "status": "raw_grid_unavailable",
+        "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m8"
+      },
+      "Gamma_p0_m8__M_q_0.500_0.000_0.000_m7": {
+        "status": "raw_grid_unavailable",
+        "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m7"
+      },
+      "Gamma_p0_m8__K_q_0.333_0.333_0.000_m9": {
+        "status": "raw_grid_unavailable",
+        "pair_code": "Gamma_p0_m8__K_q_0.333_0.333_0.000_m9"
+      },
+      "Gamma_p0_m8__line_q_0.333_0.667_0.000_m8": {
+        "status": "raw_grid_unavailable",
+        "pair_code": "Gamma_p0_m8__line_q_0.333_0.667_0.000_m8"
+      }
+    }
+  },
+  "limitations": [
+    "No new DFT labels. Historical QE structure provenance is not fully verified.",
+    "Historical WSe2 Gamma ASR is unreliable; finite-q and full-grid frequency statistics are separate.",
+    "Old finite-q real-coordinate amplitudes are recovered before refitting; K fit samples span a different actual Q window.",
+    "Raw fourth-order QE grids available for five MoS2 pairs and one WSe2 pair; missing four WSe2 raw grids are not imputed.",
+    "Finite-q degenerate branches remain directional and basis dependent."
+  ]
+}

@@ -22,7 +22,7 @@ point-group symmetry and from the rotational sum rule required for ideal 2D ZA.
 
 `structure_symmetry.py` verifies spglib's atomic permutations and translations,
 rejects operations that do not preserve the layer/mesh, and checks phonon
-covariance with transformed complex eigenvectors. Matched frequencies must also
+covariance with transformed complex eigenvectors at Γ and finite q. Γ covariance is required for every retained spatial operation and its time-reversed partner. Matched frequencies must also
 agree. Degenerate groups use singular values of the overlap matrix. Failed
 spatial covariance falls back to q/−q; failed time reversal stops the run.
 The workflow assumes a nonmagnetic scalar potential without external fields.
@@ -62,7 +62,7 @@ supercell; frequencies are THz. `units.py` defines all coordinate and derivative
 units. Energy conversion always requires a declared source unit.
 
 Run identity includes the pair-file hash, structure hash, MatterSim checkpoint
-hash, contract, normalization, grids and top-channel count. Stage2 additionally
+hash, contract, normalization, grids, top-channel count and the energy-accumulation protocol. Stage2 additionally
 verifies the model-relaxation summary. An atomic JSON replacement after each
 energy evaluation and a per-pair file lock provide interruption recovery and
 prevent duplicate concurrent writes. Shards partition complete pairs. A phase
@@ -80,3 +80,9 @@ Per-worker timing, process peak memory, host and Slurm identifiers are retained.
 
 Historical v3/v4 results are diagnostic references, not v5 restart inputs.
 QE/GPTFF/EquFlash and Stage3 recomputation code are outside this release tree.
+
+## Precision and forbidden-term diagnostics
+
+Version 1.0.1 registers an instance-local forward hook on the pinned MatterSim M3GNet atomic-energy normalizer. It casts atomic energies to float64 before the final scatter sum; model weights/features stay float32 and autograd remains connected. No installed package or global scatter function is patched. The same weight hash alone does not authorize mixing old float32-summed and corrected checkpoints.
+
+`momentum_diagnostics` records translation allowance for each polynomial coefficient. For the real q/−q coordinate, y^n contains harmonics (2k−n)q; a term is potentially allowed when at least one is reciprocal. This does not apply point-group selection rules. In particular, Φ112 is forbidden for all finite q, whereas Φ122 and Φ1122 are momentum-allowed. Forbidden fits remain visible, never ranked.

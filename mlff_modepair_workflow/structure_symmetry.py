@@ -173,6 +173,7 @@ def _mapping(
     # unique physical branch identity.
     groups = left.get("degenerate_groups_one_based", [])
     ambiguous = []
+    subspace_checks = []
     for group in groups:
         if len(group) < 2:
             continue
@@ -181,8 +182,18 @@ def _mapping(
         block = (
             np.asarray(transformed)[indices].conj() @ np.asarray(target)[destinations].T
         )
-        if np.min(np.linalg.svd(block, compute_uv=False)) ** 2 < overlap_floor:
+        singular_squared: np.ndarray = np.linalg.svd(block, compute_uv=False) ** 2
+        if np.min(singular_squared) < overlap_floor:
             return None
+        subspace_checks.append(
+            {
+                "source_modes_one_based": group,
+                "target_modes_one_based": [i + 1 for i in destinations],
+                "singular_values_squared": singular_squared.tolist(),
+                "minimum_overlap_squared": float(np.min(singular_squared)),
+                "mean_overlap_squared": float(np.mean(singular_squared)),
+            }
+        )
         ambiguous.extend(indices)
     isolated = [int(i) for i in rows if i not in ambiguous]
     if (
@@ -200,6 +211,10 @@ def _mapping(
             default=None,
         ),
         "degenerate_sources_one_based": [i + 1 for i in ambiguous],
+        "degenerate_subspace_checks": subspace_checks,
+        "max_matched_frequency_difference_thz": float(
+            np.max(np.abs(frequencies[rows] - other_frequencies[cols]))
+        ),
     }
 
 
@@ -233,6 +248,22 @@ def structure_q_orbits(
     )
 
     def build(ops: list[Operation]):
+        # A Gamma-q channel transforms both factors. Finite-q covariance alone
+        # cannot authorize reduction when the Gamma optical sector is broken.
+        gamma_checks = {}
+        for op in ops:
+            for reverse in (False, True):
+                mapping = _mapping(
+                    by_index[(0, 0)],
+                    by_index[(0, 0)],
+                    op,
+                    reverse,
+                    overlap_floor,
+                    frequency_tolerance_thz,
+                )
+                if mapping is None:
+                    raise ValueError("Gamma modes are not symmetry covariant")
+                gamma_checks[id(op), reverse] = mapping
         remaining = set(by_index) - {(0, 0)}
         orbits: list[dict] = []
         while remaining:
@@ -294,6 +325,7 @@ def structure_q_orbits(
                     "atom_permutation": op.permutation.tolist(),
                     "lattice_shifts": op.shifts.tolist(),
                     "time_reversal": reverse,
+                    "gamma_mode_map": gamma_checks[id(op), reverse],
                     **mapping,
                 }
             orbits.append(
@@ -333,6 +365,7 @@ def structure_q_orbits(
         orbits = build([identity])
         method = "time_reversal_only"
     metadata = {
+        "covariance_contract": "gamma_and_finite_q_v2",
         "method": method,
         "fallback_reason": reason,
         "symprec_angstrom": symprec,

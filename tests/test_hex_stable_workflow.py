@@ -365,6 +365,7 @@ def test_stage2_rejects_shared_or_mismatched_relaxation(tmp_path):
         "source": {
             "backend": "prophet",
             "geometry_source": "model_relaxed",
+            "symmetry": {"covariance_contract": "gamma_and_finite_q_v2"},
             "structure_sha256": digest,
             "natoms_primitive": 2,
             "gamma_mode_selection": {
@@ -381,6 +382,10 @@ def test_stage2_rejects_shared_or_mismatched_relaxation(tmp_path):
         },
     }
     validate_relaxed_stage1(payload, structure)
+    payload["source"]["symmetry"].pop("covariance_contract")
+    with pytest.raises(ValueError, match="Gamma and finite-q"):
+        validate_relaxed_stage1(payload, structure)
+    payload["source"]["symmetry"]["covariance_contract"] = "gamma_and_finite_q_v2"
     payload["pairs"][0]["gamma_mode"]["mode_number_one_based"] = 1
     with pytest.raises(ValueError, match="Gamma optical"):
         validate_relaxed_stage1(payload, structure)

@@ -10,6 +10,18 @@ from .prophet_backend import sha256_file
 
 MATTERSIM_VERSION = "1.2.1"
 MATTERSIM_5M_SHA256 = "e3df9fa708725e3d453140646c7d1838324b347a3d1214cf1440522146f872b5"
+ENERGY_ACCUMULATION = "atomic_float32_sum_float64_v2"
+
+
+def _atomic_energy_to_double(module, inputs, output):
+    """Promote atomic energies before the pinned M3GNet total-energy scatter.
+
+    The network still uses its original float32 weights and features. Promoting
+    before summation avoids order-dependent rounding of large supercell totals;
+    casting the final ASE scalar to double would be too late. Autograd propagates
+    through this cast. This instance-local hook does not patch upstream globals.
+    """
+    return output.double()
 
 
 def make_mattersim_calculator(model: str | Path, device: str, atoms=None):
@@ -37,6 +49,11 @@ def make_mattersim_calculator(model: str | Path, device: str, atoms=None):
     from mattersim.forcefield import MatterSimCalculator
 
     calculator = MatterSimCalculator.from_checkpoint(load_path=str(path), device=device)
+    if calculator.potential.model_name != "m3gnet":
+        raise RuntimeError("The pinned accumulation adapter requires M3GNet")
+    calculator.potential.model.normalizer.register_forward_hook(
+        _atomic_energy_to_double
+    )
     return calculator, {
         "backend": "mattersim",
         "checkpoint": str(path),
@@ -45,5 +62,5 @@ def make_mattersim_calculator(model: str | Path, device: str, atoms=None):
         "model_name": "mattersim-v1.0.0-5M",
         "device": device,
         "effective_batch_size": 1,
-        "energy_accumulation": "MatterSimCalculator_total_energy_eV_v1",
+        "energy_accumulation": ENERGY_ACCUMULATION,
     }

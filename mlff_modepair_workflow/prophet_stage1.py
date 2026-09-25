@@ -464,7 +464,10 @@ def run_prophet_stage1(
             "force_elapsed_seconds": force_elapsed,
             "total_elapsed_seconds": time.perf_counter() - start,
             "resources": process_resource_metrics(device),
-            "gamma_acoustic_frequencies_thz": records[0]["freqs_thz"][:3],
+            "gamma_acoustic_frequencies_thz": [
+                records[0]["freqs_thz"][mode - 1]
+                for mode in source["gamma_mode_selection"]["acoustic_modes_one_based"]
+            ],
             "max_hermitian_relative_error": hermitian_error,
             # Translational invariance sums over source cells and source atoms
             # for each fixed target atom and Cartesian component.

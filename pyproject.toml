@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nonlinear-phonon-calculation"
-version = "1.0.0"
+version = "1.0.1"
 description = "Structure-aware hexagonal 2D phonon and MLFF coupling screening."
 readme = "README.md"
 requires-python = ">=3.10"

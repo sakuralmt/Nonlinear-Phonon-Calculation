@@ -19,11 +19,18 @@ from reportlab.platypus import (
     Table,
     TableStyle,
     Image,
+    KeepTogether,
 )
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--input", type=Path, required=True)
 parser.add_argument("--output", type=Path, required=True)
+parser.add_argument("--keep-tables-together", action="store_true")
+parser.add_argument(
+    "--footer",
+    default="NPC 1.0.1 | 2026-09-25 | CPU validation; no new DFT",
+    help="Evidence-specific footer; legacy reports retain their original wording.",
+)
 parser.add_argument(
     "--font",
     type=Path,
@@ -132,7 +139,11 @@ while i < len(lines):
                 ]
             )
         )
-        story.extend([table, Spacer(1, 10)])
+        items = [table, Spacer(1, 10)]
+        if args.keep_tables_together:
+            story.append(KeepTogether(items))
+        else:
+            story.extend(items)
         continue
     story.append(Paragraph(clean(line), styles["body"]))
 
@@ -140,7 +151,7 @@ while i < len(lines):
 def footer(canvas, doc):
     canvas.setFont("Unicode", 8)
     canvas.setFillColor(colors.HexColor("#607580"))
-    canvas.drawString(48, 27, "NPC 1.0.1 | 2026-09-25 | CPU validation; no new DFT")
+    canvas.drawString(48, 27, args.footer)
     canvas.drawRightString(A4[0] - 48, 27, str(doc.page))
 
 

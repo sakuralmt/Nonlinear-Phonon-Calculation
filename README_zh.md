@@ -55,6 +55,8 @@ Phonopy 的此处力常数修正处理平移声学求和及指标交换，**不*
 详细数值验收见[验证报告](docs/VALIDATION.md)和[可追溯数据](docs/validation_v5.json)。
 
 以DFT为参照的科学结果见[模型路线与DFT精算的定量比较](docs/MODEL_DFT_COMPARISON.md)（[PDF](output/pdf/model_dft_comparison_1_0_1.pdf)）：按论文框架比较五对精算耦合、MAE/RMSE/最大误差、频率、本征矢、势能面、拟合残差、三阶余项、四阶窗口敏感性与CPU成本，保留原QE＋MatterSim历史基线。软件稳定性和模型间一致性不替代DFT精度标准。
+
+新增[WS₂ DFT 补充对照](docs/WS2_DFT_COMPARISON.md)（[PDF](output/pdf/ws2_dft_comparison_20260925.pdf)）：193 个已核验 QE 单点覆盖五个匹配通道及收敛检查，与三条自行弛豫 MLFF 路线比较最终三／四阶系数、已有全网格声子和粗筛成本。报告明确保留 PZ-LDA/PBE 参考差异及旧结构未严格弛豫收敛的限制；研究用 DFT 执行代码不进入本仓库或安装包。
 这里是三条模型路线，在 MoSe₂、WS₂ 上共六组实验；全部自行弛豫。
 Γ 光学简并阈值可用 `--gamma-degeneracy-thz` 设置，默认 0.01 THz。
 已完成的 Stage1 目录拒绝覆盖，修改参数需要新目录。

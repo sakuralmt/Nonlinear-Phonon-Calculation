@@ -1,0 +1,134 @@
+{
+  "schema": 1,
+  "source_audit_sha256": "10f7df49696223052a355e1e872967fd6baa7b6d79c29ce56b0bfe851db49e7b",
+  "source_evidence_sha256": "87e7a9c8a4960aa88e638e8de672c0fe4945cd53848e331be86c781bd673f948",
+  "source_ws2_evidence": "docs/acceptance_data/ws2_dft_top5.json",
+  "conversion_cm1_per_thz": 33.356409519815,
+  "literature": {
+    "acta_si": "https://nano.fizyka.pw.edu.pl/_uploads/j.actamat.2022.118299_SI.pdf",
+    "resonant_raman": "https://pmc.ncbi.nlm.nih.gov/articles/PMC6065453/",
+    "lda_bands": "https://arxiv.org/abs/1109.5499"
+  },
+  "channels": [
+    {
+      "id": "Eprime_G",
+      "label": "E′(Γ)",
+      "q": [
+        0,
+        0
+      ],
+      "qe_modes": [
+        6,
+        7
+      ],
+      "frequencies_cm1": {
+        "qe": 361.4950513531576,
+        "tece": 338.29033093380735,
+        "prophet": 339.3778582075804,
+        "equiformer-v3": 334.63436589134693
+      },
+      "literature": {
+        "lda": 357.2,
+        "pbe": 340.8,
+        "raman_300k": 357.11,
+        "direct": true,
+        "source": "Acta Materialia 240 (2022) 118299, SI Tables S1/S3"
+      }
+    },
+    {
+      "id": "A1prime_G",
+      "label": "A₁′(Γ)",
+      "q": [
+        0,
+        0
+      ],
+      "qe_modes": [
+        8
+      ],
+      "frequencies_cm1": {
+        "qe": 421.9073116242278,
+        "tece": 404.83254317349605,
+        "prophet": 399.31910870231695,
+        "equiformer-v3": 406.344734474794
+      },
+      "literature": {
+        "lda": 418.4,
+        "pbe": 403.6,
+        "raman_300k": 417.15,
+        "direct": true,
+        "source": "Acta Materialia 240 (2022) 118299, SI Tables S1/S3"
+      }
+    },
+    {
+      "id": "LA_M",
+      "label": "LA(M)",
+      "q": [
+        3,
+        0
+      ],
+      "qe_modes": [
+        3
+      ],
+      "frequencies_cm1": {
+        "qe": 180.78947136154997,
+        "tece": 167.42015428421502,
+        "prophet": 157.00249977292984,
+        "equiformer-v3": 169.16295256830728
+      },
+      "literature": {
+        "lda": 183.5,
+        "pbe": null,
+        "raman_300k": 184.5,
+        "direct": false,
+        "source": "Scientific Reports 8 (2018) 11398, Table 1, 2LA(M) / 2"
+      }
+    },
+    {
+      "id": "TA_K",
+      "label": "TA(K)",
+      "q": [
+        2,
+        2
+      ],
+      "qe_modes": [
+        1
+      ],
+      "frequencies_cm1": {
+        "qe": 146.7960211327255,
+        "tece": 137.73845958227417,
+        "prophet": 141.9835464392458,
+        "equiformer-v3": 141.15123382594373
+      },
+      "literature": {
+        "lda": 148.0,
+        "pbe": null,
+        "raman_300k": 149.0,
+        "direct": false,
+        "source": "Scientific Reports 8 (2018) 11398, Table 1, 2TA(K) / 2"
+      }
+    }
+  ],
+  "six_by_six_grid_gaps": {
+    "qe": {
+      "max_acoustic_cm1": 185.99580647222172,
+      "min_optical_cm1": 299.9410345406336,
+      "gap_cm1": 113.9452280684119
+    },
+    "tece": {
+      "max_acoustic_cm1": 173.649029556671,
+      "min_optical_cm1": 284.5762463575707,
+      "gap_cm1": 110.92721680089971
+    },
+    "prophet": {
+      "max_acoustic_cm1": 165.8651336961312,
+      "min_optical_cm1": 273.5340237871223,
+      "gap_cm1": 107.66889009099108
+    },
+    "equiformer-v3": {
+      "max_acoustic_cm1": 175.9609873738423,
+      "min_optical_cm1": 281.55023224813897,
+      "gap_cm1": 105.58924487429667
+    }
+  },
+  "scope": "Γ rows are direct harmonic DFT comparisons. M/K values halve reported overtone peaks and are indicative, not independent single-phonon benchmarks."
+}

@@ -18,6 +18,8 @@ The [model-versus-DFT scientific report](docs/MODEL_DFT_COMPARISON.md) ([PDF](ou
 
 The separate [WS₂ DFT supplement](docs/WS2_DFT_COMPARISON.md) ([PDF](output/pdf/ws2_dft_comparison_20260925.pdf)) adds 193 verified QE single points for five matched channels and convergence checks, with all three self-relaxed MLFF routes. It compares final cubic/quartic derivatives, the existing full phonon grid and screening cost. Research-only DFT execution code is excluded from this repository and package; the report records the PZ-LDA/PBE reference difference and incomplete historical geometry relaxation.
 
+The [WS₂ literature phonon comparison](docs/WS2_LITERATURE_PHONONS.md) ([PDF](output/pdf/ws2_literature_phonons_20260925.pdf)) places the QE and self-relaxed TECE, Prophet, and EquiformerV3 Stage1 6×6 frequencies alongside published monolayer LDA/PBE Γ modes, room-temperature Raman lines, indicative M/K two-phonon peaks, and a published acoustic–optical gap.
+
 See [installation and Slurm execution](docs/INSTALL.md) and the
 [numerical architecture](ARCHITECTURE.md). The [validation report](docs/VALIDATION.md)
 documents three model routes tested on two additional materials, with

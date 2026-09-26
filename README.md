@@ -1,35 +1,22 @@
-# Hexagonal 2D nonlinear phonon screening
+# Nonlinear phonon screening for 2D hexagonal materials
 
-`npc` calculates a complete 6×6×1 harmonic phonon mesh with Phonopy, then ranks Γ–q–(−q) couplings with MatterSim. TECE-OAM-RRA-1.0 is the default Stage1 model; Prophet OAME-MBD and EquiformerV3+DeNS-OAM are optional. It does not run DFT or molecular dynamics.
+`npc` finds strong Γ–q–(−q) nonlinear phonon couplings. It relaxes a monolayer with a machine-learning force field (MLFF), calculates a 6×6×1 harmonic phonon mesh through Phonopy, and uses MatterSim to screen and fit frozen-mode potential-energy surfaces. **TECE + MatterSim** is the default route; Prophet and EquiformerV3 are optional Stage1 models. The public CLI has two stages and does not run QE or MD.
 
-## What is compared
+[中文说明](README_zh.md) · [Install and model sources](docs/INSTALL.md) · [Numerical architecture](ARCHITECTURE.md) · [Current PBE benchmark](docs/PBE_REFERENCE.md) · [Illustrated PDF](output/pdf/tmd_gga_pbe_mlff_latex_report.pdf)
 
-Stage1 uses all non-Γ q points and every finite-q phonon branch, but only Γ **optical** modes. It identifies the three Γ acoustic translations by mass-weighted eigenvector overlap with rigid translations, not by a frequency index. It discovers the **atomic** symmetry of the supplied structure with spglib and reduces q points only when transformed frequencies and eigenvectors agree. A hexagonal cell with a lower-symmetry atomic motif therefore has more candidates. If the phonons fail the symmetry check, the run records why and falls back to q/−q pairing. It never removes a candidate because of a little-group rule or a predicted coupling. Both Γ and finite-q covariance are checked; a failed Γ multiplet cannot authorize a q reduction. The `mode_maps` in each q orbit record atom permutation, operation, time reversal, branch mapping and overlap diagnostics. A near-degenerate branch number is not treated as a unique physical direction.
+## Workflow
 
-Stage2 first evaluates six energies for **every** candidate at `QΓ=±1`, `Qq=−1,0,+1` Å√amu. It ranks complete Γ-subspace channels by the norm of the third-order `Φ122` proxy. The best **20 channels by default** are expanded to all component pairs and calculated on the central 5×5 grid (`−1` to `+1` in 0.5 steps). `audit` optionally extends the strongest five refined channels to 9×9 (`−2` to `+2`). Six points are only a ranking proxy; report fourth-order results from the central fit with its fit quality and window sensitivity. The 20-channel default supersedes earlier 30-channel drafts.
+1. **Stage1 — relax and calculate phonons.** The chosen MLFF relaxes the input structure; Phonopy calculates all 36 q points. Only Γ optical modes form coupling candidates; every finite-q branch stays eligible. Atomic symmetry is checked against the actual structure and transformed phonons. If equivalence fails, the program keeps a conservative candidate set. A verified three-atom TMD with six q orbits has 324 candidates, but other structures need not.
+2. **Stage2 screen — evaluate every candidate.** MatterSim calculates six energies at `QΓ=±1` and `Qq=−1,0,+1` Å√amu. The norm of the momentum-allowed third-order Γ–q–(−q) channel ranks candidates.
+3. **Stage2 refine and audit.** The best 20 complete channels by default receive a central 5×5 PES grid (`|Q|≤1`, step 0.5) for third- and fourth-order fitting. Optional `audit` extends the strongest five to 9×9 (`|Q|≤2`, step 0.5) for window checks. Six-point scores are screening proxies, not fourth-order results.
 
-Lengths are Å, masses amu, total supercell energies eV, forces eV/Å, force constants eV/Å², frequencies THz and real normal coordinates Å√amu. Third and fourth derivatives are meV/(Å³·amu³ᐟ²) and meV/(Å⁴·amu²). Outputs use contract **v5** and reject older mode-pair files, including v4 files with Γ acoustic candidates.
+The **6×6×1 q mesh** sets phonon wavevectors. The **5×5, 9×9 and research 17×17 PES grids** sample two displacement coordinates. These measure different kinds of convergence.
 
-## Requirements
+## Quick start
 
-See the [completed acceptance and comparison report](docs/ACCEPTANCE.md) for version 1.0.1, including the full q-orbit checks, precision correction and historical DFT limits.
+Use Python 3.10+ and `pip install -e .`. Phonopy is pinned to 2.38.0. Install the chosen Stage1 model and MatterSim in a compatible environment; model weights are not bundled. Tested source commits, weight checks and CPU/Slurm guidance are in [INSTALL.md](docs/INSTALL.md). Run `npc --help` for commands.
 
-The [model-versus-DFT scientific report](docs/MODEL_DFT_COMPARISON.md) ([PDF](output/pdf/model_dft_comparison_1_0_1.pdf)) compares the rechecked five pairs, third/fourth derivatives, frequencies, mode overlaps, energy surfaces, fit residuals, window sensitivity and CPU cost. It includes the archived QE + MatterSim baseline and the three self-relaxed MLFF routes; no new DFT calculations were required.
-
-The separate [WS₂ DFT supplement](docs/WS2_DFT_COMPARISON.md) ([PDF](output/pdf/ws2_dft_comparison_20260925.pdf)) adds 193 verified QE single points for five matched channels and convergence checks, with all three self-relaxed MLFF routes. It compares final cubic/quartic derivatives, the existing full phonon grid and screening cost. Research-only DFT execution code is excluded from this repository and package; the report records the PZ-LDA/PBE reference difference and incomplete historical geometry relaxation.
-
-The [WS₂ literature phonon comparison](docs/WS2_LITERATURE_PHONONS.md) ([PDF](output/pdf/ws2_literature_phonons_20260925.pdf)) places the QE and self-relaxed TECE, Prophet, and EquiformerV3 Stage1 6×6 frequencies alongside published monolayer LDA/PBE Γ modes, room-temperature Raman lines, indicative M/K two-phonon peaks, and a published acoustic–optical gap.
-
-See [installation and Slurm execution](docs/INSTALL.md) and the
-[numerical architecture](ARCHITECTURE.md). The [validation report](docs/VALIDATION.md)
-documents three model routes tested on two additional materials, with
-[machine-readable results](docs/validation_v5.json). For N atoms and C verified q orbits,
-Stage1 produces `C × (3N−3) × 3N` candidates: 324 for the validated three-atom
-TMD cells with six q orbits. A one-atom primitive cell has no Γ optical pairs.
-
-Use Python 3.10+ with `pip install -e .`. Phonopy is pinned to 2.38.0; spglib is required for atomic symmetry. Install the chosen model in its own environment: validated TECE source commit `81f65a4c188bd09cec8d1419388f7afdcc1b6fd0`, Prophet commit `c4fda8251d8a7c90c7cb7842aea4d2f57e5fc3bd`, or EquiformerV3 commit `a7300c58df683dc99cb48027d5bfd4c887486c48`. Stage2 requires MatterSim 1.2.1 and the pinned 5M checkpoint. The adapters verify source/checkpoint hashes before inference. See the corresponding `MODEL_SOURCES` and backend constants for the exact validated files.
-
-For a QE-style input with explicit monolayer vacuum and periodic flags, run:
+For a QE-style monolayer input with atom constraint flags:
 
 ```bash
 npc stage1 --model tece \
@@ -51,28 +38,26 @@ npc stage2 refine \
   --output-dir /runs/mose2/tece/stage2
 ```
 
-Pass the **same** mode-pair file, structure, checkpoint, output directory and `--top-channels` to every Stage2 phase. Use `npc stage2 audit` with the same arguments for 9×9 diagnostics. Replace `--model tece` with `prophet` or `equiformer-v3` for alternate Stage1; Prophet uses `NPC_PROPHET_SOURCE` or its pinned installation, whereas TECE and Equiformer require `--source-root`.
+Use the **same** mode-pair file, relaxed structure, MatterSim checkpoint and output directory for `screen`, `refine` and optional `audit`. Replace `--model tece` with `prophet` or `equiformer-v3` for other Stage1 routes; their source options are in [INSTALL.md](docs/INSTALL.md). Stage2 supports point-level restart and `--shard-index I --shard-count N`; after shards finish, `--finalize-only` checks completeness and writes rankings. Changed input hashes are rejected.
 
-Stage1 always relaxes its input with the selected model. The optimized structure is saved at `stage1/relax/optimized_structure.scf.inp`; pass **that file** to Stage2. Both stages verify the relaxation provenance and structure hash. The constrained-relaxation writer currently requires a QE-style source with atom flags; it performs no QE calculation.
+Stage1 writes `phonon_dataset.json` (all q points and ASR diagnostics) and `mode_pairs.selected.json` (symmetry and mode mappings). Stage2 writes `pairs/*/points.json`, `screen_ranking.json`, `selection.json`, `refine_ranking.json` and optional `audit_ranking.json`. Contract v5 rejects older mode-pair files.
 
-`--gamma-degeneracy-thz` sets the Γ optical grouping threshold (default 0.01 THz).
-A completed Stage1 directory cannot be overwritten; use a fresh directory for
-different parameters. Keep the same Stage2 settings throughout a restart.
+## Current DFT benchmark: GGA-PBE
 
-Stage2 accepts `--shard-index I --shard-count N`. Run the same phase once per shard, then rerun with `--finalize-only` to verify all expected energies and write its ranking. Point checkpoints are reused after interruption. Never change a run's input files or top-channel count in place: its identity hash will reject the restart.
+The [WS₂, MoS₂ and WSe₂ PBE study](docs/PBE_REFERENCE.md) uses QE 7.4.1, PBE ultrasoft pseudopotentials, PBE-relaxed cells, 120/1200 Ry, a primitive 30×30×1 k mesh and new 6×6×1 DFPT grids. **579/579** selected QE single points completed: five matched physical channels per material, central 5×5 PES fits, one 9×9 grid each and convergence checks. The [illustrated report](output/pdf/tmd_gga_pbe_mlff_latex_report.pdf), [source data](docs/reference_data/pbe_20260925/) and [portable report code](reports/pbe_three_materials/) are bundled.
 
-## Outputs and limits
+| Material | TECE + MatterSim frequency MAE vs PBE (THz) | `|Φ122|` MAE | Signed `Φ1122` MAE |
+| --- | ---: | ---: | ---: |
+| WS₂ | 0.0928 | 6.104 | 2.594 |
+| MoS₂ | 0.0880 | 4.328 | 2.939 |
+| WSe₂ | 0.0654 | 1.180 | 0.628 |
 
-`stage1/phonon_dataset.json` contains the 36 q-point frequencies, eigenvectors, ASR and finite-step diagnostics. `stage1/mode_pairs.selected.json` contains the structure-derived q orbits, branch mappings and complete candidates. Stage2 keeps `pairs/<pair_code>/points.json`, `screen_ranking.json`, `selection.json`, `refine_ranking.json` and optional `audit_ranking.json`. Model weights, source, structure, normalization and screening settings are recorded with each run.
+Third- and fourth-order units are meV/(Å³·amu³ᐟ²) and meV/(Å⁴·amu²). Coupling errors are over the five matched channels, not the full spectrum. Changing the reference from old PZ-LDA to PBE reduces the cubic gap, while the WS₂ Γ8–M6 quartic **sign difference persists**, even on identical QE/MatterSim input structures. The old [LDA model/DFT report](docs/MODEL_DFT_COMPARISON.md) and [WS₂ supplement](docs/WS2_DFT_COMPARISON.md) are retained as historical baselines. A separate WS₂ fixed-window **17×17 QE density test** is still running as of 2026-09-26; its DFT convergence is not claimed here.
 
-Phonopy's force-constant symmetrizer enforces translational and index-exchange conditions; this release does **not** claim to enforce the 2D rotational sum rule for ZA. No non-analytic correction is applied. This workflow assumes nonmagnetic scalar MLFF energies without an external field. Its symmetry reduction is checked against the Stage1 phonons. Because each Stage1 model relaxes its own structure, cross-model differences include structural effects; compare phonon modes and couplings only after a reliable mode/subspace mapping. Historical QE results should not be called exact same-structure labels without verifying their geometry and displacement convention.
+## Limits and repository layout
 
-## Repository
+Lengths are Å, masses amu, total supercell energies eV, forces eV/Å, frequencies THz, real mode coordinates Å√amu. A Γ degeneracy is ranked by the full allowed coupling-vector norm; individual degenerate branches are basis-dependent. `Φ112` at finite q is momentum-forbidden and only a fit diagnostic.
 
-`nonlinear_phonon_calculation/cli.py` provides the public interface. `mlff_modepair_workflow/` contains the Phonopy bridge, atomic-symmetry mapping, model adapters, frozen-mode builder and staged PES fit. `tests/` has analytic, structure-symmetry and checkpoint tests. `scripts/` contains optional CPU timing tools. All runtime inputs, checkpoints and model weights stay outside the repository.
+Phonopy enforces translational ASR here, not the 2D ZA rotational sum rule. There is no non-analytic correction, SOC, external field or MD. Each model relaxes its own geometry, so cross-model comparisons require mode/subspace matching. QE PBE-USPP does not reproduce every MLFF training-label detail.
 
-### Precision and momentum diagnostics (1.0.1)
-
-MatterSim retains float32 model inference and promotes per-atom energies to float64 **before** summing the supercell energy. This prevents the dominant accumulation error observed for 108-atom cells; it is not full float64 inference. The accumulation protocol is part of every checkpoint identity. Earlier v5 checkpoints and Stage1 files lacking the Γ covariance check are read-only references and cannot be silently resumed with this version.
-
-For a Γ multiplet, each component separately couples to q and −q; the score is the norm of those `Φ122` components. It is not a two-Γ/one-q interaction. Fitted `Φ112` (`QΓ² Qq`) is momentum-forbidden at finite q and is labeled a numerical diagnostic. The 13-term fit retains such terms to expose numerical contamination; ranking never uses them. For a complete Γ multiplet and isolated finite-q mode, comparisons use the third-order vector norm and the fourth-order `Φ1122` trace.
+The installable package is in `nonlinear_phonon_calculation/` and `mlff_modepair_workflow/`; software tests are in `tests/`. PBE report scripts are outside the package. Model weights, raw QE output and Slurm controllers are not bundled. See [validation](docs/VALIDATION.md).

@@ -1,0 +1,100 @@
+{
+  "validation": "579/579 unique jobs, valid input/script/output hashes, QE convergence and forces, exit status 0",
+  "controller_state": "complete",
+  "measured_by": "/usr/bin/time -v around 64-rank mpirun, one exclusive node per QE job",
+  "memory_note": "The time wrapper's MaxRSS measures the mpirun launcher and is not node peak memory; no peak-memory claim is made.",
+  "total": {
+    "n": 579,
+    "mean_seconds": 647.1679620034542,
+    "median_seconds": 397.65,
+    "p90_seconds": 1460.35,
+    "max_seconds": 3670.0,
+    "node_hours": 104.08618055555571
+  },
+  "by_material_and_atom_count": {
+    "ws2": {
+      "12": {
+        "n": 143,
+        "mean_seconds": 389.3453846153846,
+        "median_seconds": 367.42,
+        "p90_seconds": 624.41,
+        "max_seconds": 2274.26,
+        "node_hours": 15.465663888888896
+      },
+      "27": {
+        "n": 50,
+        "mean_seconds": 1360.5554,
+        "median_seconds": 1429.19,
+        "p90_seconds": 1488.9,
+        "max_seconds": 3507.74,
+        "node_hours": 18.89660277777778
+      },
+      "all": {
+        "n": 193,
+        "mean_seconds": 640.9541968911917,
+        "median_seconds": 379.83,
+        "p90_seconds": 1455.05,
+        "max_seconds": 3507.74,
+        "node_hours": 34.36226666666668
+      }
+    },
+    "mos2": {
+      "12": {
+        "n": 143,
+        "mean_seconds": 363.58160839160837,
+        "median_seconds": 345.75,
+        "p90_seconds": 584.92,
+        "max_seconds": 2409.9,
+        "node_hours": 14.442269444444438
+      },
+      "27": {
+        "n": 50,
+        "mean_seconds": 1197.716,
+        "median_seconds": 1312.92,
+        "p90_seconds": 1368.21,
+        "max_seconds": 1440.72,
+        "node_hours": 16.634944444444443
+      },
+      "all": {
+        "n": 193,
+        "mean_seconds": 579.6786010362695,
+        "median_seconds": 352.2,
+        "p90_seconds": 1333.96,
+        "max_seconds": 2409.9,
+        "node_hours": 31.07721388888889
+      }
+    },
+    "wse2": {
+      "12": {
+        "n": 143,
+        "mean_seconds": 429.14076923076925,
+        "median_seconds": 403.7,
+        "p90_seconds": 733.34,
+        "max_seconds": 2306.12,
+        "node_hours": 17.046424999999992
+      },
+      "27": {
+        "n": 50,
+        "mean_seconds": 1555.2198,
+        "median_seconds": 1643.88,
+        "p90_seconds": 1840.08,
+        "max_seconds": 3670.0,
+        "node_hours": 21.600274999999993
+      },
+      "all": {
+        "n": 193,
+        "mean_seconds": 720.8710880829016,
+        "median_seconds": 416.85,
+        "p90_seconds": 1687.44,
+        "max_seconds": 3670.0,
+        "node_hours": 38.646699999999996
+      }
+    }
+  },
+  "job_manifest_hashes": {
+    "ws2": "b450b53fe621a8e70670ad216174e063717e835841331b272e866b4fec606d06",
+    "mos2": "2809a11b2b6ec91c7d93a7e6435a012b121657f483f3e5c9c14befda4d1d4d23",
+    "wse2": "e3d87e188ef2231eb885b4aa428b51496de8b1e89961714783db5c70e656544e"
+  },
+  "status_sha256": "8ec78c006198f400ebf8e9d5fd8b3309112ae2294de3344435a8b2066f21ecde"
+}

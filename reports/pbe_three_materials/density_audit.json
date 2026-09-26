@@ -1,0 +1,64 @@
+{
+  "description": "Fixed |Q|<=2: sparse 5x5 delta Q=1 versus full 9x9 delta Q=0.5, both from identical archived 81 QE energies; central 5x5 |Q|<=1 is a separate window comparison.",
+  "fitter_sha256": "50157e924541d2d48622d9a0f479690d56480c4d7ec6387139f9b210f13ac3b6",
+  "limitations": "Only rank-1 channels; no denser 9x9 grid within |Q|<=1 and no other-channel density test.",
+  "rows": [
+    {
+      "material": "ws2",
+      "channel": "Gamma8-M9",
+      "values_mev_per_A4amu2": {
+        "central_5x5_step_0p5_extent_1": 7.798494521661411,
+        "wide_5x5_step_1_extent_2": 7.677614882428722,
+        "wide_9x9_step_0p5_extent_2": 7.690477350562515
+      },
+      "density_change_percent": 0.16753208295494648,
+      "window_change_percent": -1.38510286567316,
+      "design_rank": {
+        "sparse": 13,
+        "dense": 13
+      },
+      "source_sha256": {
+        "docs/reference_data/pbe_20260925/results_ws2.json": "fbcb69143cd480dc0fed71d25619a670829cb5758ac3eb158722f0be708df7d9",
+        "docs/reference_data/pbe_20260925/selection_ws2.json": "70b576f6b6513b3d2e7bed516f50eb8e99a9e556153f737bd5adfd856806d588"
+      }
+    },
+    {
+      "material": "mos2",
+      "channel": "Gamma8-M9",
+      "values_mev_per_A4amu2": {
+        "central_5x5_step_0p5_extent_1": 7.557301679911667,
+        "wide_5x5_step_1_extent_2": 7.409391137524607,
+        "wide_9x9_step_0p5_extent_2": 7.424111887680719
+      },
+      "density_change_percent": 0.198676920719687,
+      "window_change_percent": -1.7623987750149617,
+      "design_rank": {
+        "sparse": 13,
+        "dense": 13
+      },
+      "source_sha256": {
+        "docs/reference_data/pbe_20260925/results_mos2.json": "63dd6e7f1a782e48b04681308bad264518e500e2f149bffa13878c0ec46ab417",
+        "docs/reference_data/pbe_20260925/selection_mos2.json": "1a105bc3e9ca3c13f30eab94244805a00afbad4bf0afee242ea359f1d0a8078e"
+      }
+    },
+    {
+      "material": "wse2",
+      "channel": "Gamma8-M9",
+      "values_mev_per_A4amu2": {
+        "central_5x5_step_0p5_extent_1": 1.679775531983422,
+        "wide_5x5_step_1_extent_2": 1.684468109098345,
+        "wide_9x9_step_0p5_extent_2": 1.6839859981019036
+      },
+      "density_change_percent": -0.028620963129988297,
+      "window_change_percent": 0.2506564739343409,
+      "design_rank": {
+        "sparse": 13,
+        "dense": 13
+      },
+      "source_sha256": {
+        "docs/reference_data/pbe_20260925/results_wse2.json": "27cdc2324a4f9e008d8042060f7559a16d19d9b2b7c5903396c96b965fbdf0a6",
+        "docs/reference_data/pbe_20260925/selection_wse2.json": "01bbca69d378bad8f4ced85c460ba5c305c68c17d18e960caae73ea441c95298"
+      }
+    }
+  ]
+}

@@ -1,0 +1,245 @@
+{
+  "ws2": {
+    "lda": {
+      "a_A": 3.120732436,
+      "b_A": 3.120732435142553,
+      "c_A": 18.090841859,
+      "gamma_deg": 120.00000000908892,
+      "chalcogen_vertical_height_A": 1.558074637939458,
+      "nearest_metal_chalcogen_bond_A": 2.3819992067666798,
+      "sha256": "dfb0259e9356fb68c14dd9a3ba7de36148719929a699c9e6fdae00cc6ffc264c",
+      "species": [
+        "W",
+        "S",
+        "S"
+      ]
+    },
+    "pbe": {
+      "a_A": 3.188110164,
+      "b_A": 3.188110163999677,
+      "c_A": 18.090841858,
+      "gamma_deg": 120.00000000000335,
+      "chalcogen_vertical_height_A": 1.572352778708149,
+      "nearest_metal_chalcogen_bond_A": 2.4208074546798306,
+      "sha256": "dcb7f8b47084bde0904da0f2598b56fe571566aaa9b4e7a0427182cf3f2f12db",
+      "species": [
+        "W",
+        "S",
+        "S"
+      ],
+      "relative_to_lda_percent": 2.1590357193954635
+    },
+    "mlff": {
+      "tece": {
+        "a_A": 3.19156804654994,
+        "b_A": 3.1915680464951235,
+        "c_A": 18.090841669,
+        "gamma_deg": 120.00000000056816,
+        "chalcogen_vertical_height_A": 1.5720060219466059,
+        "nearest_metal_chalcogen_bond_A": 2.4221006710401887,
+        "sha256": "59388d7739c78d308c66733017f6864ee28faca670145f7b8ec7c1bc7d11343b",
+        "species": [
+          "W",
+          "S",
+          "S"
+        ],
+        "relative_to_lda_percent": 2.269839276600516,
+        "relative_to_pbe_percent": 0.10846182760515521
+      },
+      "prophet": {
+        "a_A": 3.192284372851951,
+        "b_A": 3.1922843727971215,
+        "c_A": 18.090841669,
+        "gamma_deg": 120.00000000056816,
+        "chalcogen_vertical_height_A": 1.5712135113863197,
+        "nearest_metal_chalcogen_bond_A": 2.421901111962061,
+        "sha256": "701057183bb9908c75f97862f80973224cb015fd82fe97b412bb2ede3812c360",
+        "species": [
+          "W",
+          "S",
+          "S"
+        ],
+        "relative_to_lda_percent": 2.292793064427623,
+        "relative_to_pbe_percent": 0.13093050858423716
+      },
+      "equiformer-v3": {
+        "a_A": 3.190487183552711,
+        "b_A": 3.190487183497913,
+        "c_A": 18.090841669,
+        "gamma_deg": 120.00000000056816,
+        "chalcogen_vertical_height_A": 1.5724190356325272,
+        "nearest_metal_chalcogen_bond_A": 2.4218939185735207,
+        "sha256": "472978ecfc7e121363ff725957b8376adea1508c4c2ead9de66b9551a387f5d9",
+        "species": [
+          "W",
+          "S",
+          "S"
+        ],
+        "relative_to_lda_percent": 2.235204362541232,
+        "relative_to_pbe_percent": 0.07455889007701444
+      }
+    }
+  },
+  "mos2": {
+    "lda": {
+      "a_A": 3.129006362,
+      "b_A": 3.129006361917617,
+      "c_A": 18.10474156,
+      "gamma_deg": 120.00000000087095,
+      "chalcogen_vertical_height_A": 1.557563933715982,
+      "nearest_metal_chalcogen_bond_A": 2.385281048021029,
+      "sha256": "e1bac29284dbd23a43efa043e321e6344c43da3fb09ced93ed91de021c5ab89a",
+      "species": [
+        "Mo",
+        "S",
+        "S"
+      ]
+    },
+    "pbe": {
+      "a_A": 3.183252423,
+      "b_A": 3.1832524229996815,
+      "c_A": 18.104741573,
+      "gamma_deg": 120.0000000000033,
+      "chalcogen_vertical_height_A": 1.5622832742840507,
+      "nearest_metal_chalcogen_bond_A": 2.412141722883847,
+      "sha256": "c193080bc60f62897fcb2bed0b989b7c66dd8159c07bfb23c251de25f6b18b72",
+      "species": [
+        "Mo",
+        "S",
+        "S"
+      ],
+      "relative_to_lda_percent": 1.7336513488367178
+    },
+    "mlff": {
+      "tece": {
+        "a_A": 3.189836300805033,
+        "b_A": 3.1898363007210486,
+        "c_A": 18.10474156,
+        "gamma_deg": 120.00000000087095,
+        "chalcogen_vertical_height_A": 1.5652794596011217,
+        "nearest_metal_chalcogen_bond_A": 2.4169783141241297,
+        "sha256": "dc968a9eb187ea9165191554de74cd133f0f5610be4511df37b384bfdaa6fc7d",
+        "species": [
+          "Mo",
+          "S",
+          "S"
+        ],
+        "relative_to_lda_percent": 1.9440656798841216,
+        "relative_to_pbe_percent": 0.20682864347993934
+      },
+      "prophet": {
+        "a_A": 3.191235825784896,
+        "b_A": 3.1912358257008746,
+        "c_A": 18.10474156,
+        "gamma_deg": 120.00000000087095,
+        "chalcogen_vertical_height_A": 1.5646284870008955,
+        "nearest_metal_chalcogen_bond_A": 2.4171727963864194,
+        "sha256": "2b5bf3947de3498f6f70b0cc772313e8f2afc7a096c7e2e43e1c2aaf2a7359aa",
+        "species": [
+          "Mo",
+          "S",
+          "S"
+        ],
+        "relative_to_lda_percent": 1.9887931370366374,
+        "relative_to_pbe_percent": 0.25079389643163363
+      },
+      "equiformer-v3": {
+        "a_A": 3.188233194064055,
+        "b_A": 3.188233193980113,
+        "c_A": 18.10474156,
+        "gamma_deg": 120.00000000087095,
+        "chalcogen_vertical_height_A": 1.5659748819814876,
+        "nearest_metal_chalcogen_bond_A": 2.4167235653506096,
+        "sha256": "1968b88486f82f8af9b0219dc568f3016a3914147e812675d38061919f189d60",
+        "species": [
+          "Mo",
+          "S",
+          "S"
+        ],
+        "relative_to_lda_percent": 1.8928319476537725,
+        "relative_to_pbe_percent": 0.15646798940818218
+      }
+    }
+  },
+  "wse2": {
+    "lda": {
+      "a_A": 3.2492974360027103,
+      "b_A": 3.249297435691451,
+      "c_A": 19.053366518,
+      "gamma_deg": 120.00014802287471,
+      "chalcogen_vertical_height_A": 1.6657084914936162,
+      "nearest_metal_chalcogen_bond_A": 2.5087506382238387,
+      "sha256": "239f9f0288a55eacf854bc39bab2a641bbdfd614f0822b16e0348af3f830eed1",
+      "species": [
+        "W",
+        "Se",
+        "Se"
+      ]
+    },
+    "pbe": {
+      "a_A": 3.320350708,
+      "b_A": 3.320350708000306,
+      "c_A": 19.05336652,
+      "gamma_deg": 119.99999999999696,
+      "chalcogen_vertical_height_A": 1.6795227520911231,
+      "nearest_metal_chalcogen_bond_A": 2.5486673619911415,
+      "sha256": "aaee0aa8e3bce8a45eded3f07e9ea94cf1daf529defce59e2fab303bc9e38aca",
+      "species": [
+        "W",
+        "Se",
+        "Se"
+      ],
+      "relative_to_lda_percent": 2.186727235555863
+    },
+    "mlff": {
+      "tece": {
+        "a_A": 3.3256765000916872,
+        "b_A": 3.32567649977311,
+        "c_A": 19.053366518,
+        "gamma_deg": 120.00014802287471,
+        "chalcogen_vertical_height_A": 1.6809777009908935,
+        "nearest_metal_chalcogen_bond_A": 2.5519258326782066,
+        "sha256": "08e07b4142ef2478c2b21c2e9f2679a9743e4cd2d950dffa06a9798115875b3c",
+        "species": [
+          "W",
+          "Se",
+          "Se"
+        ],
+        "relative_to_lda_percent": 2.350633193584728,
+        "relative_to_pbe_percent": 0.16039848076456753
+      },
+      "prophet": {
+        "a_A": 3.3266605226862103,
+        "b_A": 3.3266605223675394,
+        "c_A": 19.053366518,
+        "gamma_deg": 120.00014802287471,
+        "chalcogen_vertical_height_A": 1.6805030645292867,
+        "nearest_metal_chalcogen_bond_A": 2.552040413757493,
+        "sha256": "6c611a425cb50a698e2c80dea1f73d433a34a1e2b89607d5abd46aa0d4f3f9c5",
+        "species": [
+          "W",
+          "Se",
+          "Se"
+        ],
+        "relative_to_lda_percent": 2.380917358512802,
+        "relative_to_pbe_percent": 0.19003458493127567
+      },
+      "equiformer-v3": {
+        "a_A": 3.326535345255605,
+        "b_A": 3.3265353449369472,
+        "c_A": 19.053366518,
+        "gamma_deg": 120.00014802287471,
+        "chalcogen_vertical_height_A": 1.6807813416971316,
+        "nearest_metal_chalcogen_bond_A": 2.5521694195508964,
+        "sha256": "0ec286954a1cc23a6fa6167f419d388e50cd922da29a44d39d4d8b450f172d3e",
+        "species": [
+          "W",
+          "Se",
+          "Se"
+        ],
+        "relative_to_lda_percent": 2.37706491246652,
+        "relative_to_pbe_percent": 0.1862645786393502
+      }
+    }
+  }
+}

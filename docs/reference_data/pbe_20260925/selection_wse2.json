@@ -1,0 +1,937 @@
+{
+  "policy": "five accepted LDA physical channels mapped to PBE by eigenvector overlap",
+  "normalization": "real_mass_weighted_unit_v2",
+  "units": {
+    "length": "Angstrom",
+    "mass": "amu",
+    "energy": "eV/supercell",
+    "force": "eV/Angstrom",
+    "force_constant": "eV/Angstrom^2",
+    "frequency": "THz",
+    "normal_coordinate": "Angstrom*sqrt(amu)",
+    "third_order": "meV/(Angstrom^3*amu^(3/2))",
+    "fourth_order": "meV/(Angstrom^4*amu^2)",
+    "eigenvector": "dimensionless mass-weighted Cartesian"
+  },
+  "material": "wse2",
+  "pbe_structure_input_sha256": "aaee0aa8e3bce8a45eded3f07e9ea94cf1daf529defce59e2fab303bc9e38aca",
+  "pbe_phonon_eig_sha256": "026d8caf9b8bbea6f223887ea429cee3955f196636c3f5398bd2f648d0965104",
+  "mode_comparison_sha256": "37ea90867c0c7f343cb540ab78bb57f3d22b6725916c433e52c374e41c1acb95",
+  "selected": [
+    {
+      "rank": 1,
+      "lda_channel": "Gamma8-M9",
+      "pair": {
+        "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m9",
+        "coupling_type": "Q_gamma*Q_q^2",
+        "q_orbit_number": null,
+        "gamma_mode": {
+          "mode_code": "Gamma_p0_m8",
+          "point_index": 0,
+          "point_label": "Gamma",
+          "q_frac": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mode_index_zero_based": 7,
+          "mode_number_one_based": 8,
+          "freq_thz": 7.251994,
+          "eigenvector": [
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ]
+            ],
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                0.7071067811865476,
+                -0.0
+              ]
+            ],
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.7071067811865476,
+                0.0
+              ]
+            ]
+          ]
+        },
+        "target_mode": {
+          "mode_code": "M_q3_0_m9",
+          "point_index": 18,
+          "point_label": "M",
+          "q_frac": [
+            0.5,
+            0.0,
+            0.0
+          ],
+          "qbar_frac": [
+            0.5,
+            0.0,
+            0.0
+          ],
+          "self_conjugate": true,
+          "mode_index_zero_based": 8,
+          "mode_number_one_based": 9,
+          "freq_thz": 7.685632,
+          "eigenvector_q": [
+            [
+              [
+                -0.4751528974280424,
+                0.0
+              ],
+              [
+                -0.2743299407799906,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ]
+            ],
+            [
+              [
+                0.019924995698761754,
+                -0.0
+              ],
+              [
+                0.011503997516615069,
+                -0.0
+              ],
+              [
+                0.5907258724791336,
+                -0.0
+              ]
+            ],
+            [
+              [
+                0.019924995698761754,
+                -0.0
+              ],
+              [
+                0.011503997516615069,
+                -0.0
+              ],
+              [
+                -0.5907258724791336,
+                0.0
+              ]
+            ]
+          ],
+          "eigenvector_qbar_by_conjugation": [
+            [
+              [
+                -0.4751528974280424,
+                -0.0
+              ],
+              [
+                -0.2743299407799906,
+                -0.0
+              ],
+              [
+                -0.0,
+                -0.0
+              ]
+            ],
+            [
+              [
+                0.019924995698761754,
+                0.0
+              ],
+              [
+                0.011503997516615069,
+                0.0
+              ],
+              [
+                0.5907258724791336,
+                0.0
+              ]
+            ],
+            [
+              [
+                0.019924995698761754,
+                0.0
+              ],
+              [
+                0.011503997516615069,
+                0.0
+              ],
+              [
+                -0.5907258724791336,
+                -0.0
+              ]
+            ]
+          ]
+        }
+      },
+      "q_index": [
+        3,
+        0
+      ],
+      "gamma_overlap_squared": 0.9989873974827926,
+      "q_overlap_squared": 0.999651786631441,
+      "finite_q_degenerate_subspace": [
+        9
+      ],
+      "symmetry_representative_verified": true
+    },
+    {
+      "rank": 2,
+      "lda_channel": "Gamma8-M8",
+      "pair": {
+        "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m8",
+        "coupling_type": "Q_gamma*Q_q^2",
+        "q_orbit_number": null,
+        "gamma_mode": {
+          "mode_code": "Gamma_p0_m8",
+          "point_index": 0,
+          "point_label": "Gamma",
+          "q_frac": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mode_index_zero_based": 7,
+          "mode_number_one_based": 8,
+          "freq_thz": 7.251994,
+          "eigenvector": [
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ]
+            ],
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                0.7071067811865476,
+                -0.0
+              ]
+            ],
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.7071067811865476,
+                0.0
+              ]
+            ]
+          ]
+        },
+        "target_mode": {
+          "mode_code": "M_q3_0_m8",
+          "point_index": 18,
+          "point_label": "M",
+          "q_frac": [
+            0.5,
+            0.0,
+            0.0
+          ],
+          "qbar_frac": [
+            0.5,
+            0.0,
+            0.0
+          ],
+          "self_conjugate": true,
+          "mode_index_zero_based": 7,
+          "mode_number_one_based": 8,
+          "freq_thz": 7.478854,
+          "eigenvector_q": [
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                0.6596058448185088,
+                -0.0
+              ]
+            ],
+            [
+              [
+                -0.4226789005588829,
+                0.0
+              ],
+              [
+                -0.2440339425876053,
+                0.0
+              ],
+              [
+                -0.21035695051058823,
+                0.0
+              ]
+            ],
+            [
+              [
+                0.4226789005588829,
+                -0.0
+              ],
+              [
+                0.2440339425876053,
+                -0.0
+              ],
+              [
+                -0.21035695051058823,
+                0.0
+              ]
+            ]
+          ],
+          "eigenvector_qbar_by_conjugation": [
+            [
+              [
+                -0.0,
+                -0.0
+              ],
+              [
+                -0.0,
+                -0.0
+              ],
+              [
+                0.6596058448185088,
+                0.0
+              ]
+            ],
+            [
+              [
+                -0.4226789005588829,
+                -0.0
+              ],
+              [
+                -0.2440339425876053,
+                -0.0
+              ],
+              [
+                -0.21035695051058823,
+                -0.0
+              ]
+            ],
+            [
+              [
+                0.4226789005588829,
+                0.0
+              ],
+              [
+                0.2440339425876053,
+                0.0
+              ],
+              [
+                -0.21035695051058823,
+                -0.0
+              ]
+            ]
+          ]
+        }
+      },
+      "q_index": [
+        3,
+        0
+      ],
+      "gamma_overlap_squared": 0.9989873974827926,
+      "q_overlap_squared": 0.9999286306501268,
+      "finite_q_degenerate_subspace": [
+        8
+      ],
+      "symmetry_representative_verified": true
+    },
+    {
+      "rank": 3,
+      "lda_channel": "Gamma8-M7",
+      "pair": {
+        "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m7",
+        "coupling_type": "Q_gamma*Q_q^2",
+        "q_orbit_number": null,
+        "gamma_mode": {
+          "mode_code": "Gamma_p0_m8",
+          "point_index": 0,
+          "point_label": "Gamma",
+          "q_frac": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mode_index_zero_based": 7,
+          "mode_number_one_based": 8,
+          "freq_thz": 7.251994,
+          "eigenvector": [
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ]
+            ],
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                0.7071067811865476,
+                -0.0
+              ]
+            ],
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.7071067811865476,
+                0.0
+              ]
+            ]
+          ]
+        },
+        "target_mode": {
+          "mode_code": "M_q3_0_m7",
+          "point_index": 18,
+          "point_label": "M",
+          "q_frac": [
+            0.5,
+            0.0,
+            0.0
+          ],
+          "qbar_frac": [
+            0.5,
+            0.0,
+            0.0
+          ],
+          "self_conjugate": true,
+          "mode_index_zero_based": 6,
+          "mode_number_one_based": 7,
+          "freq_thz": 6.963796,
+          "eigenvector_q": [
+            [
+              [
+                -0.3487901028296157,
+                0.0
+              ],
+              [
+                0.6041221781061186,
+                0.0
+              ],
+              [
+                0.0,
+                0.0
+              ]
+            ],
+            [
+              [
+                0.2533230746842133,
+                0.0
+              ],
+              [
+                -0.43876912935705625,
+                0.0
+              ],
+              [
+                0.0,
+                -0.0
+              ]
+            ],
+            [
+              [
+                0.2533230746842133,
+                0.0
+              ],
+              [
+                -0.43876912935705625,
+                0.0
+              ],
+              [
+                0.0,
+                0.0
+              ]
+            ]
+          ],
+          "eigenvector_qbar_by_conjugation": [
+            [
+              [
+                -0.3487901028296157,
+                -0.0
+              ],
+              [
+                0.6041221781061186,
+                -0.0
+              ],
+              [
+                0.0,
+                -0.0
+              ]
+            ],
+            [
+              [
+                0.2533230746842133,
+                -0.0
+              ],
+              [
+                -0.43876912935705625,
+                -0.0
+              ],
+              [
+                0.0,
+                0.0
+              ]
+            ],
+            [
+              [
+                0.2533230746842133,
+                -0.0
+              ],
+              [
+                -0.43876912935705625,
+                -0.0
+              ],
+              [
+                0.0,
+                -0.0
+              ]
+            ]
+          ]
+        }
+      },
+      "q_index": [
+        3,
+        0
+      ],
+      "gamma_overlap_squared": 0.9989873974827926,
+      "q_overlap_squared": 0.9995567581488022,
+      "finite_q_degenerate_subspace": [
+        7
+      ],
+      "symmetry_representative_verified": true
+    },
+    {
+      "rank": 4,
+      "lda_channel": "Gamma8-K9",
+      "pair": {
+        "pair_code": "Gamma_p0_m8__K_q_0.333_0.333_0.000_m9",
+        "coupling_type": "Q_gamma*Q_q*Q_-q",
+        "q_orbit_number": null,
+        "gamma_mode": {
+          "mode_code": "Gamma_p0_m8",
+          "point_index": 0,
+          "point_label": "Gamma",
+          "q_frac": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mode_index_zero_based": 7,
+          "mode_number_one_based": 8,
+          "freq_thz": 7.251994,
+          "eigenvector": [
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ]
+            ],
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                0.7071067811865476,
+                -0.0
+              ]
+            ],
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.7071067811865476,
+                0.0
+              ]
+            ]
+          ]
+        },
+        "target_mode": {
+          "mode_code": "K_q2_2_m9",
+          "point_index": 14,
+          "point_label": "K",
+          "q_frac": [
+            0.3333333333333333,
+            0.3333333333333333,
+            0.0
+          ],
+          "qbar_frac": [
+            0.6666666666666667,
+            0.6666666666666667,
+            0.0
+          ],
+          "self_conjugate": false,
+          "mode_index_zero_based": 8,
+          "mode_number_one_based": 9,
+          "freq_thz": 7.465313,
+          "eigenvector_q": [
+            [
+              [
+                0.0,
+                0.36721193393674295
+              ],
+              [
+                -0.36721193393674295,
+                0.0
+              ],
+              [
+                0.0,
+                0.0
+              ]
+            ],
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0
+              ],
+              [
+                0.604280891286856,
+                0.0
+              ]
+            ],
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0
+              ],
+              [
+                -0.604280891286856,
+                0.0
+              ]
+            ]
+          ],
+          "eigenvector_qbar_by_conjugation": [
+            [
+              [
+                0.0,
+                -0.36721193393674295
+              ],
+              [
+                -0.36721193393674295,
+                -0.0
+              ],
+              [
+                0.0,
+                -0.0
+              ]
+            ],
+            [
+              [
+                -0.0,
+                -0.0
+              ],
+              [
+                0.0,
+                -0.0
+              ],
+              [
+                0.604280891286856,
+                -0.0
+              ]
+            ],
+            [
+              [
+                -0.0,
+                -0.0
+              ],
+              [
+                0.0,
+                -0.0
+              ],
+              [
+                -0.604280891286856,
+                -0.0
+              ]
+            ]
+          ]
+        }
+      },
+      "q_index": [
+        2,
+        2
+      ],
+      "gamma_overlap_squared": 0.9989873974827926,
+      "q_overlap_squared": 0.9980735970236734,
+      "finite_q_degenerate_subspace": [
+        9
+      ],
+      "symmetry_representative_verified": true
+    },
+    {
+      "rank": 5,
+      "lda_channel": "Gamma8-L8",
+      "pair": {
+        "pair_code": "Gamma_p0_m8__line_q_0.333_0.667_0.000_m8",
+        "coupling_type": "Q_gamma*Q_q*Q_-q",
+        "q_orbit_number": null,
+        "gamma_mode": {
+          "mode_code": "Gamma_p0_m8",
+          "point_index": 0,
+          "point_label": "Gamma",
+          "q_frac": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mode_index_zero_based": 7,
+          "mode_number_one_based": 8,
+          "freq_thz": 7.251994,
+          "eigenvector": [
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ]
+            ],
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                0.7071067811865476,
+                -0.0
+              ]
+            ],
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.7071067811865476,
+                0.0
+              ]
+            ]
+          ]
+        },
+        "target_mode": {
+          "mode_code": "line_q2_4_m8",
+          "point_index": 16,
+          "point_label": "line",
+          "q_frac": [
+            0.3333333333333333,
+            0.6666666666666666,
+            0.0
+          ],
+          "qbar_frac": [
+            0.6666666666666667,
+            0.33333333333333337,
+            0.0
+          ],
+          "self_conjugate": false,
+          "mode_index_zero_based": 7,
+          "mode_number_one_based": 8,
+          "freq_thz": 7.707477,
+          "eigenvector_q": [
+            [
+              [
+                0.40514799262934525,
+                -0.235340995718559
+              ],
+              [
+                -0.2339119957445561,
+                0.13587399752811233
+              ],
+              [
+                0.0,
+                0.0
+              ]
+            ],
+            [
+              [
+                -0.01995999963687771,
+                0.17647299678951506
+              ],
+              [
+                0.011523999790349636,
+                -0.10188699814642083
+              ],
+              [
+                0.5582039898448741,
+                0.0
+              ]
+            ],
+            [
+              [
+                -0.01995999963687771,
+                0.17647299678951506
+              ],
+              [
+                0.011523999790349636,
+                -0.10188699814642083
+              ],
+              [
+                -0.5582039898448741,
+                0.0
+              ]
+            ]
+          ],
+          "eigenvector_qbar_by_conjugation": [
+            [
+              [
+                0.40514799262934525,
+                0.235340995718559
+              ],
+              [
+                -0.2339119957445561,
+                -0.13587399752811233
+              ],
+              [
+                0.0,
+                -0.0
+              ]
+            ],
+            [
+              [
+                -0.01995999963687771,
+                -0.17647299678951506
+              ],
+              [
+                0.011523999790349636,
+                0.10188699814642083
+              ],
+              [
+                0.5582039898448741,
+                -0.0
+              ]
+            ],
+            [
+              [
+                -0.01995999963687771,
+                -0.17647299678951506
+              ],
+              [
+                0.011523999790349636,
+                0.10188699814642083
+              ],
+              [
+                -0.5582039898448741,
+                -0.0
+              ]
+            ]
+          ]
+        }
+      },
+      "q_index": [
+        2,
+        4
+      ],
+      "gamma_overlap_squared": 0.9989873974827926,
+      "q_overlap_squared": 0.9993247505739963,
+      "finite_q_degenerate_subspace": [
+        8
+      ],
+      "symmetry_representative_verified": true
+    }
+  ]
+}

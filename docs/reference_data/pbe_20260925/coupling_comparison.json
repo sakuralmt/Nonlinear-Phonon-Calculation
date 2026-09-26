@@ -1,0 +1,821 @@
+{
+  "scope": "five previously accepted physical channels per material; model-own relaxed structures and modes",
+  "third_order": "absolute Phi122; mode sign invariant",
+  "fourth_order": "signed Phi1122; missing LDA quartic labels remain null",
+  "reference_hashes": {
+    "ws2_lda_mlff": "87e7a9c8a4960aa88e638e8de672c0fe4945cd53848e331be86c781bd673f948",
+    "mos2_wse2_lda_mlff": "301969399a8d6377a8012682e11d984b6995f5394e14e97c9ca8bea901ee265a"
+  },
+  "materials": {
+    "ws2": {
+      "pbe_result_sha256": "fbcb69143cd480dc0fed71d25619a670829cb5758ac3eb158722f0be708df7d9",
+      "completed_pairs": 5,
+      "rows": [
+        {
+          "rank": 1,
+          "physical_channel": "Gamma8-M9",
+          "lda_pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m9",
+          "pbe_pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m9",
+          "lda": {
+            "phi122_abs": 103.14309578388668,
+            "phi1122": 8.071985623172207
+          },
+          "pbe": {
+            "phi122_abs": 94.85279710165085,
+            "phi1122": 7.798494521661057
+          },
+          "mlff": {
+            "tece": {
+              "phi122_abs": 86.40725272042656,
+              "phi1122": 11.318284638073822
+            },
+            "prophet": {
+              "phi122_abs": 86.71804155622466,
+              "phi1122": 11.46324313416743
+            },
+            "equiformer-v3": {
+              "phi122_abs": 85.75701032365839,
+              "phi1122": 11.177841497927222
+            }
+          },
+          "pbe_fit_rmse_mev_per_supercell": 0.002688881351997594
+        },
+        {
+          "rank": 2,
+          "physical_channel": "Gamma8-L9",
+          "lda_pair_code": "Gamma_p0_m8__line_q_0.333_0.667_0.000_m9",
+          "pbe_pair_code": "Gamma_p0_m8__line_q_0.333_0.667_0.000_m9",
+          "lda": {
+            "phi122_abs": 69.34244903552604,
+            "phi1122": 3.5305940569852203
+          },
+          "pbe": {
+            "phi122_abs": 63.98451153571448,
+            "phi1122": 3.57422114074258
+          },
+          "mlff": {
+            "tece": {
+              "phi122_abs": 60.31003679548231,
+              "phi1122": 5.824497767857263
+            },
+            "prophet": {
+              "phi122_abs": 60.071890694756945,
+              "phi1122": 6.009783063615819
+            },
+            "equiformer-v3": {
+              "phi122_abs": 60.1334163120791,
+              "phi1122": 5.835241200972633
+            }
+          },
+          "pbe_fit_rmse_mev_per_supercell": 0.051043946640066944
+        },
+        {
+          "rank": 3,
+          "physical_channel": "Gamma8-M6",
+          "lda_pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m6",
+          "pbe_pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m6",
+          "lda": {
+            "phi122_abs": 57.71933086340952,
+            "phi1122": -1.5328118318632795
+          },
+          "pbe": {
+            "phi122_abs": 52.43839381104664,
+            "phi1122": -1.4141035510931066
+          },
+          "mlff": {
+            "tece": {
+              "phi122_abs": 58.31162588937181,
+              "phi1122": 1.8956709881213027
+            },
+            "prophet": {
+              "phi122_abs": 53.82843017578365,
+              "phi1122": 1.9322609414855145
+            },
+            "equiformer-v3": {
+              "phi122_abs": 57.5546264648416,
+              "phi1122": 1.891467036033365
+            }
+          },
+          "pbe_fit_rmse_mev_per_supercell": 0.011230093417116043
+        },
+        {
+          "rank": 4,
+          "physical_channel": "Gamma8-M5",
+          "lda_pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m5",
+          "pbe_pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m5",
+          "lda": {
+            "phi122_abs": 66.36116955612033,
+            "phi1122": 8.444726079873622
+          },
+          "pbe": {
+            "phi122_abs": 59.35297809815627,
+            "phi1122": 7.419445472341463
+          },
+          "mlff": {
+            "tece": {
+              "phi122_abs": 56.82378496442728,
+              "phi1122": 9.780728087133122
+            },
+            "prophet": {
+              "phi122_abs": 56.53479439871857,
+              "phi1122": 9.778392558194867
+            },
+            "equiformer-v3": {
+              "phi122_abs": 56.74193246023806,
+              "phi1122": 9.77730264469084
+            }
+          },
+          "pbe_fit_rmse_mev_per_supercell": 0.003658954069640917
+        },
+        {
+          "rank": 5,
+          "physical_channel": "Gamma8-K9",
+          "lda_pair_code": "Gamma_p0_m8__K_q_0.333_0.333_0.000_m9",
+          "pbe_pair_code": "Gamma_p0_m8__K_q_0.333_0.333_0.000_m9",
+          "lda": {
+            "phi122_abs": 71.6065918664988,
+            "phi1122": 3.540812208725985
+          },
+          "pbe": {
+            "phi122_abs": 65.86668424507873,
+            "phi1122": 3.524596456019855
+          },
+          "mlff": {
+            "tece": {
+              "phi122_abs": 55.86771283831158,
+              "phi1122": 5.0545517279177234
+            },
+            "prophet": {
+              "phi122_abs": 55.90128217424906,
+              "phi1122": 5.161674655213399
+            },
+            "equiformer-v3": {
+              "phi122_abs": 55.825914655410585,
+              "phi1122": 4.986821388711538
+            }
+          },
+          "pbe_fit_rmse_mev_per_supercell": 0.06382571253977595
+        }
+      ],
+      "metrics": {
+        "lda": {
+          "tece": {
+            "phi122_abs": {
+              "count": 5,
+              "mae": 10.327362789869284,
+              "rmse": 11.838055120926017,
+              "max_abs_error": 16.735843063460123,
+              "bias": -10.090444779484367,
+              "mean_absolute_percent_error": 13.325880985293107
+            },
+            "phi1122": {
+              "count": 5,
+              "mae": 2.3636854144418953,
+              "rmse": 2.5152039547995866,
+              "max_abs_error": 3.4284828199845823,
+              "bias": 2.3636854144418953,
+              "mean_absolute_percent_error": 77.48671089472863
+            }
+          },
+          "prophet": {
+            "phi122_abs": {
+              "count": 5,
+              "mae": 11.023639621141697,
+              "rmse": 11.950557876146913,
+              "max_abs_error": 16.425054227662017,
+              "bias": -11.023639621141697,
+              "mean_absolute_percent_error": 14.555005814905867
+            },
+            "phi1122": {
+              "count": 5,
+              "mae": 2.4580096431566547,
+              "rmse": 2.60996537551415,
+              "max_abs_error": 3.465072773348794,
+              "bias": 2.4580096431566547,
+              "mean_absolute_percent_error": 79.97244047003893
+            }
+          },
+          "equiformer-v3": {
+            "phi122_abs": {
+              "count": 5,
+              "mae": 10.431947377842729,
+              "rmse": 12.072024473286511,
+              "max_abs_error": 17.386085460228287,
+              "bias": -10.431947377842729,
+              "mean_absolute_percent_error": 13.391089167685417
+            },
+            "phi1122": {
+              "count": 5,
+              "mae": 2.3226735262883684,
+              "rmse": 2.471846588599934,
+              "max_abs_error": 3.4242788678966445,
+              "bias": 2.3226735262883684,
+              "mean_absolute_percent_error": 76.75405833583227
+            }
+          }
+        },
+        "pbe": {
+          "tece": {
+            "phi122_abs": {
+              "count": 5,
+              "mae": 6.104283148055555,
+              "rmse": 6.718632102723741,
+              "max_abs_error": 9.998971406767147,
+              "bias": -3.7549903167254852,
+              "mean_absolute_percent_error": 9.057749247705834
+            },
+            "phi1122": {
+              "count": 5,
+              "mae": 2.5942158338862766,
+              "rmse": 2.6953179249763086,
+              "max_abs_error": 3.5197901164127643,
+              "bias": 2.5942158338862766,
+              "mean_absolute_percent_error": 83.47618039439968
+            }
+          },
+          "prophet": {
+            "phi122_abs": {
+              "count": 5,
+              "mae": 5.244199704277622,
+              "rmse": 6.175215761757662,
+              "max_abs_error": 9.965402070829668,
+              "bias": -4.688185158382817,
+              "mean_absolute_percent_error": 7.443953788532914
+            },
+            "phi1122": {
+              "count": 5,
+              "mae": 2.688540062601036,
+              "rmse": 2.78586273798044,
+              "max_abs_error": 3.664748612506372,
+              "bias": 2.688540062601036,
+              "mean_absolute_percent_error": 86.00379146064837
+            }
+          },
+          "equiformer-v3": {
+            "phi122_abs": {
+              "count": 5,
+              "mae": 6.142985976601831,
+              "rmse": 6.802568946744514,
+              "max_abs_error": 10.040769589668145,
+              "bias": -4.096492915083847,
+              "mean_absolute_percent_error": 9.00161591199182
+            },
+            "phi1122": {
+              "count": 5,
+              "mae": 2.55320394573275,
+              "rmse": 2.65166313110177,
+              "max_abs_error": 3.3793469762661648,
+              "bias": 2.55320394573275,
+              "mean_absolute_percent_error": 82.72309569454262
+            }
+          }
+        },
+        "rank_within_selected_set": {
+          "tece": 0.3,
+          "prophet": 0.7,
+          "equiformer-v3": 0.3
+        }
+      }
+    },
+    "mos2": {
+      "pbe_result_sha256": "63dd6e7f1a782e48b04681308bad264518e500e2f149bffa13878c0ec46ab417",
+      "completed_pairs": 5,
+      "rows": [
+        {
+          "rank": 1,
+          "physical_channel": "Gamma8-M9",
+          "lda_pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m9",
+          "pbe_pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m9",
+          "lda": {
+            "phi122_abs": 106.13408735786474,
+            "phi1122": 8.453436797996394
+          },
+          "pbe": {
+            "phi122_abs": 94.80862136198458,
+            "phi1122": 7.55730167991045
+          },
+          "mlff": {
+            "tece": {
+              "phi122_abs": 88.87721470424,
+              "phi1122": 13.511502012914567
+            },
+            "prophet": {
+              "phi122_abs": 89.42304338727567,
+              "phi1122": 13.607414401307693
+            },
+            "equiformer-v3": {
+              "phi122_abs": 88.72473580496734,
+              "phi1122": 13.349572006537358
+            }
+          },
+          "pbe_fit_rmse_mev_per_supercell": 0.0006596804039063405
+        },
+        {
+          "rank": 2,
+          "physical_channel": "Gamma8-M8",
+          "lda_pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m8",
+          "pbe_pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m8",
+          "lda": {
+            "phi122_abs": 98.76601380339066,
+            "phi1122": 8.554010690251433
+          },
+          "pbe": {
+            "phi122_abs": 86.66615047966077,
+            "phi1122": 7.318241316207644
+          },
+          "mlff": {
+            "tece": {
+              "phi122_abs": 83.03702218191847,
+              "phi1122": 7.574276048309681
+            },
+            "prophet": {
+              "phi122_abs": 84.14737156459174,
+              "phi1122": 7.392260493064795
+            },
+            "equiformer-v3": {
+              "phi122_abs": 83.41930934361145,
+              "phi1122": 7.558550153459853
+            }
+          },
+          "pbe_fit_rmse_mev_per_supercell": 0.007376610369552356
+        },
+        {
+          "rank": 3,
+          "physical_channel": "Gamma8-M7",
+          "lda_pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m7",
+          "pbe_pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m7",
+          "lda": {
+            "phi122_abs": 78.02281895945994,
+            "phi1122": 9.81369290674895
+          },
+          "pbe": {
+            "phi122_abs": 68.32797745633519,
+            "phi1122": 8.268440713658716
+          },
+          "mlff": {
+            "tece": {
+              "phi122_abs": 69.11332266671228,
+              "phi1122": 11.730739048548655
+            },
+            "prophet": {
+              "phi122_abs": 68.8316890171589,
+              "phi1122": 11.704269720583888
+            },
+            "equiformer-v3": {
+              "phi122_abs": 69.20967102050841,
+              "phi1122": 11.748489068479195
+            }
+          },
+          "pbe_fit_rmse_mev_per_supercell": 0.003786276085228061
+        },
+        {
+          "rank": 4,
+          "physical_channel": "Gamma8-K9",
+          "lda_pair_code": "Gamma_p0_m8__K_q_0.333_0.333_0.000_m9",
+          "pbe_pair_code": "Gamma_p0_m8__K_q_0.333_0.333_0.000_m9",
+          "lda": {
+            "phi122_abs": 74.29895723998388,
+            "phi1122": 4.190064861633541
+          },
+          "pbe": {
+            "phi122_abs": 67.04985086980726,
+            "phi1122": 3.814569877564489
+          },
+          "mlff": {
+            "tece": {
+              "phi122_abs": 58.54470389229819,
+              "phi1122": 6.952713946907219
+            },
+            "prophet": {
+              "phi122_abs": 58.54372297014397,
+              "phi1122": 6.981674505739721
+            },
+            "equiformer-v3": {
+              "phi122_abs": 58.55178833007898,
+              "phi1122": 6.799191844706787
+            }
+          },
+          "pbe_fit_rmse_mev_per_supercell": 0.0790263156750121
+        },
+        {
+          "rank": 5,
+          "physical_channel": "Gamma8-L8",
+          "lda_pair_code": "Gamma_p0_m8__line_q_0.333_0.667_0.000_m8",
+          "pbe_pair_code": "Gamma_p0_m8__line_q_0.333_0.667_0.000_m8",
+          "lda": {
+            "phi122_abs": 67.77577718712004,
+            "phi1122": 1.6407687933034638
+          },
+          "pbe": {
+            "phi122_abs": 59.939562293168535,
+            "phi1122": 1.1899261687858753
+          },
+          "mlff": {
+            "tece": {
+              "phi122_abs": 62.73062569754354,
+              "phi1122": 3.0760473134568422
+            },
+            "prophet": {
+              "phi122_abs": 62.78163364955244,
+              "phi1122": 3.0617227359691634
+            },
+            "equiformer-v3": {
+              "phi122_abs": 63.06424822126225,
+              "phi1122": 3.066082389987068
+            }
+          },
+          "pbe_fit_rmse_mev_per_supercell": 0.00579941422303597
+        }
+      ],
+      "metrics": {
+        "lda": {
+          "tece": {
+            "phi122_abs": {
+              "count": 5,
+              "mae": 12.538953081021358,
+              "rmse": 13.40320862702726,
+              "max_abs_error": 17.25687265362474,
+              "bias": -12.538953081021358,
+              "mean_absolute_percent_error": 14.450371188636407
+            },
+            "phi1122": {
+              "count": 5,
+              "mae": 2.4305547208173373,
+              "rmse": 2.825286675562402,
+              "max_abs_error": 5.058065214918173,
+              "bias": 2.0386608640406365,
+              "mean_absolute_percent_error": 48.846327696514194
+            }
+          },
+          "prophet": {
+            "phi122_abs": {
+              "count": 5,
+              "mae": 12.254038791819312,
+              "rmse": 13.043078146515771,
+              "max_abs_error": 16.711043970589074,
+              "bias": -12.254038791819312,
+              "mean_absolute_percent_error": 14.180075042309017
+            },
+            "phi1122": {
+              "count": 5,
+              "mae": 2.483773640220951,
+              "rmse": 2.874008484933605,
+              "max_abs_error": 5.153977603311299,
+              "bias": 2.019073561346296,
+              "mean_absolute_percent_error": 49.40849736218727
+            }
+          },
+          "equiformer-v3": {
+            "phi122_abs": {
+              "count": 5,
+              "mae": 12.40558036547817,
+              "rmse": 13.315031128279173,
+              "max_abs_error": 17.409351552897405,
+              "bias": -12.40558036547817,
+              "mean_absolute_percent_error": 14.276638365101016
+            },
+            "phi1122": {
+              "count": 5,
+              "mae": 2.372166497363928,
+              "rmse": 2.740276639712202,
+              "max_abs_error": 4.896135208540963,
+              "bias": 1.973982282647296,
+              "mean_absolute_percent_error": 47.681902117033104
+            }
+          }
+        },
+        "pbe": {
+          "tece": {
+            "phi122_abs": {
+              "count": 5,
+              "mae": 4.328418109549607,
+              "rmse": 5.08126921697219,
+              "max_abs_error": 8.505146977509071,
+              "bias": -2.8978546636487708,
+              "mean_absolute_percent_error": 5.786863900539648
+            },
+            "phi1122": {
+              "count": 5,
+              "mae": 2.939359722801958,
+              "rmse": 3.490299881720664,
+              "max_abs_error": 5.954200333004117,
+              "bias": 2.939359722801958,
+              "mean_absolute_percent_error": 72.98686857194008
+            }
+          },
+          "prophet": {
+            "phi122_abs": {
+              "count": 5,
+              "mae": 3.9512535413297685,
+              "rmse": 4.817343751931796,
+              "max_abs_error": 8.50612789966329,
+              "bias": -2.6129403744467252,
+              "mean_absolute_percent_error": 5.350361209755183
+            },
+            "phi1122": {
+              "count": 5,
+              "mae": 2.919772420107617,
+              "rmse": 3.5198988013780137,
+              "max_abs_error": 6.050112721397243,
+              "bias": 2.919772420107617,
+              "mean_absolute_percent_error": 72.59031858321536
+            }
+          },
+          "equiformer-v3": {
+            "phi122_abs": {
+              "count": 5,
+              "mae": 4.367033745012355,
+              "rmse": 5.105169016851244,
+              "max_abs_error": 8.49806253972828,
+              "bias": -2.7644819481055833,
+              "mean_absolute_percent_error": 5.8682170627723425
+            },
+            "phi1122": {
+              "count": 5,
+              "mae": 2.874681141408617,
+              "rmse": 3.4101850647427656,
+              "max_abs_error": 5.792270326626907,
+              "bias": 2.874681141408617,
+              "mean_absolute_percent_error": 71.58587355284969
+            }
+          }
+        },
+        "rank_within_selected_set": {
+          "tece": 0.8999999999999998,
+          "prophet": 0.8999999999999998,
+          "equiformer-v3": 0.8999999999999998
+        }
+      }
+    },
+    "wse2": {
+      "pbe_result_sha256": "27cdc2324a4f9e008d8042060f7559a16d19d9b2b7c5903396c96b965fbdf0a6",
+      "completed_pairs": 5,
+      "rows": [
+        {
+          "rank": 1,
+          "physical_channel": "Gamma8-M9",
+          "lda_pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m9",
+          "pbe_pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m9",
+          "lda": {
+            "phi122_abs": 30.581270840938974,
+            "phi1122": 1.9043965254678332
+          },
+          "pbe": {
+            "phi122_abs": 27.25259206199552,
+            "phi1122": 1.679775531983167
+          },
+          "mlff": {
+            "tece": {
+              "phi122_abs": 26.152474539620098,
+              "phi1122": 3.193446568080349
+            },
+            "prophet": {
+              "phi122_abs": 26.13672528948149,
+              "phi1122": 3.13256711375956
+            },
+            "equiformer-v3": {
+              "phi122_abs": 25.945390973771925,
+              "phi1122": 3.129297373246298
+            }
+          },
+          "pbe_fit_rmse_mev_per_supercell": 0.0008283139654625946
+        },
+        {
+          "rank": 2,
+          "physical_channel": "Gamma8-M8",
+          "lda_pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m8",
+          "pbe_pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m8",
+          "lda": {
+            "phi122_abs": 27.767677293480986,
+            "phi1122": null
+          },
+          "pbe": {
+            "phi122_abs": 24.43728648857869,
+            "phi1122": 1.3318252013232081
+          },
+          "mlff": {
+            "tece": {
+              "phi122_abs": 22.666604178292044,
+              "phi1122": 1.2776900310907946
+            },
+            "prophet": {
+              "phi122_abs": 23.00224304199255,
+              "phi1122": 1.3167712153222544
+            },
+            "equiformer-v3": {
+              "phi122_abs": 22.767693655831078,
+              "phi1122": 1.261964136240662
+            }
+          },
+          "pbe_fit_rmse_mev_per_supercell": 0.0005654048932552125
+        },
+        {
+          "rank": 3,
+          "physical_channel": "Gamma8-M7",
+          "lda_pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m7",
+          "pbe_pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m7",
+          "lda": {
+            "phi122_abs": 22.478603522962032,
+            "phi1122": null
+          },
+          "pbe": {
+            "phi122_abs": 19.891709939111028,
+            "phi1122": 1.649387629835679
+          },
+          "mlff": {
+            "tece": {
+              "phi122_abs": 18.432835170200544,
+              "phi1122": 1.6663220463966204
+            },
+            "prophet": {
+              "phi122_abs": 18.429183959961257,
+              "phi1122": 1.6836049605389314
+            },
+            "equiformer-v3": {
+              "phi122_abs": 18.389020647321125,
+              "phi1122": 1.6389185068559076
+            }
+          },
+          "pbe_fit_rmse_mev_per_supercell": 0.0006687057960795477
+        },
+        {
+          "rank": 4,
+          "physical_channel": "Gamma8-K9",
+          "lda_pair_code": "Gamma_p0_m8__K_q_0.333_0.333_0.000_m9",
+          "pbe_pair_code": "Gamma_p0_m8__K_q_0.333_0.333_0.000_m9",
+          "lda": {
+            "phi122_abs": 21.19245643221083,
+            "phi1122": null
+          },
+          "pbe": {
+            "phi122_abs": 18.885852707483398,
+            "phi1122": 0.790085377437635
+          },
+          "mlff": {
+            "tece": {
+              "phi122_abs": 17.67539978027301,
+              "phi1122": 1.5194951271526036
+            },
+            "prophet": {
+              "phi122_abs": 17.67387390136761,
+              "phi1122": 1.5101530114000616
+            },
+            "equiformer-v3": {
+              "phi122_abs": 17.676217215401362,
+              "phi1122": 1.4916244818240498
+            }
+          },
+          "pbe_fit_rmse_mev_per_supercell": 0.016653745328672857
+        },
+        {
+          "rank": 5,
+          "physical_channel": "Gamma8-L8",
+          "lda_pair_code": "Gamma_p0_m8__line_q_0.333_0.667_0.000_m8",
+          "pbe_pair_code": "Gamma_p0_m8__line_q_0.333_0.667_0.000_m8",
+          "lda": {
+            "phi122_abs": 19.853000984712573,
+            "phi1122": null
+          },
+          "pbe": {
+            "phi122_abs": 17.622777905697603,
+            "phi1122": 0.7336633980784291
+          },
+          "mlff": {
+            "tece": {
+              "phi122_abs": 17.26537431989356,
+              "phi1122": 1.5596662248885673
+            },
+            "prophet": {
+              "phi122_abs": 17.26194109235526,
+              "phi1122": 1.5607561383931823
+            },
+            "equiformer-v3": {
+              "phi122_abs": 17.194529942103397,
+              "phi1122": 1.5397363779497963
+            }
+          },
+          "pbe_fit_rmse_mev_per_supercell": 0.0054317215902270006
+        }
+      ],
+      "metrics": {
+        "lda": {
+          "tece": {
+            "phi122_abs": {
+              "count": 5,
+              "mae": 3.936064217205227,
+              "rmse": 4.026634436317954,
+              "max_abs_error": 5.101073115188942,
+              "bias": -3.936064217205227,
+              "mean_absolute_percent_error": 16.0961265996809
+            },
+            "phi1122": {
+              "count": 1,
+              "mae": 1.289050042612516,
+              "rmse": 1.289050042612516,
+              "max_abs_error": 1.289050042612516,
+              "bias": 1.289050042612516,
+              "mean_absolute_percent_error": 67.68811145020591
+            }
+          },
+          "prophet": {
+            "phi122_abs": {
+              "count": 5,
+              "mae": 3.873808357829445,
+              "rmse": 3.9485481370648325,
+              "max_abs_error": 4.765434251488436,
+              "bias": -3.873808357829445,
+              "mean_absolute_percent_error": 15.872825924558395
+            },
+            "phi1122": {
+              "count": 1,
+              "mae": 1.2281705882917267,
+              "rmse": 1.2281705882917267,
+              "max_abs_error": 1.2281705882917267,
+              "bias": 1.2281705882917267,
+              "mean_absolute_percent_error": 64.49132687794706
+            }
+          },
+          "equiformer-v3": {
+            "phi122_abs": {
+              "count": 5,
+              "mae": 3.9800313279753015,
+              "rmse": 4.065644183411217,
+              "max_abs_error": 4.999983637649908,
+              "bias": -3.9800313279753015,
+              "mean_absolute_percent_error": 16.268328139374606
+            },
+            "phi1122": {
+              "count": 1,
+              "mae": 1.2249008477784649,
+              "rmse": 1.2249008477784649,
+              "max_abs_error": 1.2249008477784649,
+              "bias": 1.2249008477784649,
+              "mean_absolute_percent_error": 64.31963256588888
+            }
+          }
+        },
+        "pbe": {
+          "tece": {
+            "phi122_abs": {
+              "count": 5,
+              "mae": 1.1795062229173965,
+              "rmse": 1.270182948279569,
+              "max_abs_error": 1.7706823102866451,
+              "bias": -1.1795062229173965,
+              "mean_absolute_percent_error": 5.410807762753763
+            },
+            "phi1122": {
+              "count": 5,
+              "mae": 0.6280306398831288,
+              "rmse": 0.8377036050438676,
+              "max_abs_error": 1.5136710360971821,
+              "bias": 0.6063765717901634,
+              "mean_absolute_percent_error": 60.021879460558395
+            }
+          },
+          "prophet": {
+            "phi122_abs": {
+              "count": 5,
+              "mae": 1.1172503635416142,
+              "rmse": 1.186809708387626,
+              "max_abs_error": 1.4625259791497704,
+              "bias": -1.1172503635416142,
+              "mean_absolute_percent_error": 5.156855028694211
+            },
+            "phi1122": {
+              "count": 5,
+              "mae": 0.6098446545515557,
+              "rmse": 0.8141966134610167,
+              "max_abs_error": 1.4527915817763928,
+              "bias": 0.6038230601511743,
+              "mean_absolute_percent_error": 58.71294110320232
+            }
+          },
+          "equiformer-v3": {
+            "phi122_abs": {
+              "count": 5,
+              "mae": 1.2234733336874704,
+              "rmse": 1.2962256255685056,
+              "max_abs_error": 1.669592832747611,
+              "bias": -1.2234733336874704,
+              "mean_absolute_percent_error": 5.603635755450533
+            },
+            "phi1122": {
+              "count": 5,
+              "mae": 0.6074928227166462,
+              "rmse": 0.8059794666257063,
+              "max_abs_error": 1.449521841263131,
+              "bias": 0.5753607474917191,
+              "mean_absolute_percent_error": 58.16704930682881
+            }
+          }
+        },
+        "rank_within_selected_set": {
+          "tece": 0.9999999999999999,
+          "prophet": 0.9999999999999999,
+          "equiformer-v3": 0.9999999999999999
+        }
+      }
+    }
+  }
+}

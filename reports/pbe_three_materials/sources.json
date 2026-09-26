@@ -3,7 +3,7 @@
   "docs/reference_data/pbe_20260925/campaign_audit.json": "1b2c1f1d505ee895668d7fe7a939c907d464df0208650e160da2a4af6bac904e",
   "docs/reference_data/pbe_20260925/structure_comparison.json": "e74832ca85bd5f2f625dc7fa4288a7a73871c41d805a7d73db796f3424da192a",
   "docs/reference_data/pbe_20260925/ws2_pbe_geometry_mattersim_m6.json": "3a586453c05b8c2a819c7dc51df3ff30ee47ff2480f64c03a7e58523e56fbdd8",
-  "reports/pbe_three_materials/density_audit.json": "2cc4615db3d45263979d05131e044eac1798b3ffb9adafc269a28f12c4501b50",
+  "reports/pbe_three_materials/density_audit.json": "7712145dbc0e00890b89aecd60f280bd93cb0ef477fe15a2ee650c1943d96a5c",
   "mlff_modepair_workflow/core.py": "50157e924541d2d48622d9a0f479690d56480c4d7ec6387139f9b210f13ac3b6",
   "docs/acceptance_data/ws2_dft_top5.json": "87e7a9c8a4960aa88e638e8de672c0fe4945cd53848e331be86c781bd673f948",
   "docs/acceptance_data/model_dft_top5.json": "301969399a8d6377a8012682e11d984b6995f5394e14e97c9ca8bea901ee265a",

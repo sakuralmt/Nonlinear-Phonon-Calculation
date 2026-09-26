@@ -52,7 +52,7 @@ Stage1 的 `phonon_dataset.json` 记录全网格与 ASR 诊断，`mode_pairs.sel
 | MoS₂ | 0.0880 | 4.328 | 2.939 |
 | WSe₂ | 0.0654 | 1.180 | 0.628 |
 
-三阶、四阶单位分别是 meV/(Å³·amu³ᐟ²)、meV/(Å⁴·amu²)。耦合误差只针对五个匹配通道。旧 PZ-LDA 参考换成 PBE 后三阶差距缩小，但 WS₂ Γ8–M6 的四阶**符号差异依然存在**，包括在完全相同的 QE 输入结构上比较时。旧[模型／DFT 报告](docs/MODEL_DFT_COMPARISON.md)与[WS₂ 补充](docs/WS2_DFT_COMPARISON.md)只作 LDA 历史对照。截至 2026-09-26，另一个 WS₂ 固定窗口 **17×17 QE 位移密网格测试**仍在运行；此处没有宣称其 DFT 已收敛。
+三阶、四阶单位分别是 meV/(Å³·amu³ᐟ²)、meV/(Å⁴·amu²)。耦合误差只针对五个匹配通道。旧 PZ-LDA 参考换成 PBE 后三阶差距缩小，但 WS₂ Γ8–M6 的四阶**符号差异依然存在**，包括在完全相同的 QE 输入结构上比较时。旧[模型／DFT 报告](docs/MODEL_DFT_COMPARISON.md)与[WS₂ 补充](docs/WS2_DFT_COMPARISON.md)只作 LDA 历史对照。WS₂ Γ8–M9 固定窗口的 **17×17 QE／MatterSim 位移密网格已完成**：9×9 加密至 17×17 后，有符号四阶拟合的变化为 QE +0.152%、MatterSim +4.917%。它只验证一个通道；同构型能量与力误差见 PBE 对照。
 
 ## 适用边界
 

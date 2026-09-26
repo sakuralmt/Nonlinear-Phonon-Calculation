@@ -7,7 +7,8 @@ Run from the repository root after installing the package dependencies and a XeL
 ```bash
 python reports/pbe_three_materials/density_audit.py
 python reports/pbe_three_materials/generate_assets.py
+python reports/pbe_three_materials/dense_ws2_assets.py
 xelatex -interaction=nonstopmode -output-directory=reports/pbe_three_materials/build reports/pbe_three_materials/main.tex
 ```
 
-For reliable cross-references, run the final command twice or use `latexmk -xelatex`. The output is `reports/pbe_three_materials/build/main.pdf`. `density_audit.py` checks nested 5×5 versus 9×9 fits on the same `|Q|≤2` QE data. `generate_assets.py` checks the 579-point campaign summary and five channels per material, then regenerates 18 tables, ten figures and `sources.json` with repository-relative SHA256 keys. The raw QE job directories, model weights and unpublished 17×17 QE test are not needed to rebuild this completed report.
+For reliable cross-references, run XeLaTeX twice or use latexmk -xelatex. The output is reports/pbe_three_materials/build/main.pdf. The baseline density_audit.py re-fits the original three 9×9 QE grids; generate_assets.py checks the 579-point baseline and regenerates its tables and figures. Run python reports/pbe_three_materials/dense_ws2_assets.py before compilation to verify the completed 289-point WS₂ QE/MatterSim dataset and 208-job Slurm audit, then regenerate two figures, one table and dense_ws2_sources.json. All source hashes use repository data. Raw QE output directories, controllers and model weights are not needed to rebuild the published 19-page report.

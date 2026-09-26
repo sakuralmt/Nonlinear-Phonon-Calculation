@@ -6,6 +6,8 @@ import json
 import math
 from pathlib import Path
 
+import numpy as np
+
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "docs/reference_data/pbe_20260925"
 MATERIALS = ("ws2", "mos2", "wse2")
@@ -31,6 +33,21 @@ def check() -> list[tuple[str, str, float, float, float]]:
         raise ValueError("Incomplete WS2 MatterSim 17x17 grid")
     if dense_model["fits"]["wide_dense_17x17_step0p25"]["points"] != 289:
         raise ValueError("WS2 MatterSim dense-grid fit is incomplete")
+    dense_qe = read("ws2_17x17_qe.json")
+    resource = read("ws2_17x17_resource_audit.json")
+    if (dense_qe["complete_new"], dense_qe["complete_all"]) != (208, 289):
+        raise ValueError("Incomplete WS2 QE 17x17 grid")
+    if len({(row["ig"], row["iq"]) for row in dense_qe["provenance"]}) != 289:
+        raise ValueError("Duplicate or missing WS2 QE grid point")
+    if (resource["completed_jobs"] != 208
+            or resource["manifest_sha256"] != dense_qe["manifest_sha256"]
+            or dense_model["manifest_sha256"] != dense_qe["manifest_sha256"]):
+        raise ValueError("WS2 dense-grid source identity mismatch")
+    if (not np.isfinite(dense_qe["qe_grid_ev"]).all()
+            or not np.isfinite(dense_qe["qe_forces_ev_per_A"]).all()):
+        raise ValueError("Non-finite WS2 QE dense-grid energy or force")
+    if not math.isclose(dense_qe["wide_density_change_percent"], 0.1523573427, abs_tol=1e-8):
+        raise ValueError("WS2 QE density result changed")
     comparison = read("coupling_comparison.json")
     summary = []
     for material in MATERIALS:

@@ -42,13 +42,13 @@
 \vfill
 {\large 数据截至 2026 年 9 月 26 日\par}
 \vspace{3mm}
-{\normalsize 基于已完成的 6$\times$6 QE DFPT、579 个 PBE 单点与验收的 MLFF 存档\par}
+{\normalsize 基于已完成的 6$\times$6 QE DFPT、579 个基线单点与 WS$_2$ 新增 208 个密网格单点\par}
 \vspace{2mm}
 {\small 独立研究报告；不含新的分子动力学与 Stage3 发布代码\par}
 \end{titlepage}
 
 \begin{abstract}
-延续本科论文与此前测试报告的“声子谱及本征矢—模式对—二维势能面—非线性系数—数值可靠性—计算成本”分析顺序，本报告定量比较三种 1H 二维过渡金属二硫化物中 QE PZ--LDA、重新计算的 QE GGA--PBE、以及 TECE、Prophet、EquiformerV3 三条 Stage1 + MatterSim Stage2 路线。三种材料的 PBE 弛豫和 6$\times$6$\times$1 DFPT 均完成；各取原有筛选的五个 $\Gamma$--$q$--$(-q)$ 物理通道，计算中心 5$\times$5 高精度势能面，并对每种材料最强通道计算 9$\times$9 窗口。全部 579 个 QE 单点具有完整能量、原子力与来源校验。五通道三阶强度 $|\PhiC|$ 的 TECE+MatterSim 平均绝对误差从 LDA 参考的 10.33、12.54、3.94 降为 PBE 参考的 6.10、4.33、1.18 $\cubunit$；但 WS$_2$、MoS$_2$ 的四阶有符号误差略增。WS$_2$ $\Gamma8$--M6 在同一 PBE 结构、同一模式位移的 25 个构型上仍为 QE $-1.414$、MatterSim $+1.930$ $\quartunit$。本结果支持以 PBE 参考开展后续筛选验证，同时要求对四阶物理量单独校准；不能用谐波频率精度替代高阶势能面验证。
+延续本科论文与此前测试报告的“声子谱及本征矢—模式对—二维势能面—非线性系数—数值可靠性—计算成本”分析顺序，本报告定量比较三种 1H 二维过渡金属二硫化物中 QE PZ--LDA、重新计算的 QE GGA--PBE、以及 TECE、Prophet、EquiformerV3 三条 Stage1 + MatterSim Stage2 路线。三种材料的 PBE 弛豫和 6$\times$6$\times$1 DFPT 均完成；各取原有筛选的五个 $\Gamma$--$q$--$(-q)$ 物理通道，计算中心 5$\times$5 高精度势能面，并对每种材料最强通道计算 9$\times$9 窗口。全部 579 个 QE 单点具有完整能量、原子力与来源校验。五通道三阶强度 $|\PhiC|$ 的 TECE+MatterSim 平均绝对误差从 LDA 参考的 10.33、12.54、3.94 降为 PBE 参考的 6.10、4.33、1.18 $\cubunit$；但 WS$_2$、MoS$_2$ 的四阶有符号误差略增。WS$_2$ $\Gamma8$--M6 在同一 PBE 结构、同一模式位移的 25 个构型上仍为 QE $-1.414$、MatterSim $+1.930$ $\quartunit$。新增的 WS$_2$ $\Gamma8$--M9 同构型 17$\times$17 位移网格表明：在固定宽窗口下，QE 四阶从 9$\times$9 到 17$\times$17 仅变动 $+0.152\%$，MatterSim 变动 $+4.917\%$；在固定中心窗口下分别变动 $+0.025\%$、$-0.392\%$。本结果支持以 PBE 参考开展后续筛选验证，同时要求对四阶物理量单独校准；不能用谐波频率精度替代高阶势能面验证。
 \end{abstract}
 
 \tableofcontents
@@ -213,7 +213,32 @@ MAE/RMSE 在每种材料的五个固定通道上计算，三阶先取绝对值�
 \begin{figure}[!htbp]\centering\includegraphics[width=0.82\textwidth]{figures/displacement_density.pdf}
 \caption{将窗口变化与固定窗口下的采样密度变化分开展示。蓝色包含 $|Q|\leq1\to2$ 的窗口效应；橙色只改变 $|Q|\leq2$ 内的步长。}\label{fig:displacement_density}\end{figure}
 
-这说明\emph{三个最强通道在宽窗口内}对一次密度加倍不敏感；尚不足以证明局部四阶 Taylor 导数已严格收敛。特别是其他十二对只有中心 5$\times$5，而中心 $|Q_i|\leq1$ 的 9$\times$9（步长 0.25）并未计算。WS$_2$ M6 的 $Q=0.5$、1 偶混合对比确认变号不是单个步长或拟合算法产生，但同样不能取代该通道的固定窗口密度测试。下一步若追求局部四阶精度，应优先在 WS$_2$ M6 与每材料首通道补中心 9$\times$9，然后同时检查 $|Q_i|\leq0.5$ 的缩窗拟合。
+这说明\emph{三个最强通道在原有宽窗口数据内}对第一次密度加倍不敏感；尚不足以证明局部四阶 Taylor 导数已严格收敛。原档案中其他十二对只有中心 5$\times$5，中心 $|Q_i|\leq1$ 的 9$\times$9（步长 0.25）当时未计算。以下新增 WS$_2$ 首通道的密网格，不能替代 MoS$_2$、WSe$_2$ 或 WS$_2$ M6 的同类检验。WS$_2$ M6 的 $Q=0.5$、1 偶混合对比确认变号不是单个步长或拟合算法产生，但仍需要该通道的固定窗口密度测试。
+
+\subsection{新增 WS$_2$ 首通道 17$\times$17 同构型密网格}
+
+另对 WS$_2$ $\Gamma8$--M9 在\emph{相同} $|Q_\Gamma|,|Q_q|\leq2\,\Qunit$ 上计算嵌套 17$\times$17 网格，步长从 0.5 减为 0.25。旧 9$\times$9 的 81 个 QE 点逐一核对结构及输入、输出哈希后复用；新增 208 个 QE PBE--USPP 单点均收敛并有全部 12 个原子力。MatterSim 5M 在\emph{完全相同}的 289 个原子构型上计算。这是首通道的额外密度实验，不改变其余十四通道的已有计算。
+
+表~\ref{tab:densews2} 同时给出固定宽窗 $|Q|\leq2$ 和固定中心窗 $|Q|\leq1$ 的三、四阶结果。宽窗 9$\times$9 $\to$ 17$\times$17 时，QE 的有符号 $\PhiD$ 为 $7.6905\to7.7022\,\quartunit$（$+0.152\%$），MatterSim 为 $8.0011\to8.3945\,\quartunit$（$+4.917\%$）。同一宽窗内 QE 的 $|\PhiC|$ 为 $94.7903\to94.7967\,\cubunit$，MatterSim 为 $87.2202\to87.4178\,\cubunit$。该通道宽窗四阶拟合对加密的敏感性主要发生在 MatterSim 一侧。
+
+中心窗 5$\times$5 $\to$ 9$\times$9 时，QE 的 $\PhiD$ 为 $7.7985\to7.8005$（$+0.025\%$），MatterSim 为 $11.2105\to11.1666$（$-0.392\%$），两者仍相差 $3.3661\,\quartunit$。在更小的 $|Q|\leq0.5$ 窗口，QE/MatterSim 分别为 $7.8042/11.3401\,\quartunit$。把\emph{宽窗}与\emph{中心窗}互相比会混入窗口效应，不能误称为采样密度收敛。
+
+13 项拟合在宽窗 9$\times$9/17$\times$17 上的 QE 残差 RMSE 为 $0.0759/0.0654$ meV/超胞，MatterSim 为 $0.8877/0.7097$ meV/超胞；中心窗 5$\times$5/9$\times$9 则分别为 QE $0.00269/0.00250$、MatterSim $0.1144/0.0982$ meV/超胞。因而这里的“密度变化”严格指\emph{同一 13 项有限窗口拟合在加密取样后的稳定性}，不能直接等同于解析势能面的零位移四阶 Taylor 导数。MatterSim 的宽窗残差较大，提示有限窗口内还有该多项式未充分描述的形状或数值误差。
+
+\begin{table}[!htbp]\centering\small
+\caption{WS$_2$ $\Gamma8$--M9 相同构型的固定窗口密度对照。$\Delta Q$ 单位 $\Qunit$；三、四阶单位分别为 $\cubunit$、$\quartunit$；相对中心点能量 MAE 为 meV/超胞，力分量 MAE 为 eV/Å。各拟合设计矩阵秩为 13。}
+\label{tab:densews2}
+\allwidthtable{dense_ws2}
+\end{table}
+本次检查覆盖 208 个新点与 81 个复用点的无重复索引、完整原子力、旧 5$\times$5/9$\times$9 系数复现、相同模式坐标和结构哈希。结论只针对\emph{一个首通道}；不能推出另外十四通道或 WS$_2$ M6 变号已经完成同等级别的密度收敛检验。
+
+\figwide{dense_ws2}{固定宽窗（左）与中心窗（右）内，QE PBE 和同构型 MatterSim 的有符号四阶系数随位移采样步长变化。}
+
+289 个同构型点上，相对中心能量 MAE/RMSE 为 $10.072/12.036$ meV/超胞，10404 个力分量的 MAE/RMSE 为 $0.02136/0.04047$ eV/Å；中心 $|Q|\leq1$ 的 81 点分别为 $5.834/6.923$ meV/超胞和 $0.01145/0.01917$ eV/Å。低总能量或力误差并不确保目标四阶系数接近。式~\eqref{eq:even} 的偶混合原始能量差也分别在两套 289 点上直接计算：QE 的等幅有效 $\PhiD$ 在 $Q=0.25,0.5,1,2$ 处约为 $7.77,7.79,7.80,7.69$，MatterSim 为 $13.67,11.06,11.18,8.17\,\quartunit$（图~\ref{fig:dense_ws2_even_mixed}）。MatterSim 的 $Q=0.25$ 项对微小能量差及浮点精度特别敏感，不宜单点外推为 Taylor 导数；但 $Q=0.5$ 和 1 的差异直接见于原始能量组合。
+\figwide{dense_ws2_even_mixed}{不经过多项式拟合，由等幅四角点和坐标轴能量直接计算的有符号偶混合四阶估计。最小振幅的 MatterSim 值对浮点精度敏感。}
+
+
+\FloatBarrier
 
 \begin{table}[!htbp]\centering\small\caption{三种材料的首通道 18 点电子收敛先导结果：六点三阶估计的相对变化，均满足预设 2\% 停机门槛。}\label{tab:pilots}
 \input{tables/pilots.tex}\end{table}
@@ -222,7 +247,7 @@ MAE/RMSE 在每种材料的五个固定通道上计算，三阶先取绝对值�
 
 \section{成本、适用性与下一轮实验}
 
-三个材料分别完成 193 个 QE 单点：五对中心 25 点、最强对补齐 81 点，以及先导点，总计 579 点。按 Slurm 计量，PBE 势能面单点合计 104.09 节点时，未包括三次 DFPT、控制器或 MLFF 早期筛选。12 原子的 M/K 模式单点中位数约 5.8--6.7 分钟，27 原子的 L 模式约 22--27 分钟（表~\ref{tab:cost}；图~\ref{fig:compute_cost}）。因此先以便宜的 MLFF 在所有候选上排序、仅对强耦合且可信的模式做 DFT，是有实际计算意义的；本报告没有测定本轮各 Stage1/Stage2 的完整端到端墙钟，不能从此表推算 MLFF 的精确加速比。
+三个材料的基线实验分别完成 193 个 QE 单点：五对中心 25 点、最强对补齐 81 点，以及先导点，总计 579 点。按 Slurm 计量，这 579 个 PBE 势能面单点合计 104.09 节点时；该数不包括新增 WS$_2$ 密网格的 208 个单点、三次 DFPT、控制器或 MLFF 早期筛选。新增 208 个 QE 点按 Slurm 实际计量为 21.059 节点时；另一次因节点过载而取消的尝试耗费约 0.300 节点时，均不含控制器和已复用的 81 点。12 原子的 M/K 模式单点中位数约 5.8--6.7 分钟，27 原子的 L 模式约 22--27 分钟（表~\ref{tab:cost}；图~\ref{fig:compute_cost}）。因此先以便宜的 MLFF 在所有候选上排序、仅对强耦合且可信的模式做 DFT，是有实际计算意义的；本报告没有测定本轮各 Stage1/Stage2 的完整端到端墙钟，不能从此表推算 MLFF 的精确加速比。
 
 \begin{table}[!htbp]\centering\small\caption{QE PBE PES 单点的实际 Slurm 成本。节点时按单点作业计，不含 DFPT 与控制器；中位秒按相应原子数分组。}\label{tab:cost}
 \input{tables/cost.tex}\end{table}
@@ -240,9 +265,10 @@ MAE/RMSE 在每种材料的五个固定通道上计算，三阶先取绝对值�
 \begin{itemize}\setlength{\itemsep}{0pt}
 \item \texttt{coupling\_comparison.json}、三个 \texttt{results\_*.json}；
 \item 三个 \texttt{*\_phonon\_comparison.json}、\texttt{structure\_comparison.json}；
-\item \texttt{campaign\_audit.json}、\texttt{ws2\_pbe\_geometry\_mattersim\_m6.json}。
+\item \texttt{campaign\_audit.json}、\texttt{ws2\_pbe\_geometry\_mattersim\_m6.json}；
+\item 新增密网格的 \texttt{docs/reference\_data/pbe\_20260925/ws2\_17x17\_qe.json}、\texttt{ws2\_17x17\_mattersim.json} 与 \texttt{ws2\_17x17\_resource\_audit.json}，包含 289 点能量和力、拟合、偶混合检验及 208 个新点的 Slurm 资源记录。
 \end{itemize}
-旧模型参考只读取 Git 稳定仓库的验收数据目录，没有修改稳定代码。报表输入文件的 SHA256 保存在本目录的 \texttt{sources.json}。运行 \texttt{generate\_assets.py} 可重建图表，随后用 XeLaTeX 编译本文件。主比较按五对物理通道对应，旧 WSe$_2$ 未恢复的四阶值如实显示为缺失。
+旧模型参考只读取 Git 稳定仓库的验收数据目录，没有修改稳定代码。基线报表输入文件的 SHA256 保存在本目录的 \texttt{sources.json}；新增 WS$_2$ 密网格输入哈希见 \texttt{dense\_ws2\_sources.json}。运行 \texttt{generate\_assets.py} 可重建图表，随后用 XeLaTeX 编译本文件。主比较按五对物理通道对应，旧 WSe$_2$ 未恢复的四阶值如实显示为缺失。
 
 \begin{thebibliography}{9}
 \bibitem{thesis} 本科毕业论文（最终版），第 3--4 章：声子模式、二维势能面与非线性耦合的报告形式及旧 DFT 结果。

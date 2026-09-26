@@ -70,7 +70,7 @@ def main() -> None:
     report = {
         "description": "Fixed |Q|<=2: sparse 5x5 delta Q=1 versus full 9x9 delta Q=0.5, both from identical archived 81 QE energies; central 5x5 |Q|<=1 is a separate window comparison.",
         "fitter_sha256": sha(STABLE / "mlff_modepair_workflow/core.py"),
-        "limitations": "Only rank-1 channels; no denser 9x9 grid within |Q|<=1 and no other-channel density test.",
+        "limitations": "Retrospective audit of three rank-1 9x9 grids only. A later, separate 17x17 QE/MatterSim test adds the WS2 rank-1 center 9x9 and wide 17x17, but not MoS2/WSe2 or other channels.",
         "rows": rows,
     }
     (HERE / "density_audit.json").write_text(json.dumps(report, indent=2) + "\n")

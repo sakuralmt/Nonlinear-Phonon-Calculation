@@ -9,6 +9,8 @@ The current interpretation and units are in [PBE_REFERENCE.md](../../PBE_REFEREN
 - `qe_phonon_dataset_*.json`, `mlff_phonon_dataset_*.json`, `*_phonon_comparison.json`: complete 36-point mode grids and matched frequency/eigenvector diagnostics.
 - `structure_comparison.json`: old LDA, new PBE and MLFF-relaxed structures.
 - `ws2_pbe_geometry_mattersim_m6.json`, `even_mixed_diagnostics.json`: identical-input WS₂ Γ8–M6 PES and fit-independent sign checks.
-- `ws2_17x17_mattersim.json`: **MatterSim only** on the 289-point fixed-window WS₂ dense grid. The corresponding QE 17×17 calculation was still running on 2026-09-26; this file is not a DFT convergence result.
+- ws2_17x17_qe.json: 289-point WS₂ Γ8–M9 QE PBE grid, including 208 new and 81 hash-verified reused points, all energies/forces, fits and raw even-mixed contrasts.
+- ws2_17x17_mattersim.json: MatterSim on the same 289 atomic configurations, with matched finite-window fits.
+- ws2_17x17_resource_audit.json: Slurm identities and elapsed times for the 208 new QE point jobs and one cancelled attempt.
 
 Run `python validation/check_pbe_reference.py` from the repository root to verify channel counts, grid completeness and published MAEs. The report generator in `reports/pbe_three_materials/` records SHA256 hashes of its inputs in `sources.json`. Old LDA labels under `docs/acceptance_data/` are read only for historical report columns.

@@ -52,7 +52,7 @@ The [WS₂, MoS₂ and WSe₂ PBE study](docs/PBE_REFERENCE.md) uses QE 7.4.1, P
 | MoS₂ | 0.0880 | 4.328 | 2.939 |
 | WSe₂ | 0.0654 | 1.180 | 0.628 |
 
-Third- and fourth-order units are meV/(Å³·amu³ᐟ²) and meV/(Å⁴·amu²). Coupling errors are over the five matched channels, not the full spectrum. Changing the reference from old PZ-LDA to PBE reduces the cubic gap, while the WS₂ Γ8–M6 quartic **sign difference persists**, even on identical QE/MatterSim input structures. The old [LDA model/DFT report](docs/MODEL_DFT_COMPARISON.md) and [WS₂ supplement](docs/WS2_DFT_COMPARISON.md) are retained as historical baselines. A separate WS₂ fixed-window **17×17 QE density test** is still running as of 2026-09-26; its DFT convergence is not claimed here.
+Third- and fourth-order units are meV/(Å³·amu³ᐟ²) and meV/(Å⁴·amu²). Coupling errors are over the five matched channels, not the full spectrum. Changing the reference from old PZ-LDA to PBE reduces the cubic gap, while the WS₂ Γ8–M6 quartic **sign difference persists**, even on identical QE/MatterSim input structures. The old [LDA model/DFT report](docs/MODEL_DFT_COMPARISON.md) and [WS₂ supplement](docs/WS2_DFT_COMPARISON.md) are retained as historical baselines. The WS₂ Γ8–M9 fixed-window **17×17 QE/MatterSim density test is complete**: wide-window signed fourth-order fits change by +0.152% (QE) versus +4.917% (MatterSim) when 9×9 becomes 17×17. This is one-channel evidence; see the PBE benchmark for the same-geometry energy and force errors.
 
 ## Limits and repository layout
 

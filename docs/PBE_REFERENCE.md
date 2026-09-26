@@ -1,6 +1,6 @@
 # GGA-PBE reference for WS₂, MoS₂ and WSe₂
 
-This is the **current DFT comparison** for the public TECE/Prophet/EquiformerV3 Stage1 + MatterSim Stage2 workflow. The old PZ-LDA [MoS₂/WSe₂ comparison](MODEL_DFT_COMPARISON.md) and [WS₂ supplement](WS2_DFT_COMPARISON.md) remain historical records, not the reference used below. The [17-page illustrated report](../output/pdf/tmd_gga_pbe_mlff_latex_report.pdf) contains the complete per-channel tables, phonon and PES figures, residuals, convergence checks and measured cost.
+This is the **current DFT comparison** for the public TECE/Prophet/EquiformerV3 Stage1 + MatterSim Stage2 workflow. The old PZ-LDA [MoS₂/WSe₂ comparison](MODEL_DFT_COMPARISON.md) and [WS₂ supplement](WS2_DFT_COMPARISON.md) remain historical records, not the reference used below. The [19-page illustrated report](../output/pdf/tmd_gga_pbe_mlff_latex_report.pdf) contains the complete per-channel tables, phonon and PES figures, residuals, convergence checks and measured cost.
 
 ## Scope and provenance
 
@@ -36,7 +36,16 @@ In WS₂ Γ8–M6, PBE gives signed `Φ1122 = −1.4141` while the three own-rel
 
 The 6×6 phonon q mesh is independent of the two-dimensional PES grid. For the leading channel in each material, the **same** QE 9×9 data at `|Q|≤2` were refit using a nested sparse 5×5 subset (step 1) and all 9×9 points (step 0.5). The resulting fourth-order changes were +0.168% WS₂, +0.199% MoS₂ and −0.029% WSe₂. This retrospective check isolates sampling density at a fixed window; the central 5×5 `|Q|≤1` is a separate window comparison. See [density data](../reports/pbe_three_materials/density_audit.json) and the [recomputing script](../reports/pbe_three_materials/density_audit.py).
 
-The new WS₂ Γ8–M9 **17×17**, step-0.25 QE calculation at the same maximum `|Q|≤2` is **in progress as of 2026-09-26** and is not included in the completed DFT result. Its [MatterSim-only 289-point grid](reference_data/pbe_20260925/ws2_17x17_mattersim.json) has finished: the signed fourth-order fit changes from 8.0011 (9×9, step 0.5) to 8.3945 (17×17, step 0.25), or +4.92%, at `|Q|≤2`. On the central `|Q|≤1` window it changes from 11.2105 (5×5) to 11.1666 (9×9), or −0.39%. This is a **model-only sampling result**, not a completed QE/MLFF convergence comparison. Do not infer fourth-order convergence for all channels from the three nested rank-one QE 9×9 checks.
+The WS₂ Γ8–M9 **17×17** QE PBE/MatterSim test is now complete on exactly the same 289 atomic configurations. It holds the maximum displacement at |Q|≤2 Å√amu, reducing the step from 0.5 (9×9) to 0.25 (17×17). All 81 old QE points were reused after geometry and hash checks; 208 new QE points converged with 12 atomic forces each. The published [QE result](reference_data/pbe_20260925/ws2_17x17_qe.json) includes all energies, forces, per-point output hashes, fitted windows and raw even-mixed contrasts. [MatterSim](reference_data/pbe_20260925/ws2_17x17_mattersim.json) uses the identical input grid.
+
+| Fixed window | QE signed Φ1122: coarse → dense | QE change | MatterSim signed Φ1122: coarse → dense | MatterSim change |
+| --- | ---: | ---: | ---: | ---: |
+| Extent ≤2, 9×9 → 17×17 | 7.6905 → 7.7022 | +0.152% | 8.0011 → 8.3945 | +4.917% |
+| Extent ≤1, 5×5 → 9×9 | 7.7985 → 7.8005 | +0.025% | 11.2105 → 11.1666 | −0.392% |
+
+The wide-window cubic strength |Φ122| is 94.7903→94.7967 for QE and 87.2202→87.4178 for MatterSim. On all 289 identical configurations, relative-to-center energy MAE/RMSE is 10.072/12.036 meV per supercell; 10,404 Cartesian force components have MAE/RMSE 0.02136/0.04047 eV/Å. The corresponding 81-point central-window errors are 5.834/6.923 meV and 0.01145/0.01917 eV/Å. The complete [Slurm audit](reference_data/pbe_20260925/ws2_17x17_resource_audit.json) records 208 completed jobs, one cancelled overloaded-node attempt, and 21.059 completed QE node-hours (controllers and MatterSim excluded).
+
+The added grid supports **density stability of the finite-window 13-term QE fit for this one channel**. MatterSim is more sampling-sensitive over the wide window, while the center-window fit changes less. Direct even-mixed contrasts and fit residuals in the PDF show that higher-order PES shape or numerical precision remain relevant. These data do not establish an exact zero-displacement Taylor derivative or settle the separate Γ8–M6 sign discrepancy; the other fourteen channels have not received a 17×17 test.
 
 ## Reproduce and inspect
 
@@ -47,7 +56,8 @@ From the repository root, with NumPy, Matplotlib and a working XeLaTeX installat
 ```bash
 python reports/pbe_three_materials/density_audit.py
 python reports/pbe_three_materials/generate_assets.py
+python reports/pbe_three_materials/dense_ws2_assets.py
 python3 /path/to/latex-plugin/scripts/compile_latex.py reports/pbe_three_materials/main.tex --compiler texlive --engine xelatex --output-directory reports/pbe_three_materials/build
 ```
 
-The first command verifies the rank-13 PES fit and original wide-grid coefficient. The second validates the 579-point audit and 15 selected channels, then regenerates 18 tables, ten figures and [relative-path source hashes](../reports/pbe_three_materials/sources.json). The compiled PDF is `reports/pbe_three_materials/build/main.pdf`; the reviewed copy is linked above. `reports/pbe_three_materials/README.md` gives prerequisites and source-file roles.
+The first command verifies the retrospective rank-13 QE density fits. The second checks the 579-point baseline and regenerates its tables and figures; the third verifies the completed WS₂ 289-point QE/MatterSim grid and Slurm audit, then builds the added density table and two figures. The generators record source hashes in reports/pbe_three_materials/sources.json and dense_ws2_sources.json. The compiled PDF is reports/pbe_three_materials/build/main.pdf; the reviewed copy is linked above.

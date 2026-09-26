@@ -1,0 +1,7 @@
+{
+  "qe_result_sha256": "ebd0c71a33c6845ce7f004585ab82abffe93635ea400dddeb1139fe01107b2a1",
+  "mattersim_result_sha256": "f15b0c7c4dbd0b5cd3bc14154fb383a12cef0598dae7bbadedf2ee5ffedcf505",
+  "resource_audit_sha256": "b4c3d1005f1540abce1f56a60bdfb33bb8b2013489db787a634089c638beec40",
+  "manifest_sha256": "10ba50bafa0d6567cec3ef5dd1b082c14235f03adb139a022e89bd99e7933199",
+  "note": "Point-level QE output hashes and Slurm identities are in the published QE and resource JSON files."
+}

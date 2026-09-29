@@ -12,6 +12,8 @@
 
 **6×6×1 是声子动量网格**；**5×5、9×9、研究中的 17×17 是二维模式位移网格**，两者的收敛含义不同。
 
+三阶比较已补入 MoS₂/WSe₂ 的 **DFT Stage1＋MatterSim Stage2 历史基线**，明确旧 LDA 结构／模式及归一化转换。它不是 PBE 模式重算；缺失的 WS₂ 历史路线和历史四阶系数不补造。
+
 ## 快速使用
 
 使用 Python 3.10+，执行 `pip install -e .`。Phonopy 固定为 2.38.0。需另装所选 Stage1 模型及 MatterSim，权重不随仓库提供；已验证源码提交、权重检查和 CPU/Slurm 说明见[安装文档](docs/INSTALL.md)。可用 `npc --help` 检查入口。

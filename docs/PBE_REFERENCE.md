@@ -1,6 +1,6 @@
 # GGA-PBE reference for WS₂, MoS₂ and WSe₂
 
-This is the **current DFT comparison** for the public TECE/Prophet/EquiformerV3 Stage1 + MatterSim Stage2 workflow. The old PZ-LDA [MoS₂/WSe₂ comparison](MODEL_DFT_COMPARISON.md) and [WS₂ supplement](WS2_DFT_COMPARISON.md) remain historical records, not the reference used below. The [19-page illustrated report](../output/pdf/tmd_gga_pbe_mlff_latex_report.pdf) contains the complete per-channel tables, phonon and PES figures, residuals, convergence checks and measured cost.
+This is the **current DFT comparison** for the public TECE/Prophet/EquiformerV3 Stage1 + MatterSim Stage2 workflow. The old PZ-LDA [MoS₂/WSe₂ comparison](MODEL_DFT_COMPARISON.md) and [WS₂ supplement](WS2_DFT_COMPARISON.md) remain historical records, not the reference used below. The [20-page illustrated report](../output/pdf/tmd_gga_pbe_mlff_latex_report.pdf) contains the complete per-channel tables, phonon and PES figures, residuals, convergence checks and measured cost.
 
 ## Scope and provenance
 
@@ -61,3 +61,7 @@ python3 /path/to/latex-plugin/scripts/compile_latex.py reports/pbe_three_materia
 ```
 
 The first command verifies the retrospective rank-13 QE density fits. The second checks the 579-point baseline and regenerates its tables and figures; the third verifies the completed WS₂ 289-point QE/MatterSim grid and Slurm audit, then builds the added density table and two figures. The generators record source hashes in reports/pbe_three_materials/sources.json and dense_ws2_sources.json. The compiled PDF is reports/pbe_three_materials/build/main.pdf; the reviewed copy is linked above.
+
+## 历史 DFT Stage1＋MatterSim Stage2 基线
+
+PDF和三阶对比图已补入MoS₂/WSe₂各五通道历史基线，使用旧LDA结构与DFPT模式。统一坐标后的MoS₂三阶MAE/RMSE为5.112/5.950；论文旧坐标为3.767/4.425，K/L点约乘2的归一化转换造成这项变化。WS₂历史路线与历史四阶数据缺失。该基线只加入同一LDA参考误差比较，不冒充PBE模式上的重算结果。可追溯数据见 [historical_qe_mattersim.json](reference_data/pbe_20260925/historical_qe_mattersim.json)。

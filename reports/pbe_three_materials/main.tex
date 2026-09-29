@@ -116,17 +116,17 @@ MAE/RMSE 在每种材料的五个固定通道上计算，三阶先取绝对值�
 
 \section{三阶非线性耦合：参考泛函改变了多少}
 
-表~\ref{tab:cubic-all} 与图~\ref{fig:cubic_channels}采用论文中逐模式对并列比较的形式，分别列出旧 LDA、新 PBE 与三条 MLFF 路线的五个 $|\PhiC|$。WS$_2$ 的 $\Gamma8$--M9 从旧 LDA 103.143 变为新 PBE 94.853，三条 MLFF 在 85.757--86.718；MoS$_2$ 同一通道从 106.134 降到 94.809，MLFF 在 88.725--89.423。参考改变明显缩小两者差距。WSe$_2$ 更接近，首通道 PBE 27.253、MLFF 25.945--26.152。
+表~\ref{tab:cubic-all} 与图~\ref{fig:cubic_channels}采用论文中逐模式对并列比较的形式，分别列出旧 LDA、新 PBE、历史 DFT 模式+MatterSim 与三条全 MLFF 路线的五个 $|\PhiC|$。WS$_2$ 的 $\Gamma8$--M9 从旧 LDA 103.143 变为新 PBE 94.853，三条 MLFF 在 85.757--86.718；MoS$_2$ 同一通道从 106.134 降到 94.809，MLFF 在 88.725--89.423。参考改变明显缩小两者差距。WSe$_2$ 更接近，首通道 PBE 27.253、MLFF 25.945--26.152。
 
 \begin{table}[!htbp]\centering\small
-\caption{逐通道的三阶强度 $|\PhiC|$；单位 $\cubunit$。通道编号经本征矢匹配，而非直接按序号假定。}\label{tab:cubic-all}
+\caption{逐通道的三阶强度 $|\PhiC|$；单位 $\cubunit$。通道编号经本征矢匹配，而非直接按序号假定。旧QE+MS采用LDA结构与模式；WS$_2$该历史基线缺失。}\label{tab:cubic-all}
 \begin{minipage}{\textwidth}\centering\textbf{(a) WS$_2$}\par\allwidthtable{cubic_ws2}\vspace{3mm}
 \textbf{(b) MoS$_2$}\par\allwidthtable{cubic_mos2}\vspace{3mm}
 \textbf{(c) WSe$_2$}\par\allwidthtable{cubic_wse2}\end{minipage}
 \end{table}
 
 \begin{figure}[!htbp]\centering\includegraphics[width=0.92\textwidth]{figures/cubic_channels.pdf}
-\caption{十五个固定通道的三阶强度并列比较；各材料五个通道分别排序展示。参考由 LDA 转至 PBE 后，首通道差距明显缩小。}\label{fig:cubic_channels}\end{figure}
+\caption{十五个固定通道的三阶强度并列比较；各材料五个通道分别排序展示。增加旧QE+MS历史基线，全部采用单位范数坐标；WS$_2$历史基线缺失。参考由 LDA 转至 PBE 后，首通道差距明显缩小。}\label{fig:cubic_channels}\end{figure}
 
 量化结果见表~\ref{tab:metrics-pbe}、\ref{tab:metrics-lda}。TECE+MatterSim 的五对三阶 MAE 在 WS$_2$/MoS$_2$/WSe$_2$ 分别由旧 LDA 的 10.327/12.539/3.936 降为 PBE 的 6.104/4.328/1.180 $\cubunit$。Prophet+MatterSim 对 PBE 的三阶 MAE 在三材料均略低于 TECE，但三种模型间差异小于 DFT 参考切换的效应；这主要比较了不同 Stage1 模式/结构在同一 MatterSim Stage2 下的最终结果，不能据此推出 Prophet 谐波频率更准。
 
@@ -138,6 +138,29 @@ MAE/RMSE 在每种材料的五个固定通道上计算，三阶先取绝对值�
 \caption{同样的 MLFF 结果对旧 LDA 的误差。WSe$_2$ 旧四阶仅 $n_4=1$，不可与新参考的五对误差直接比较。}\label{tab:metrics-lda}
 \allwidthtable{metrics_lda}
 \end{table}
+\FloatBarrier
+
+\subsection{论文式 DFT Stage1+MatterSim Stage2 历史基线}
+
+为保留本科论文图3-1、3-2的比较标准，表~\ref{tab:cubic-all}补入已有的MoS$_2$/WSe$_2$五通道历史结果。此路线固定QE PZ--LDA弛豫结构和DFPT本征矢，随后用MatterSim计算势能面；当前三条路线则自行弛豫并用Phonopy生成模式。两者检验的是不同的完整工作流，不应将其差异全部归因于Stage1本征矢，也不能据此单独判定Stage2模型精度退步。WS$_2$未找到同等可追溯的历史路线，保留缺失；历史排名档案没有可用的四阶系数，不能推造四阶基线。
+
+旧K/L点实模的质量加权范数约为$1/\sqrt2$。若实际单位范数坐标满足$Q_\Gamma=n_\Gamma a_\Gamma$、$Q_q=n_q a_q$，则
+\[
+\Phi_{122}^{\rm unit}=\Phi_{122}^{\rm old}/(n_\Gamma n_q^2).
+\]
+因此K/L三阶约乘2，M点约乘1；QE与MatterSim必须同时转换。MoS$_2$的旧QE K9数值37.149对应当前74.299，旧MS K9的32.418对应64.837，不能把这解释为物理耦合增强。表~\ref{tab:historical-metrics}并列旧坐标和统一坐标下的历史误差，原始排名文件的SHA--256已与验收来源核对，五对误差独立重算。
+
+\begin{table}[!htbp]\centering\small
+\caption{历史QE Stage1+MatterSim Stage2对同一旧LDA参考的三阶误差；单位$\cubunit$。仅坐标约定改变，未重新计算势能。}\label{tab:historical-metrics}
+\allwidthtable{historical_metrics}
+\end{table}
+
+MoS$_2$论文式旧坐标MAE/RMSE为3.7665/4.4249，统一坐标后为5.1122/5.9501；WSe$_2$对应0.2398/0.3274与0.3354/0.4695。图~\ref{fig:historical-baseline-errors}和表~\ref{tab:metrics-lda}在统一坐标、同一LDA参考下比较四条路线，历史基线优于目前自行生成结构和模式的路线。该结果支持保留DFT模式基作为方法参照。
+
+\begin{figure}[!htbp]\centering\includegraphics[width=0.94\textwidth]{figures/historical_baseline_errors.pdf}
+\caption{统一坐标下，历史QE+MS与三条全MLFF路线对旧LDA的三阶MAE/RMSE。不同路线保留各自结构和模式，比较最终通道耦合。}\label{fig:historical-baseline-errors}\end{figure}
+
+表~\ref{tab:metrics-pbe}仍只包含当前三条路线：历史QE+MS没有在PBE结构和模式上重算，不能称为``PBE DFT Stage1+MatterSim''。LDA到PBE还同时改变了赝势、弛豫结构和模态；不直接用旧坐标的3.77与新PBE的4.33作精度升降结论。若后续需要隔离Stage1的误差贡献，应另在已完成的PBE结构和DFPT模式上计算MatterSim势能面，本报告未新增该计算。
 \FloatBarrier
 
 \section{四阶耦合、排序与关键异常}
@@ -219,7 +242,7 @@ MAE/RMSE 在每种材料的五个固定通道上计算，三阶先取绝对值�
 
 另对 WS$_2$ $\Gamma8$--M9 在\emph{相同} $|Q_\Gamma|,|Q_q|\leq2\,\Qunit$ 上计算嵌套 17$\times$17 网格，步长从 0.5 减为 0.25。旧 9$\times$9 的 81 个 QE 点逐一核对结构及输入、输出哈希后复用；新增 208 个 QE PBE--USPP 单点均收敛并有全部 12 个原子力。MatterSim 5M 在\emph{完全相同}的 289 个原子构型上计算。这是首通道的额外密度实验，不改变其余十四通道的已有计算。
 
-表~\ref{tab:densews2} 同时给出固定宽窗 $|Q|\leq2$ 和固定中心窗 $|Q|\leq1$ 的三、四阶结果。宽窗 9$\times$9 $\to$ 17$\times$17 时，QE 的有符号 $\PhiD$ 为 $7.6905\to7.7022\,\quartunit$（$+0.152\%$），MatterSim 为 $8.0011\to8.3945\,\quartunit$（$+4.917\%$）。同一宽窗内 QE 的 $|\PhiC|$ 为 $94.7903\to94.7967\,\cubunit$，MatterSim 为 $87.2202\to87.4178\,\cubunit$。该通道宽窗四阶拟合对加密的敏感性主要发生在 MatterSim 一侧。
+表~\ref{tab:densews2} 同时给出固定宽窗 $|Q|\leq2$ 和固定中心窗 $|Q|\leq1$ 的三、四阶结果。宽窗 9$\times$9 $\to$ 17$\times$17 时，QE 的有符号 $\PhiD$ 为 $7.6905\to7.7022\,\quartunit$（$+0.152\%$），MatterSim 为 $8.0011\to8.3945\,\quartunit$（$+4.917\%$）。同一宽窗内 QE 的 $|\PhiC|$ 为 $94.7903\to94.7967\,\cubunit$，MatterSim 为 $87.2202\to87.4178$，单位为$\cubunit$。该通道宽窗四阶拟合对加密的敏感性主要发生在 MatterSim 一侧。
 
 中心窗 5$\times$5 $\to$ 9$\times$9 时，QE 的 $\PhiD$ 为 $7.7985\to7.8005$（$+0.025\%$），MatterSim 为 $11.2105\to11.1666$（$-0.392\%$），两者仍相差 $3.3661\,\quartunit$。在更小的 $|Q|\leq0.5$ 窗口，QE/MatterSim 分别为 $7.8042/11.3401\,\quartunit$。把\emph{宽窗}与\emph{中心窗}互相比会混入窗口效应，不能误称为采样密度收敛。
 
@@ -263,10 +286,12 @@ MAE/RMSE 在每种材料的五个固定通道上计算，三阶先取绝对值�
 
 本报告的所有数字、表格和图由同一套机器可读结果直接生成。原始 PBE 点位于独立研究归档，主要综合文件为：
 \begin{itemize}\setlength{\itemsep}{0pt}
+\item 历史基线 \texttt{historical\_qe\_mattersim.json}（包含坐标转换与来源哈希）；
 \item \texttt{coupling\_comparison.json}、三个 \texttt{results\_*.json}；
 \item 三个 \texttt{*\_phonon\_comparison.json}、\texttt{structure\_comparison.json}；
 \item \texttt{campaign\_audit.json}、\texttt{ws2\_pbe\_geometry\_mattersim\_m6.json}；
-\item 新增密网格的 \texttt{docs/reference\_data/pbe\_20260925/ws2\_17x17\_qe.json}、\texttt{ws2\_17x17\_mattersim.json} 与 \texttt{ws2\_17x17\_resource\_audit.json}，包含 289 点能量和力、拟合、偶混合检验及 208 个新点的 Slurm 资源记录。
+\item 新增密网格的 \texttt{ws2\_17x17\_qe.json}、\texttt{ws2\_17x17\_mattersim.json}，以及
+\newline\texttt{ws2\_17x17\_resource\_audit.json}，包含 289 点能量和力、拟合、偶混合检验及 208 个新点的 Slurm 资源记录。
 \end{itemize}
 旧模型参考只读取 Git 稳定仓库的验收数据目录，没有修改稳定代码。基线报表输入文件的 SHA256 保存在本目录的 \texttt{sources.json}；新增 WS$_2$ 密网格输入哈希见 \texttt{dense\_ws2\_sources.json}。运行 \texttt{generate\_assets.py} 可重建图表，随后用 XeLaTeX 编译本文件。主比较按五对物理通道对应，旧 WSe$_2$ 未恢复的四阶值如实显示为缺失。
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import math
 from pathlib import Path
 
@@ -48,6 +49,36 @@ def check() -> list[tuple[str, str, float, float, float]]:
         raise ValueError("Non-finite WS2 QE dense-grid energy or force")
     if not math.isclose(dense_qe["wide_density_change_percent"], 0.1523573427, abs_tol=1e-8):
         raise ValueError("WS2 QE density result changed")
+    historical = read("historical_qe_mattersim.json")
+    acceptance_path = ROOT / "docs/acceptance_data/model_dft_top5.json"
+    if historical["acceptance_sha256"] != hashlib.sha256(acceptance_path.read_bytes()).hexdigest():
+        raise ValueError("Historical QE+MS source mismatch")
+    acceptance = json.loads(acceptance_path.read_text())
+    for material in ("mos2", "wse2"):
+        item = historical["materials"][material]
+        if len({row["pair_code"] for row in item["rows"]}) != 5:
+            raise ValueError("Historical QE+MS channel duplication or omission")
+        for convention, reference, prediction in (
+            ("legacy", "legacy_lda_phi122_abs", "legacy_ms_phi122_abs"),
+            ("unit_norm", "unit_norm_lda_phi122_abs", "phi122_abs"),
+        ):
+            differences = [row[prediction] - row[reference] for row in item["rows"]]
+            actual = {"mae": mae(differences), "rmse": math.sqrt(sum(x*x for x in differences)/5)}
+            for key, value in actual.items():
+                if not math.isclose(value, item["metrics_vs_lda"][convention][key], abs_tol=1e-9):
+                    raise ValueError("Historical QE+MS metric mismatch")
+                if convention == "unit_norm" and not math.isclose(
+                    value, acceptance["summary"][material + "/qe-ms"]["third"][key], abs_tol=1e-9
+                ):
+                    raise ValueError("Historical QE+MS acceptance metric mismatch")
+        for row in item["rows"]:
+            reference = acceptance["references"][material][row["pair_code"]]
+            if not math.isclose(row["normalization_scale"], reference["legacy_to_unit_norm_scale"], abs_tol=1e-12):
+                raise ValueError("Historical normalization scale mismatch")
+            if not math.isclose(row["phi122_abs"], row["legacy_ms_phi122_abs"] * row["normalization_scale"], abs_tol=1e-9):
+                raise ValueError("Historical normalization conversion mismatch")
+            if row["phi1122"] is not None:
+                raise ValueError("Missing historical quartic must remain null")
     comparison = read("coupling_comparison.json")
     summary = []
     for material in MATERIALS:

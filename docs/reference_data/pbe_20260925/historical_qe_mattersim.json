@@ -1,0 +1,205 @@
+{
+  "scope": "Historical QE PZ-LDA Stage1 + MatterSim Stage2; not recomputed with PBE modes or geometry",
+  "units": "meV/(Angstrom^3*amu^(3/2))",
+  "acceptance_sha256": "301969399a8d6377a8012682e11d984b6995f5394e14e97c9ca8bea901ee265a",
+  "materials": {
+    "mos2": {
+      "source_archive": {
+        "path": "/Users/lmtsakura/qiyan_shared/result/reliable_materials/mos2/core_packages/mos2_stage2_stage3_core_20260402/stage2_models/mattersim_v1_5m/stage2_outputs/mattersim_v1_5m/screening/pair_ranking.json",
+        "sha256": "f7275369bc7a976ff5ec4b9f12e6ad5763cb3987587d6fecec9f61d840ea854c"
+      },
+      "rows": [
+        {
+          "physical_channel": "Gamma8-M9",
+          "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m9",
+          "legacy_lda_phi122_abs": 106.13401497830645,
+          "legacy_ms_phi122_abs": 98.42965262277055,
+          "normalization_scale": 1.0000006819638199,
+          "unit_norm_lda_phi122_abs": 106.13408735786474,
+          "phi122_abs": 98.42971974823244,
+          "phi1122": null,
+          "gamma_frequency_ref_thz": 12.297423,
+          "q_frequency_ref_thz": 12.50735,
+          "gamma_frequency_fit_thz": 12.3233392209876,
+          "q_frequency_fit_thz": 12.563970816100143,
+          "historical_fit_rmse_ev_supercell": 0.010053285296996688
+        },
+        {
+          "physical_channel": "Gamma8-M8",
+          "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m8",
+          "legacy_lda_phi122_abs": 98.76604240770189,
+          "legacy_ms_phi122_abs": 97.68240792410977,
+          "normalization_scale": 0.9999997103831377,
+          "unit_norm_lda_phi122_abs": 98.76601380339066,
+          "phi122_abs": 97.68237963363728,
+          "phi1122": null,
+          "gamma_frequency_ref_thz": 12.297423,
+          "q_frequency_ref_thz": 11.837592,
+          "gamma_frequency_fit_thz": 12.3233392209876,
+          "q_frequency_fit_thz": 12.586708943296665,
+          "historical_fit_rmse_ev_supercell": 0.003325257985881294
+        },
+        {
+          "physical_channel": "Gamma8-M7",
+          "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m7",
+          "legacy_lda_phi122_abs": 78.02278729629646,
+          "legacy_ms_phi122_abs": 81.33893694196671,
+          "normalization_scale": 1.000000405819434,
+          "unit_norm_lda_phi122_abs": 78.02281895945994,
+          "phi122_abs": 81.33896995088807,
+          "phi1122": null,
+          "gamma_frequency_ref_thz": 12.297423,
+          "q_frequency_ref_thz": 11.223817,
+          "gamma_frequency_fit_thz": 12.3233392209876,
+          "q_frequency_fit_thz": 10.61727258832547,
+          "historical_fit_rmse_ev_supercell": 0.003836776425700452
+        },
+        {
+          "physical_channel": "Gamma8-K9",
+          "pair_code": "Gamma_p0_m8__K_q_0.333_0.333_0.000_m9",
+          "legacy_lda_phi122_abs": 37.14946622286736,
+          "legacy_ms_phi122_abs": 32.41838727678784,
+          "normalization_scale": 2.0000006674187167,
+          "unit_norm_lda_phi122_abs": 74.29895723998388,
+          "phi122_abs": 64.83679619021412,
+          "phi1122": null,
+          "gamma_frequency_ref_thz": 12.297423,
+          "q_frequency_ref_thz": 12.075427,
+          "gamma_frequency_fit_thz": 12.313218383411026,
+          "q_frequency_fit_thz": 8.883617259900074,
+          "historical_fit_rmse_ev_supercell": 0.002154693298319018
+        },
+        {
+          "physical_channel": "Gamma8-L8",
+          "pair_code": "Gamma_p0_m8__line_q_0.333_0.667_0.000_m8",
+          "legacy_lda_phi122_abs": 33.88787839461927,
+          "legacy_ms_phi122_abs": 35.885184151788046,
+          "normalization_scale": 2.0000006019226544,
+          "unit_norm_lda_phi122_abs": 67.77577718712004,
+          "phi122_abs": 71.77038990368139,
+          "phi1122": null,
+          "gamma_frequency_ref_thz": 12.297423,
+          "q_frequency_ref_thz": 12.331607,
+          "gamma_frequency_fit_thz": 12.313218383411026,
+          "q_frequency_fit_thz": 9.064021188800478,
+          "historical_fit_rmse_ev_supercell": 0.0009741559721010599
+        }
+      ],
+      "metrics_vs_lda": {
+        "legacy": {
+          "count": 5,
+          "mae": 3.7665062376093146,
+          "rmse": 4.42494406187387,
+          "max_abs_error": 7.704362355535906
+        },
+        "unit_norm": {
+          "count": 5,
+          "mae": 5.112185307428985,
+          "rmse": 5.95008946425601,
+          "max_abs_error": 9.462161049769762
+        }
+      }
+    },
+    "wse2": {
+      "source_archive": {
+        "path": "/Users/lmtsakura/qiyan_shared/result/reliable_materials/wse2/supporting_stage2/wse2_mattersim_v1_5m_stage2_20260403/stage2/outputs/mattersim_v1_5m/screening/pair_ranking.json",
+        "sha256": "7cf59c0da0b77b22bd82e88ef8a0f49d9986b0298d74554cc87013c434524312"
+      },
+      "rows": [
+        {
+          "physical_channel": "Gamma8-M9",
+          "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m9",
+          "legacy_lda_phi122_abs": 30.581275159992042,
+          "legacy_ms_phi122_abs": 31.161934988840546,
+          "normalization_scale": 0.999999858768053,
+          "unit_norm_lda_phi122_abs": 30.581270840938974,
+          "phi122_abs": 31.161930587779793,
+          "phi1122": null,
+          "gamma_frequency_ref_thz": 7.545686,
+          "q_frequency_ref_thz": 8.110738,
+          "gamma_frequency_fit_thz": 7.745932432760257,
+          "q_frequency_fit_thz": 8.453851896084995,
+          "historical_fit_rmse_ev_supercell": 0.0010035949357094602
+        },
+        {
+          "physical_channel": "Gamma8-M8",
+          "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m8",
+          "legacy_lda_phi122_abs": 27.767711142951196,
+          "legacy_ms_phi122_abs": 27.82941545759058,
+          "normalization_scale": 0.9999987809773,
+          "unit_norm_lda_phi122_abs": 27.767677293480986,
+          "phi122_abs": 27.82938153290141,
+          "phi1122": null,
+          "gamma_frequency_ref_thz": 7.545686,
+          "q_frequency_ref_thz": 7.915659,
+          "gamma_frequency_fit_thz": 7.745932432760257,
+          "q_frequency_fit_thz": 8.381794011076654,
+          "historical_fit_rmse_ev_supercell": 0.0003465049551311205
+        },
+        {
+          "physical_channel": "Gamma8-M7",
+          "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m7",
+          "legacy_lda_phi122_abs": 22.478610717891037,
+          "legacy_ms_phi122_abs": 22.399902343750814,
+          "normalization_scale": 0.9999996799210994,
+          "unit_norm_lda_phi122_abs": 22.478603522962032,
+          "phi122_abs": 22.3998951740147,
+          "phi1122": null,
+          "gamma_frequency_ref_thz": 7.545686,
+          "q_frequency_ref_thz": 7.350203,
+          "gamma_frequency_fit_thz": 7.745932432760257,
+          "q_frequency_fit_thz": 6.9307830354606095,
+          "historical_fit_rmse_ev_supercell": 0.00035191193833883664
+        },
+        {
+          "physical_channel": "Gamma8-K9",
+          "pair_code": "Gamma_p0_m8__K_q_0.333_0.333_0.000_m9",
+          "legacy_lda_phi122_abs": 10.59623811077991,
+          "legacy_ms_phi122_abs": 10.550362723215224,
+          "normalization_scale": 1.9999981324174878,
+          "unit_norm_lda_phi122_abs": 21.19245643221083,
+          "phi122_abs": 21.10070574275753,
+          "phi1122": null,
+          "gamma_frequency_ref_thz": 7.545686,
+          "q_frequency_ref_thz": 7.869172,
+          "gamma_frequency_fit_thz": 7.746044096092235,
+          "q_frequency_fit_thz": 6.009454017447615,
+          "historical_fit_rmse_ev_supercell": 0.0007251696977440663
+        },
+        {
+          "physical_channel": "Gamma8-L8",
+          "pair_code": "Gamma_p0_m8__line_q_0.333_0.667_0.000_m8",
+          "legacy_lda_phi122_abs": 9.926495926005698,
+          "legacy_ms_phi122_abs": 10.358537946429221,
+          "normalization_scale": 2.000000920032733,
+          "unit_norm_lda_phi122_abs": 19.853000984712573,
+          "phi122_abs": 20.71708542305242,
+          "phi1122": null,
+          "gamma_frequency_ref_thz": 7.545686,
+          "q_frequency_ref_thz": 8.117051,
+          "gamma_frequency_fit_thz": 7.746044096092235,
+          "q_frequency_fit_thz": 5.942632248283156,
+          "historical_fit_rmse_ev_supercell": 0.0005283079340503247
+        }
+      ],
+      "metrics_vs_lda": {
+        "legacy": {
+          "count": 5,
+          "mae": 0.2397979851232641,
+          "rmse": 0.32739368535117996,
+          "max_abs_error": 0.5806598288485034
+        },
+        "unit_norm": {
+          "count": 5,
+          "mae": 0.33538149260034517,
+          "rmse": 0.46951640323932436,
+          "max_abs_error": 0.864084438339848
+        }
+      }
+    }
+  },
+  "missing": [
+    "ws2 historical QE Stage1 + MatterSim Stage2",
+    "historical signed quartic coefficients"
+  ]
+}

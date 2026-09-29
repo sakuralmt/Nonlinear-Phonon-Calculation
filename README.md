@@ -12,6 +12,8 @@
 
 The **6×6×1 q mesh** sets phonon wavevectors. The **5×5, 9×9 and research 17×17 PES grids** sample two displacement coordinates. These measure different kinds of convergence.
 
+The cubic comparison also includes the archived **DFT Stage1 + MatterSim Stage2** baseline for MoS₂/WSe₂, with the old LDA geometry/modes and explicit normalization conversion. It is not a PBE-mode rerun; missing WS₂ and historical quartic labels remain unfilled.
+
 ## Quick start
 
 Use Python 3.10+ and `pip install -e .`. Phonopy is pinned to 2.38.0. Install the chosen Stage1 model and MatterSim in a compatible environment; model weights are not bundled. Tested source commits, weight checks and CPU/Slurm guidance are in [INSTALL.md](docs/INSTALL.md). Run `npc --help` for commands.

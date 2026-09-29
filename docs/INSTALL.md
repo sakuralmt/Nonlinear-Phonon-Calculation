@@ -77,3 +77,7 @@ The wheel includes only `nonlinear_phonon_calculation` and
 Stage3 recomputation code, model weights and server run directories. Historical
 scientific comparisons in validation notes do not add those execution paths to
 the package.
+
+## Existing QE-DFT Stage1
+
+DFT results can be imported with `npc stage1 --model qe-dft` and passed to MatterSim using the original DFT-relaxed structure. No Stage1 weights or MLFF relaxation are used for this route. The adapter validates the audited DFPT dataset and mode hashes; it does not install or invoke QE. See [DFT handoff](DFT_STAGE1.md).

@@ -1,6 +1,6 @@
 # Nonlinear phonon screening for 2D hexagonal materials
 
-`npc` finds strong Γ–q–(−q) nonlinear phonon couplings. It relaxes a monolayer with a machine-learning force field (MLFF), calculates a 6×6×1 harmonic phonon mesh through Phonopy, and uses MatterSim to screen and fit frozen-mode potential-energy surfaces. **TECE + MatterSim** is the default route; Prophet and EquiformerV3 are optional Stage1 models. The public CLI has two stages and does not run QE or MD.
+`npc` finds strong Γ–q–(−q) nonlinear phonon couplings. It relaxes a monolayer with a machine-learning force field (MLFF), calculates a 6×6×1 harmonic phonon mesh through Phonopy, and uses MatterSim to screen and fit frozen-mode potential-energy surfaces. **TECE + MatterSim** is the default route; Prophet and EquiformerV3 are optional Stage1 models. Existing **QE-DFT Stage1 geometry and phonons** can also be imported and passed to MatterSim Stage2. The public CLI does not launch QE or MD.
 
 [中文说明](README_zh.md) · [Install and model sources](docs/INSTALL.md) · [Numerical architecture](ARCHITECTURE.md) · [Current PBE benchmark](docs/PBE_REFERENCE.md) · [Illustrated PDF](output/pdf/tmd_gga_pbe_mlff_latex_report.pdf)
 
@@ -13,6 +13,12 @@
 The **6×6×1 q mesh** sets phonon wavevectors. The **5×5, 9×9 and research 17×17 PES grids** sample two displacement coordinates. These measure different kinds of convergence.
 
 The cubic comparison also includes the archived **DFT Stage1 + MatterSim Stage2** baseline for MoS₂/WSe₂, with the old LDA geometry/modes and explicit normalization conversion. It is not a PBE-mode rerun; missing WS₂ and historical quartic labels remain unfilled.
+
+The new **PBE DFT Stage1 + MatterSim Stage2** baseline is complete for all 15 matched channels (543 configurations). It preserves the PBE DFT geometry and modes; cubic MAE for WS2/MoS2/WSe2 is 6.470/4.274/0.918. See the current report for signed quartic and same-configuration energy/force comparisons.
+
+## DFT Stage1 + MatterSim Stage2
+
+Use `npc stage1 --model qe-dft` to import existing audited DFPT results, without calculating or relaxing Stage1 again. Full imports feed the same `stage2 screen/refine/audit` commands. For matched detailed channels, `stage2 reference` evaluates exactly the existing QE displacement grid and compares aligned energies, forces and nonlinear derivatives. See [DFT input contract and commands](docs/DFT_STAGE1.md). DFT geometry is preserved; the model-relaxed route remains the default.
 
 ## Quick start
 

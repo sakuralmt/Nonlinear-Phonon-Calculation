@@ -1,4 +1,8 @@
 {
+  "docs/reference_data/pbe_20260925/pbe_dft_mattersim_comparison.json": "7831e02783caf4c3ef0caf6b9b93d86c7d512e3eb9116272fe3a3e104fa6a7e2",
+  "docs/reference_data/pbe_20260925/pbe_dft_mattersim_ws2.json": "415181774f22778872c0ec02c33db4a5bf08ff5f44d3a3eeb9c07bd755df12c9",
+  "docs/reference_data/pbe_20260925/pbe_dft_mattersim_mos2.json": "004ae6eb99b2c40b25ded62511551994c1f86739655ddf3bdd616c394e3ae77b",
+  "docs/reference_data/pbe_20260925/pbe_dft_mattersim_wse2.json": "f6d4c55ce382cebc662f2e88f5dbc590ee9d4fe4594b8e3e25dc5fb0a08980f7",
   "docs/reference_data/pbe_20260925/historical_qe_mattersim.json": "5cacd6c202f85b86cdfc133af7d52c053f15374e6035e00bc74eeac83b64e48e",
   "docs/reference_data/pbe_20260925/coupling_comparison.json": "2d643bb430eb16543d27c3e409f58968336efc5d86e31f056c884fc02894e74e",
   "docs/reference_data/pbe_20260925/campaign_audit.json": "1b2c1f1d505ee895668d7fe7a939c907d464df0208650e160da2a4af6bac904e",

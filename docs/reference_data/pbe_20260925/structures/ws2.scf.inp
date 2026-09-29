@@ -1,0 +1,33 @@
+&CONTROL
+  calculation = 'scf'
+  prefix = 'ws2pbe'
+  pseudo_dir = '../pseudos'
+  outdir = './tmp'
+  disk_io = 'low'
+  tprnfor = .true.
+  tstress = .true.
+/
+&SYSTEM
+  ibrav = 4, A = 3.188110164, C = 18.090841858
+  nat = 3, ntyp = 2
+  occupations = 'smearing', smearing = 'gauss', degauss = 1.0d-11
+  ecutwfc = 120, ecutrho = 1200
+/
+&ELECTRONS
+  electron_maxstep = 300
+  conv_thr = 1.0d-12
+  mixing_beta = 0.3d0
+  mixing_mode = 'plain'
+  diagonalization = 'david'
+/
+ATOMIC_SPECIES
+W 183.84000 w_pbe_v1.2.uspp.F.UPF
+S 32.06000 s_pbe_v1.4.uspp.F.UPF
+
+ATOMIC_POSITIONS (crystal)
+W 0.0000000000 0.0000000000 0.5000000000
+S 0.6666666667 0.3333333333 0.5869142957
+S 0.6666666667 0.3333333333 0.4130857043
+
+K_POINTS {automatic}
+30 30 1 0 0 0

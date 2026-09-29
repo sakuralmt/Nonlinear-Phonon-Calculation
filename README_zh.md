@@ -1,6 +1,6 @@
 # 六方二维材料非线性声子筛选
 
-`npc` 筛选 Γ–q–(−q) 高阶声子耦合。它先用机器学习力场自行弛豫单层结构，再通过 Phonopy 计算完整 6×6×1 声子网格，最后用 MatterSim 粗筛并拟合冻结模式的势能面。默认组合为 **TECE＋MatterSim**；Stage1 还支持 Prophet、EquiformerV3。公开命令只有 Stage1、Stage2，不运行 QE 或 MD。
+`npc` 筛选 Γ–q–(−q) 高阶声子耦合。它先用机器学习力场自行弛豫单层结构，再通过 Phonopy 计算完整 6×6×1 声子网格，最后用 MatterSim 粗筛并拟合冻结模式的势能面。默认组合为 **TECE＋MatterSim**；Stage1 还支持 Prophet、EquiformerV3。同时支持**读取已完成的 QE-DFT Stage1 弛豫结构与声子结果，接入 MatterSim Stage2**。公开命令不启动新的 QE 或 MD。
 
 [English](README.md) · [安装及模型来源](docs/INSTALL.md) · [数值架构](ARCHITECTURE.md) · [当前 PBE 对照](docs/PBE_REFERENCE.md) · [图文 PDF](output/pdf/tmd_gga_pbe_mlff_latex_report.pdf)
 
@@ -13,6 +13,12 @@
 **6×6×1 是声子动量网格**；**5×5、9×9、研究中的 17×17 是二维模式位移网格**，两者的收敛含义不同。
 
 三阶比较已补入 MoS₂/WSe₂ 的 **DFT Stage1＋MatterSim Stage2 历史基线**，明确旧 LDA 结构／模式及归一化转换。它不是 PBE 模式重算；缺失的 WS₂ 历史路线和历史四阶系数不补造。
+
+新的 **PBE DFT Stage1＋MatterSim Stage2** 基线已完成：十五个已匹配通道、543个原QE构型，保留PBE结构与DFPT模式。WS₂/MoS₂/WSe₂三阶MAE为6.470/4.274/0.918；有符号四阶及同构型能量／力误差见当前报告。
+
+## DFT Stage1＋MatterSim Stage2
+
+`npc stage1 --model qe-dft` 导入已有、可追溯的 DFPT 结果，不重新计算 Stage1，也不进行 MLFF 弛豫。完整导入可直接接现有 `stage2 screen/refine/audit`；需要详细对比的已选通道使用 `stage2 reference`，在原 QE 位移网格上计算 MatterSim，并比较对齐能量、原子力与三四阶导数。参见[DFT 交接契约和完整命令](docs/DFT_STAGE1.md)。原 DFT 结构始终保持不变，默认全 MLFF 路线仍可使用。
 
 ## 快速使用
 

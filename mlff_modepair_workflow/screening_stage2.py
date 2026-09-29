@@ -78,36 +78,52 @@ def _identity(
 
 
 def validate_relaxed_stage1(payload: dict, structure: Path) -> None:
-    """Require the same, traceable model-relaxed geometry in both stages."""
+    """Require the same, traceable relaxed geometry from MLFF or imported DFT."""
     source = payload.get("source", {})
     relaxation = source.get("relaxation", {})
     structure_hash = sha256_file(structure)
-    if source.get("geometry_source") != "model_relaxed":
-        raise ValueError("Stage2 requires a model-relaxed Stage1 structure")
+    geometry_source = source.get("geometry_source")
+    if geometry_source not in {"model_relaxed", "dft_relaxed"}:
+        raise ValueError(
+            "Stage2 requires a traceable model-relaxed or audited DFT-relaxed structure"
+        )
     if source.get("symmetry", {}).get("covariance_contract") != "gamma_and_finite_q_v2":
         raise ValueError("Stage1 must verify Gamma and finite-q symmetry covariance")
-    if (
+    if geometry_source == "dft_relaxed":
+        if (
+            payload.get("scope") != "complete_dft_screening_mesh"
+            or source.get("backend") != "qe-dfpt"
+            or source.get("structure_sha256") != structure_hash
+            or source.get("dfpt_provenance", {})
+            .get("input_sha256", {})
+            .get("scf/scf.inp")
+            != structure_hash
+            or not source.get("dataset_sha256")
+        ):
+            raise ValueError("DFT Stage1 provenance is inconsistent")
+    elif (
         source.get("structure_sha256") != structure_hash
         or relaxation.get("optimized_structure_sha256") != structure_hash
     ):
         raise ValueError("Stage1, Stage2 and relaxation structures differ")
-    summary_path = Path(relaxation.get("summary", ""))
-    if not summary_path.is_file():
-        summary_path = structure.parent / "relax_summary.json"
-    if not summary_path.is_file() or relaxation.get("summary_sha256") != sha256_file(
-        summary_path
-    ):
-        raise ValueError("Missing or altered model relaxation summary")
-    summary = json.loads(summary_path.read_text())
-    if (
-        summary.get("backend") != source.get("backend")
-        or summary.get("optimized_structure_sha256") != structure_hash
-        or summary.get("source_structure_sha256")
-        != relaxation.get("source_structure_sha256")
-        or summary.get("relaxation_protocol_version")
-        != relaxation.get("protocol_version")
-    ):
-        raise ValueError("Stage1 relaxation provenance is inconsistent")
+    if geometry_source == "model_relaxed":
+        summary_path = Path(relaxation.get("summary", ""))
+        if not summary_path.is_file():
+            summary_path = structure.parent / "relax_summary.json"
+        if not summary_path.is_file() or relaxation.get(
+            "summary_sha256"
+        ) != sha256_file(summary_path):
+            raise ValueError("Missing or altered model relaxation summary")
+        summary = json.loads(summary_path.read_text())
+        if (
+            summary.get("backend") != source.get("backend")
+            or summary.get("optimized_structure_sha256") != structure_hash
+            or summary.get("source_structure_sha256")
+            != relaxation.get("source_structure_sha256")
+            or summary.get("relaxation_protocol_version")
+            != relaxation.get("protocol_version")
+        ):
+            raise ValueError("Stage1 relaxation provenance is inconsistent")
     mode_selection = source.get("gamma_mode_selection", {})
     acoustic = set(mode_selection.get("acoustic_modes_one_based", []))
     optical = set(mode_selection.get("optical_modes_one_based", []))
@@ -341,9 +357,9 @@ def finalize(
             fit["energy_resolution"] = {
                 "point_count": int(grid.size),
                 "unique_energy_count": int(unique.size),
-                "minimum_nonzero_gap_ev": float(np.min(np.diff(unique)))
-                if unique.size > 1
-                else None,
+                "minimum_nonzero_gap_ev": (
+                    float(np.min(np.diff(unique))) if unique.size > 1 else None
+                ),
                 "note": "Repeated energies can also arise from physical symmetry",
             }
             if phase == "audit":
@@ -453,7 +469,12 @@ def main(argv=None) -> int:
         selected = [pair for pair in pairs if pair["pair_code"] in selected_codes]
         coordinates = CENTER if args.phase == "refine" else FULL
     worker_started = time.perf_counter()
-    primitive = load_atoms_from_qe(structure)
+    if payload["source"]["geometry_source"] == "dft_relaxed":
+        from .dft_reference import read_dft_structure
+
+        primitive = read_dft_structure(structure)
+    else:
+        primitive = load_atoms_from_qe(structure)
     calc, _ = make_mattersim_calculator(checkpoint, args.device, primitive)
     loading_seconds = time.perf_counter() - worker_started
     done = 0

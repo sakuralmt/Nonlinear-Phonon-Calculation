@@ -1,0 +1,33 @@
+{
+  "source_command": "sacct -j 1021451,1021452,1021453 --format=JobID,JobName,State,ElapsedRaw,AllocCPUS,MaxRSS -P",
+  "jobs": [
+    {
+      "material": "ws2",
+      "job_id": "1021451",
+      "job_name": "pbe_dft_ms_ws2",
+      "state": "COMPLETED",
+      "elapsed_seconds": 57,
+      "allocated_cpus": 8,
+      "nodes": 1
+    },
+    {
+      "material": "mos2",
+      "job_id": "1021452",
+      "job_name": "pbe_dft_ms_mos2",
+      "state": "COMPLETED",
+      "elapsed_seconds": 57,
+      "allocated_cpus": 8,
+      "nodes": 1
+    },
+    {
+      "material": "wse2",
+      "job_id": "1021453",
+      "job_name": "pbe_dft_ms_wse2",
+      "state": "COMPLETED",
+      "elapsed_seconds": 57,
+      "allocated_cpus": 8,
+      "nodes": 1
+    }
+  ],
+  "scope": "Three MatterSim CPU jobs only; no new QE jobs"
+}

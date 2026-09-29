@@ -1,6 +1,6 @@
 # GGA-PBE reference for WS₂, MoS₂ and WSe₂
 
-This is the **current DFT comparison** for the public TECE/Prophet/EquiformerV3 Stage1 + MatterSim Stage2 workflow. The old PZ-LDA [MoS₂/WSe₂ comparison](MODEL_DFT_COMPARISON.md) and [WS₂ supplement](WS2_DFT_COMPARISON.md) remain historical records, not the reference used below. The [20-page illustrated report](../output/pdf/tmd_gga_pbe_mlff_latex_report.pdf) contains the complete per-channel tables, phonon and PES figures, residuals, convergence checks and measured cost.
+This is the **current DFT comparison** for the public TECE/Prophet/EquiformerV3 Stage1 + MatterSim Stage2 workflow. The old PZ-LDA [MoS₂/WSe₂ comparison](MODEL_DFT_COMPARISON.md) and [WS₂ supplement](WS2_DFT_COMPARISON.md) remain historical records, not the reference used below. The [23-page illustrated report](../output/pdf/tmd_gga_pbe_mlff_latex_report.pdf) contains the complete per-channel tables, phonon and PES figures, residuals, convergence checks and measured cost.
 
 ## Scope and provenance
 
@@ -65,3 +65,11 @@ The first command verifies the retrospective rank-13 QE density fits. The second
 ## 历史 DFT Stage1＋MatterSim Stage2 基线
 
 PDF和三阶对比图已补入MoS₂/WSe₂各五通道历史基线，使用旧LDA结构与DFPT模式。统一坐标后的MoS₂三阶MAE/RMSE为5.112/5.950；论文旧坐标为3.767/4.425，K/L点约乘2的归一化转换造成这项变化。WS₂历史路线与历史四阶数据缺失。该基线只加入同一LDA参考误差比较，不冒充PBE模式上的重算结果。可追溯数据见 [historical_qe_mattersim.json](reference_data/pbe_20260925/historical_qe_mattersim.json)。
+
+## New PBE DFT Stage1 + MatterSim Stage2 (2026-09-29)
+
+The existing PBE geometry and DFPT modes were preserved and all 15 matched channels completed on the same 543 QE configurations. No new DFT or relaxation occurred. For WS2/MoS2/WSe2, cubic MAE is 6.470/4.274/0.918 and signed quartic MAE is 2.572/3.302/0.620. The current plots include this new DFT-mode baseline; LDA stays as historical comparison.
+
+Three CPU jobs allocated 8 threads each completed in 57 Slurm seconds per job; Stage2 including loading took about 46 seconds and process peak RSS was 710-722MiB. The account used 3 nodes during this run and the jobs have finished.
+
+See [DFT handoff](DFT_STAGE1.md) and [machine-readable comparison](reference_data/pbe_20260925/pbe_dft_mattersim_comparison.json). The three pbe_dft_mattersim materialJSON files include energy and atomic-force grids and source hashes.

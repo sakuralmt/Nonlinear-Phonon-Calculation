@@ -1,0 +1,236 @@
+{
+  "scope": "New PBE-relaxed DFT geometry and DFPT modes + MatterSim Stage2",
+  "units": {
+    "length": "Angstrom",
+    "mass": "amu",
+    "energy": "eV/supercell",
+    "force": "eV/Angstrom",
+    "force_constant": "eV/Angstrom^2",
+    "frequency": "THz",
+    "normal_coordinate": "Angstrom*sqrt(amu)",
+    "third_order": "meV/(Angstrom^3*amu^(3/2))",
+    "fourth_order": "meV/(Angstrom^4*amu^2)",
+    "eigenvector": "dimensionless mass-weighted Cartesian"
+  },
+  "materials": {
+    "ws2": {
+      "result_sha256": "415181774f22778872c0ec02c33db4a5bf08ff5f44d3a3eeb9c07bd755df12c9",
+      "rows": [
+        {
+          "physical_channel": "Gamma8-M9",
+          "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m9",
+          "phi122_abs": 86.24845232282115,
+          "phi1122": 11.210538903060868,
+          "central_energy_mae_mev": 6.257308796048164,
+          "central_force_mae_ev_per_A": 0.012154988132497995,
+          "fit_rmse_mev": 0.11436949713552205
+        },
+        {
+          "physical_channel": "Gamma8-L9",
+          "pair_code": "Gamma_p0_m8__line_q_0.333_0.667_0.000_m9",
+          "phi122_abs": 60.38524082728563,
+          "phi1122": 5.812975825096128,
+          "central_energy_mae_mev": 10.359061620256398,
+          "central_force_mae_ev_per_A": 0.008791019208813823,
+          "fit_rmse_mev": 0.07054840776295196
+        },
+        {
+          "physical_channel": "Gamma8-M6",
+          "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m6",
+          "phi122_abs": 60.61357770647104,
+          "phi1122": 1.9303925183356176,
+          "central_energy_mae_mev": 19.40430222733994,
+          "central_force_mae_ev_per_A": 0.02856053587226173,
+          "fit_rmse_mev": 0.014527785567739619
+        },
+        {
+          "physical_channel": "Gamma8-M5",
+          "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m5",
+          "phi122_abs": 57.20934186662741,
+          "phi1122": 9.873370735012738,
+          "central_energy_mae_mev": 16.638900625112,
+          "central_force_mae_ev_per_A": 0.04525389691885539,
+          "fit_rmse_mev": 0.02031247984600246
+        },
+        {
+          "physical_channel": "Gamma8-K9",
+          "pair_code": "Gamma_p0_m8__K_q_0.333_0.333_0.000_m9",
+          "phi122_abs": 56.04057312011489,
+          "phi1122": 4.935595454001896,
+          "central_energy_mae_mev": 9.981232372956583,
+          "central_force_mae_ev_per_A": 0.015785970891181837,
+          "fit_rmse_mev": 0.07670732690645259
+        }
+      ],
+      "metrics": {
+        "phi122_abs": {
+          "count": 5,
+          "mae": 6.46970934783513,
+          "rmse": 7.1410190668110625
+        },
+        "phi1122": {
+          "count": 5,
+          "mae": 2.57204387916708,
+          "rmse": 2.677774849492159
+        },
+        "relative_energy_mev": {
+          "count": 181,
+          "mae": 12.508971180128627,
+          "rmse": 15.89955802005148
+        },
+        "force_component_ev_per_A": {
+          "count": 8766,
+          "mae": 0.02086446703524118,
+          "rmse": 0.0419606434374389
+        }
+      },
+      "inference_wall_seconds": 46.485357685014606
+    },
+    "mos2": {
+      "result_sha256": "004ae6eb99b2c40b25ded62511551994c1f86739655ddf3bdd616c394e3ae77b",
+      "rows": [
+        {
+          "physical_channel": "Gamma8-M9",
+          "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m9",
+          "phi122_abs": 89.62974548339606,
+          "phi1122": 14.22601816605553,
+          "central_energy_mae_mev": 27.631821143295383,
+          "central_force_mae_ev_per_A": 0.029041811637737405,
+          "fit_rmse_mev": 0.11636192181662214
+        },
+        {
+          "physical_channel": "Gamma8-M8",
+          "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m8",
+          "phi122_abs": 84.18742588587928,
+          "phi1122": 7.812811403858198,
+          "central_energy_mae_mev": 30.83299973368412,
+          "central_force_mae_ev_per_A": 0.041116130049664384,
+          "fit_rmse_mev": 0.009294153133144521
+        },
+        {
+          "physical_channel": "Gamma8-M7",
+          "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m7",
+          "phi122_abs": 70.76508658272677,
+          "phi1122": 12.018164809869212,
+          "central_energy_mae_mev": 31.709878655092325,
+          "central_force_mae_ev_per_A": 0.05120824001307369,
+          "fit_rmse_mev": 0.01905495619325299
+        },
+        {
+          "physical_channel": "Gamma8-K9",
+          "pair_code": "Gamma_p0_m8__K_q_0.333_0.333_0.000_m9",
+          "phi122_abs": 59.59483555384814,
+          "phi1122": 7.475249621332827,
+          "central_energy_mae_mev": 43.348026437015506,
+          "central_force_mae_ev_per_A": 0.03568131105348763,
+          "fit_rmse_mev": 0.10695422131350855
+        },
+        {
+          "physical_channel": "Gamma8-L8",
+          "pair_code": "Gamma_p0_m8__line_q_0.333_0.667_0.000_m8",
+          "phi122_abs": 63.757869175499955,
+          "phi1122": 3.1277403539546444,
+          "central_energy_mae_mev": 45.072776135930326,
+          "central_force_mae_ev_per_A": 0.027323609382604617,
+          "fit_rmse_mev": 0.009398055300661203
+        }
+      ],
+      "metrics": {
+        "phi122_abs": {
+          "count": 5,
+          "mae": 4.273606359410424,
+          "rmse": 4.670354433668365
+        },
+        "phi1122": {
+          "count": 5,
+          "mae": 3.3023009197886473,
+          "rmse": 3.896986270044086
+        },
+        "relative_energy_mev": {
+          "count": 181,
+          "mae": 42.84892430777145,
+          "rmse": 50.93103680468323
+        },
+        "force_component_ev_per_A": {
+          "count": 8766,
+          "mae": 0.03717843485059484,
+          "rmse": 0.06075459055767631
+        }
+      },
+      "inference_wall_seconds": 46.59106806758791
+    },
+    "wse2": {
+      "result_sha256": "f6d4c55ce382cebc662f2e88f5dbc590ee9d4fe4594b8e3e25dc5fb0a08980f7",
+      "rows": [
+        {
+          "physical_channel": "Gamma8-M9",
+          "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m9",
+          "phi122_abs": 26.419993809290386,
+          "phi1122": 3.1294530751755505,
+          "central_energy_mae_mev": 12.69128704436298,
+          "central_force_mae_ev_per_A": 0.02374282776014467,
+          "fit_rmse_mev": 0.014152882006698675
+        },
+        {
+          "physical_channel": "Gamma8-M8",
+          "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m8",
+          "phi122_abs": 23.02583966936297,
+          "phi1122": 1.358966438137866,
+          "central_energy_mae_mev": 12.658169189307955,
+          "central_force_mae_ev_per_A": 0.020994786687478496,
+          "fit_rmse_mev": 0.003811459237509749
+        },
+        {
+          "physical_channel": "Gamma8-M7",
+          "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m7",
+          "phi122_abs": 18.713433401924416,
+          "phi1122": 1.715990961814431,
+          "central_energy_mae_mev": 14.718614094381337,
+          "central_force_mae_ev_per_A": 0.04138023239917753,
+          "fit_rmse_mev": 0.004364356842308604
+        },
+        {
+          "physical_channel": "Gamma8-K9",
+          "pair_code": "Gamma_p0_m8__K_q_0.333_0.333_0.000_m9",
+          "phi122_abs": 17.916870117186537,
+          "phi1122": 1.5215192522320224,
+          "central_energy_mae_mev": 19.541948027181206,
+          "central_force_mae_ev_per_A": 0.02585504947847807,
+          "fit_rmse_mev": 0.024811278572846176
+        },
+        {
+          "physical_channel": "Gamma8-L8",
+          "pair_code": "Gamma_p0_m8__line_q_0.333_0.667_0.000_m8",
+          "phi122_abs": 17.42221287318551,
+          "phi1122": 1.5587320133133815,
+          "central_energy_mae_mev": 18.604888088593725,
+          "central_force_mae_ev_per_A": 0.017542942297264236,
+          "fit_rmse_mev": 0.016942377643374546
+        }
+      ],
+      "metrics": {
+        "phi122_abs": {
+          "count": 5,
+          "mae": 0.9183738463832839,
+          "rmse": 1.00527520257204
+        },
+        "phi1122": {
+          "count": 5,
+          "mae": 0.6199849204030267,
+          "rmse": 0.815165181155974
+        },
+        "relative_energy_mev": {
+          "count": 181,
+          "mae": 19.90868998055095,
+          "rmse": 24.52398840670515
+        },
+        "force_component_ev_per_A": {
+          "count": 8766,
+          "mae": 0.027560870280854292,
+          "rmse": 0.04457857085888769
+        }
+      },
+      "inference_wall_seconds": 45.88468994945288
+    }
+  }
+}

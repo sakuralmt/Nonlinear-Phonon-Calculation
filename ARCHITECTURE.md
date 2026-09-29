@@ -86,3 +86,7 @@ QE/GPTFF/EquFlash and Stage3 recomputation code are outside this release tree.
 Version 1.0.1 registers an instance-local forward hook on the pinned MatterSim M3GNet atomic-energy normalizer. It casts atomic energies to float64 before the final scatter sum; model weights/features stay float32 and autograd remains connected. No installed package or global scatter function is patched. The same weight hash alone does not authorize mixing old float32-summed and corrected checkpoints.
 
 `momentum_diagnostics` records translation allowance for each polynomial coefficient. For the real q/−q coordinate, y^n contains harmonics (2k−n)q; a term is potentially allowed when at least one is reciprocal. This does not apply point-group selection rules. In particular, Φ112 is forbidden for all finite q, whereas Φ122 and Φ1122 are momentum-allowed. Forbidden fits remain visible, never ranked.
+
+## DFT geometry and modes at the Stage2 boundary
+
+`dft_reference.py` imports an existing audited QE-DFPT export and freezes the original DFT-relaxed geometry. Complete exports use the same symmetry/mode-pair functions and Stage2 screen/refine/audit as MLFF Stage1. Selected reference channels use the shared frozen-phonon builder and 13-column fit on the exact existing QE coordinates, with point-level energy/force recovery. DFT provenance is distinct from model-relaxation provenance; accepting DFT does not remove the existing model-relaxation checks.

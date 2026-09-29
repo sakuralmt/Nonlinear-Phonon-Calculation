@@ -56,7 +56,7 @@
 
 \section{研究问题与比较范围}
 
-本测试以原论文和此前稳定版的五个高耦合物理通道为固定比较对象，重点判断三个层次是否同时可信：第一，Stage1 的频率和本征矢能否识别相同声子对；第二，Stage2 给出的三、四阶耦合是否接近 DFT；第三，差异究竟源于参考泛函、模式映射、位移与拟合，还是势能面本身。原论文采用旧 PZ--LDA 超软赝势；MLFF 与其训练数据更接近的常见 GGA--PBE 参考不完全相同。因此本次重新以 PBE 弛豫晶胞和 PBE--USPP 计算三个材料，而不是只替换旧结构单点的泛函标签。
+本测试以原论文和此前稳定版的五个高耦合物理通道为固定比较对象，重点判断三个层次是否同时可信：第一，Stage1 的频率和本征矢能否识别相同声子对；第二，Stage2 给出的三、四阶耦合是否接近 DFT；第三，差异究竟源于参考泛函、模式映射、位移与拟合，还是势能面本身。原论文采用旧 PZ--LDA 超软赝势；MLFF 与其训练数据更接近的常见 GGA--PBE 参考不完全相同。因此本次重新以 PBE 弛豫晶胞和 PBE--USPP 计算三个材料，而不是只替换旧结构单点的泛函标签。另增加PBE DFT模式+MatterSim基线，在同一543个QE构型上评估Stage2。
 
 在三条 MLFF 路线中，Stage1 分别由 TECE、Prophet、EquiformerV3 在各自自行弛豫结构上经 Phonopy 得到谐波模式；Stage2 均使用同一 MatterSim 5M 权重计算非线性势能面。这样比较的是\emph{最终同一物理通道的系数}，而非把不同原子结构的绝对总能量相减。WS$_2$ $\Gamma8$--M6 另增加真正同构型的 25 点对照，用于诊断四阶变号。候选只包括 $\Gamma$ 光学模和有限 $q$ 的 $\Gamma$--$q$--$(-q)$ 耦合；$\Gamma$ 声学模不进入模式对。
 
@@ -116,22 +116,22 @@ MAE/RMSE 在每种材料的五个固定通道上计算，三阶先取绝对值�
 
 \section{三阶非线性耦合：参考泛函改变了多少}
 
-表~\ref{tab:cubic-all} 与图~\ref{fig:cubic_channels}采用论文中逐模式对并列比较的形式，分别列出旧 LDA、新 PBE、历史 DFT 模式+MatterSim 与三条全 MLFF 路线的五个 $|\PhiC|$。WS$_2$ 的 $\Gamma8$--M9 从旧 LDA 103.143 变为新 PBE 94.853，三条 MLFF 在 85.757--86.718；MoS$_2$ 同一通道从 106.134 降到 94.809，MLFF 在 88.725--89.423。参考改变明显缩小两者差距。WSe$_2$ 更接近，首通道 PBE 27.253、MLFF 25.945--26.152。
+表~\ref{tab:cubic-all} 与图~\ref{fig:cubic_channels}采用论文中逐模式对并列比较的形式，分别列出旧 LDA、新 PBE、新PBE DFT模式+MatterSim、旧LDA DFT模式+MatterSim与三条全MLFF 路线的五个 $|\PhiC|$。WS$_2$ 的 $\Gamma8$--M9 从旧 LDA 103.143 变为新 PBE 94.853，三条 MLFF 在 85.757--86.718；MoS$_2$ 同一通道从 106.134 降到 94.809，MLFF 在 88.725--89.423。参考改变明显缩小两者差距。WSe$_2$ 更接近，首通道 PBE 27.253、MLFF 25.945--26.152。
 
 \begin{table}[!htbp]\centering\small
-\caption{逐通道的三阶强度 $|\PhiC|$；单位 $\cubunit$。通道编号经本征矢匹配，而非直接按序号假定。旧QE+MS采用LDA结构与模式；WS$_2$该历史基线缺失。}\label{tab:cubic-all}
+\caption{逐通道的三阶强度 $|\PhiC|$；单位 $\cubunit$。通道编号经本征矢匹配，而非直接按序号假定。PBE DFT+MS采用本次PBE结构与DFPT模式；旧QE+MS采用LDA结构与模式，WS$_2$旧基线缺失。}\label{tab:cubic-all}
 \begin{minipage}{\textwidth}\centering\textbf{(a) WS$_2$}\par\allwidthtable{cubic_ws2}\vspace{3mm}
 \textbf{(b) MoS$_2$}\par\allwidthtable{cubic_mos2}\vspace{3mm}
 \textbf{(c) WSe$_2$}\par\allwidthtable{cubic_wse2}\end{minipage}
 \end{table}
 
 \begin{figure}[!htbp]\centering\includegraphics[width=0.92\textwidth]{figures/cubic_channels.pdf}
-\caption{十五个固定通道的三阶强度并列比较；各材料五个通道分别排序展示。增加旧QE+MS历史基线，全部采用单位范数坐标；WS$_2$历史基线缺失。参考由 LDA 转至 PBE 后，首通道差距明显缩小。}\label{fig:cubic_channels}\end{figure}
+\caption{十五个固定通道的三阶强度并列比较；各材料五个通道分别排序展示。增加新PBE DFT+MS与旧QE+MS基线，全部采用单位范数坐标；WS$_2$历史基线缺失。参考由 LDA 转至 PBE 后，首通道差距明显缩小。}\label{fig:cubic_channels}\end{figure}
 
 量化结果见表~\ref{tab:metrics-pbe}、\ref{tab:metrics-lda}。TECE+MatterSim 的五对三阶 MAE 在 WS$_2$/MoS$_2$/WSe$_2$ 分别由旧 LDA 的 10.327/12.539/3.936 降为 PBE 的 6.104/4.328/1.180 $\cubunit$。Prophet+MatterSim 对 PBE 的三阶 MAE 在三材料均略低于 TECE，但三种模型间差异小于 DFT 参考切换的效应；这主要比较了不同 Stage1 模式/结构在同一 MatterSim Stage2 下的最终结果，不能据此推出 Prophet 谐波频率更准。
 
 \begin{table}[!htbp]\centering\small
-\caption{MLFF 对新 PBE 的误差。$n_3,n_4$ 为可比较通道数，三、四阶单位分别见式~\eqref{eq:derivative}。}\label{tab:metrics-pbe}
+\caption{各Stage1+MatterSim路线对新PBE的误差。$n_3,n_4$ 为可比较通道数，三、四阶单位分别见式~\eqref{eq:derivative}。}\label{tab:metrics-pbe}
 \allwidthtable{metrics_pbe}
 \end{table}
 \begin{table}[!htbp]\centering\small
@@ -160,8 +160,10 @@ MoS$_2$论文式旧坐标MAE/RMSE为3.7665/4.4249，统一坐标后为5.1122/5.9
 \begin{figure}[!htbp]\centering\includegraphics[width=0.94\textwidth]{figures/historical_baseline_errors.pdf}
 \caption{统一坐标下，历史QE+MS与三条全MLFF路线对旧LDA的三阶MAE/RMSE。不同路线保留各自结构和模式，比较最终通道耦合。}\label{fig:historical-baseline-errors}\end{figure}
 
-表~\ref{tab:metrics-pbe}仍只包含当前三条路线：历史QE+MS没有在PBE结构和模式上重算，不能称为``PBE DFT Stage1+MatterSim''。LDA到PBE还同时改变了赝势、弛豫结构和模态；不直接用旧坐标的3.77与新PBE的4.33作精度升降结论。若后续需要隔离Stage1的误差贡献，应另在已完成的PBE结构和DFPT模式上计算MatterSim势能面，本报告未新增该计算。
+旧QE+MS没有在PBE结构和模式上重算，不能改名为PBE结果。下面新增独立的PBE DFT Stage1+MatterSim基线；旧结果仍作为历史对照保留。LDA到PBE还同时改变了赝势、弛豫结构和模态，不直接用旧坐标的3.77与新PBE的4.33作精度升降结论。
 \FloatBarrier
+
+\input{pbe_dft_baseline.tex}
 
 \section{四阶耦合、排序与关键异常}
 
@@ -286,6 +288,8 @@ MoS$_2$论文式旧坐标MAE/RMSE为3.7665/4.4249，统一坐标后为5.1122/5.9
 
 本报告的所有数字、表格和图由同一套机器可读结果直接生成。原始 PBE 点位于独立研究归档，主要综合文件为：
 \begin{itemize}\setlength{\itemsep}{0pt}
+\item 新DFT模式基线 \texttt{pbe\_dft\_mattersim\_*.json}（完整能量／力网格及来源）；
+\item 并列误差 \texttt{pbe\_dft\_mattersim\_comparison.json}；
 \item 历史基线 \texttt{historical\_qe\_mattersim.json}（包含坐标转换与来源哈希）；
 \item \texttt{coupling\_comparison.json}、三个 \texttt{results\_*.json}；
 \item 三个 \texttt{*\_phonon\_comparison.json}、\texttt{structure\_comparison.json}；

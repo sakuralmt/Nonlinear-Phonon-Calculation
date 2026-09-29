@@ -8,6 +8,7 @@ from pathlib import Path
 
 
 STAGE1_MODELS = {
+    "qe-dft": "qe-dfpt",
     "tece": "tece-oam-rra-1.0",
     "prophet": "prophet",
     "equiformer-v3": "equiformer-v3-oam",
@@ -22,7 +23,17 @@ def main(argv=None) -> int:
     )
     stage1.add_argument("--model", choices=sorted(STAGE1_MODELS), default="tece")
     stage1.add_argument("--structure", type=Path, required=True)
-    stage1.add_argument("--checkpoint", type=Path, required=True)
+    stage1.add_argument("--checkpoint", type=Path)
+    stage1.add_argument(
+        "--phonon-dataset",
+        type=Path,
+        help="Existing audited DFPT export; no DFT recalculation",
+    )
+    stage1.add_argument(
+        "--selection-json",
+        type=Path,
+        help="Optional matched DFT channels for reference PES",
+    )
     stage1.add_argument(
         "--source-root", type=Path, help="Pinned TECE or Equiformer source checkout"
     )
@@ -33,7 +44,12 @@ def main(argv=None) -> int:
     stage1.add_argument("--convergence-step", type=float, default=0.005)
     stage1.add_argument("--gamma-degeneracy-thz", type=float, default=0.01)
     stage2 = commands.add_parser("stage2", help="Checkpointed MatterSim PES screening")
-    stage2.add_argument("phase", choices=["screen", "refine", "audit"])
+    stage2.add_argument("phase", choices=["screen", "refine", "audit", "reference"])
+    stage2.add_argument(
+        "--reference-results",
+        type=Path,
+        help="Existing QE PES energy/force grids for reference phase",
+    )
     stage2.add_argument("--mode-pairs-json", type=Path, required=True)
     stage2.add_argument("--structure", type=Path, required=True)
     stage2.add_argument("--checkpoint", type=Path, required=True)
@@ -49,6 +65,22 @@ def main(argv=None) -> int:
     if args.command == "stage1":
         if not 0 < args.gamma_degeneracy_thz < float("inf"):
             parser.error("Gamma degeneracy threshold must be finite and positive")
+        if args.model == "qe-dft":
+            from mlff_modepair_workflow.dft_reference import import_dft_stage1
+
+            if args.phonon_dataset is None:
+                parser.error("DFT Stage1 import needs --phonon-dataset")
+            path = import_dft_stage1(
+                args.structure,
+                args.phonon_dataset,
+                args.selection_json,
+                args.output_dir,
+                gamma_degeneracy_thz=args.gamma_degeneracy_thz,
+            )
+            print(json.dumps({"stage1_outputs": [str(path)]}))
+            return 0
+        if args.checkpoint is None:
+            parser.error("MLFF Stage1 needs --checkpoint")
         if args.model == "prophet":
             from mlff_modepair_workflow.prophet_stage1 import run_prophet_stage1
             from mlff_modepair_workflow.core import load_atoms_from_qe
@@ -94,6 +126,26 @@ def main(argv=None) -> int:
         print(json.dumps({"stage1_outputs": [str(path) for path in output]}))
         return 0
     if args.command == "stage2":
+        if args.phase == "reference":
+            from mlff_modepair_workflow.dft_reference import run_reference
+
+            if args.reference_results is None:
+                parser.error("Reference Stage2 needs --reference-results")
+            if args.shard_count != 1 or args.finalize_only:
+                parser.error(
+                    "Reference Stage2 uses one checkpointed process per material"
+                )
+            print(
+                run_reference(
+                    args.mode_pairs_json,
+                    args.structure,
+                    args.checkpoint,
+                    args.reference_results,
+                    args.output_dir,
+                    args.device,
+                )
+            )
+            return 0
         from mlff_modepair_workflow.screening_stage2 import main as stage2_main
 
         forwarded = [
@@ -125,6 +177,13 @@ def main(argv=None) -> int:
         result["rankings"][phase] = (
             json.loads(path.read_text())["pair_count"] if path.is_file() else None
         )
+    reference = root / "reference_result.json"
+    if reference.is_file():
+        data = json.loads(reference.read_text())
+        result["reference"] = {
+            "complete_pairs": data["complete_pairs"],
+            "complete_points": data["complete_points"],
+        }
     print(json.dumps(result, indent=2))
     return 0
 

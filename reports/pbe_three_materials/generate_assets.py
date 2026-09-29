@@ -24,9 +24,9 @@ MATS = ("ws2", "mos2", "wse2")
 MODELS = ("tece", "prophet", "equiformer-v3")
 LABEL = {"ws2": "WS$_2$", "mos2": "MoS$_2$", "wse2": "WSe$_2$"}
 PLOT_LABEL = {"ws2": "WS2", "mos2": "MoS2", "wse2": "WSe2"}
-MODEL_LABEL = {"tece": "TECE+MS", "prophet": "Prophet+MS", "equiformer-v3": "EquiformerV3+MS", "qe-ms": "Historical QE+MS"}
+MODEL_LABEL = {"tece": "TECE+MS", "prophet": "Prophet+MS", "equiformer-v3": "EquiformerV3+MS", "qe-ms": "Historical QE+MS", "dft-pbe-ms": "PBE DFT+MS"}
 COLORS = {"lda": "#6a7078", "pbe": "#1e618a", "tece": "#dc8b31",
-          "prophet": "#9b6aab", "equiformer-v3": "#3f977a", "qe-ms": "#be4b55"}
+          "prophet": "#9b6aab", "equiformer-v3": "#3f977a", "qe-ms": "#be4b55", "dft-pbe-ms": "#bc5050"}
 ROUTES = ("lda", "pbe", *MODELS)
 THIRD = "phi_122_mev_per_A3amu32"
 FOURTH = "phi_1122_mev_per_A4amu2"
@@ -107,16 +107,17 @@ def generate_tables(data: dict, results: dict, phonons: dict, audit: dict, geome
             for item in data["materials"][m]["rows"]:
                 rows.append([item["physical_channel"].replace("Gamma", r"$\Gamma$"),
                              fnum(item["lda"][key]), fnum(item["pbe"][key]),
+                             fnum(item["mlff"]["dft-pbe-ms"][key]),
                              *([fnum(item["mlff"]["qe-ms"][key])] if name == "cubic" else []),
                              *[fnum(item["mlff"][model][key]) for model in MODELS]])
             save_table(f"{name}_{m}", ["声子对", "旧 LDA", "新 PBE",
-                                        *(["旧QE+MS"] if name == "cubic" else []), "TECE+MS",
+                                        "PBE DFT+MS", *(["旧QE+MS"] if name == "cubic" else []), "TECE+MS",
                                         "Prophet+MS", "EquiformerV3+MS"], rows)
 
     for target in ("lda", "pbe"):
         rows = []
         for m in MATS:
-            for model in (("qe-ms", *MODELS) if target == "lda" and m != "ws2" else MODELS):
+            for model in (("qe-ms", *MODELS) if target == "lda" and m != "ws2" else ("dft-pbe-ms", *MODELS) if target == "pbe" else MODELS):
                 e = data["materials"][m]["metrics"][target][model]
                 a, b = e["phi122_abs"], e["phi1122"]
                 rows.append([LABEL[m], MODEL_LABEL[model], str(a["count"]),
@@ -239,13 +240,13 @@ def plot_channels(data: dict, key: str, name: str) -> None:
     fig,axes=plt.subplots(3,1,figsize=(10,9.0),layout="constrained")
     for im,m in enumerate(MATS):
         rows=data["materials"][m]["rows"];xs=np.arange(5);ax=axes[im]
-        routes = ("lda", "pbe", "qe-ms", *MODELS) if key == "phi122_abs" else ROUTES
-        width = 0.86 / len(routes) if key == "phi122_abs" else .15
+        routes = ("lda", "pbe", "dft-pbe-ms", "qe-ms", *MODELS) if key == "phi122_abs" else ("lda", "pbe", "dft-pbe-ms", *MODELS)
+        width = 0.86 / len(routes)
         for ir,route in enumerate(routes):
             vals=[(r[route] if route in ("lda","pbe") else r["mlff"][route]).get(key) for r in rows]
             xx=xs+(ir-(len(routes)-1)/2)*width
             for x,v in zip(xx,vals):
-                if v is not None:ax.bar(x,v,width=(width*.95 if key == "phi122_abs" else .145),color=COLORS[route],label=("Old QE LDA" if route=="lda" else "New QE PBE" if route=="pbe" else MODEL_LABEL[route]) if x==xx[0] else None)
+                if v is not None:ax.bar(x,v,width=width*.95,color=COLORS[route],label=("Old QE LDA" if route=="lda" else "New QE PBE" if route=="pbe" else MODEL_LABEL[route]) if x==xx[0] else None)
         ax.axhline(0,color="black",linewidth=.65)
         ax.set_xticks(xs,[r["physical_channel"].split("-")[1] for r in rows])
         ax.set_title(PLOT_LABEL[m],loc="left",fontsize=10)
@@ -253,7 +254,7 @@ def plot_channels(data: dict, key: str, name: str) -> None:
         if key=="phi1122":ax.set_ylabel("Signed Phi1122")
         else:ax.set_ylabel("|Phi122|")
     handles,labels=axes[1 if key == "phi122_abs" else 0].get_legend_handles_labels()
-    fig.legend(handles,labels,ncol=(3 if key == "phi122_abs" else 5),loc="upper center",bbox_to_anchor=(.5,1.02),fontsize=8,frameon=False)
+    fig.legend(handles,labels,ncol=(4 if key == "phi122_abs" else 3),loc="upper center",bbox_to_anchor=(.5,1.02),fontsize=8,frameon=False)
     save_fig(fig,name)
 
 
@@ -436,6 +437,15 @@ def main() -> None:
         if lookup:
             metrics = historical["materials"][material]["metrics_vs_lda"]["unit_norm"]
             data["materials"][material]["metrics"]["lda"]["qe-ms"] = {"phi122_abs": metrics, "phi1122": {"count": 0}}
+    dft_pbe = read(ROOT/"pbe_dft_mattersim_comparison.json")
+    for material in MATS:
+        item = dft_pbe["materials"][material]
+        if item["result_sha256"] != sha(ROOT/f"pbe_dft_mattersim_{material}.json"):
+            raise ValueError("Stale PBE DFT+MS comparison")
+        lookup = {row["pair_code"]: row for row in item["rows"]}
+        for row in data["materials"][material]["rows"]:
+            row["mlff"]["dft-pbe-ms"] = lookup[row["pbe_pair_code"]]
+        data["materials"][material]["metrics"]["pbe"]["dft-pbe-ms"] = item["metrics"]
     plot_historical(historical, data)
     if audit["total"]["n"]!=579 or any(len(data["materials"][m]["rows"])!=5 for m in MATS):
         raise ValueError("Final campaign not complete")
@@ -449,7 +459,7 @@ def main() -> None:
     plot_fits(results,data,ws,other)
     plot_cost(audit)
     plot_density(density)
-    inputs=[ROOT/"historical_qe_mattersim.json",ROOT/"coupling_comparison.json",ROOT/"campaign_audit.json",ROOT/"structure_comparison.json",ROOT/"ws2_pbe_geometry_mattersim_m6.json",
+    inputs=[ROOT/"pbe_dft_mattersim_comparison.json", *[ROOT/f"pbe_dft_mattersim_{m}.json" for m in MATS], ROOT/"historical_qe_mattersim.json",ROOT/"coupling_comparison.json",ROOT/"campaign_audit.json",ROOT/"structure_comparison.json",ROOT/"ws2_pbe_geometry_mattersim_m6.json",
             HERE/"density_audit.json", REPO/"mlff_modepair_workflow/core.py",
             STABLE/"ws2_dft_top5.json",STABLE/"model_dft_top5.json",
             *[ROOT/f"results_{m}.json" for m in MATS],

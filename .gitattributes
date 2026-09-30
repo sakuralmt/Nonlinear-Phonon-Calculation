@@ -1,1 +1,3 @@
 *.pdf binary
+# These archived structures retain byte-identical source hashes, including spaces.
+docs/reference_data/pbe_20260925/full_model_structures/*.scf.inp whitespace=-blank-at-eol

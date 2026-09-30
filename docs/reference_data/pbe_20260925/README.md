@@ -21,3 +21,5 @@ Run `python validation/check_pbe_reference.py` from the repository root to verif
 - `full_model_resource_audit.json`, `full_model_preflight.json`: completed/cancelled Slurm attempts, allocations and repeat-inference/force-energy checks.
 
 `small_model_*` publishes nine completed small-model runs (1,629 energy/force configurations), manifests, preflights, resource records, and independently recomputed metrics. `historical_small_model_screen/` preserves the older single-channel screen used to shortlist models; its old QE labels and local timing are not the new PBE comparison.
+
+The archived `full_model_structures/*.scf.inp` retain their exact original bytes for SHA-256 verification, including source whitespace. Their legacy UPF names are template metadata; MLFF inference uses geometry/elements and does not load those pseudopotentials. The fixed-PBE diagnostic instead uses the separate `structures/` files and existing PBE QE labels.

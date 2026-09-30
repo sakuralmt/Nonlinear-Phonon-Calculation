@@ -1,0 +1,44 @@
+&CONTROL
+  calculation = 'scf'
+  disk_io = 'low'
+  prefix = 'pwscf'
+  pseudo_dir = '../pseudos'
+  outdir = './tmp'
+  verbosity = 'low'
+  tprnfor = .false.
+  tstress = .false.
+  forc_conv_thr = 1.0d-9
+  etot_conv_thr = 1.0d-10
+/
+
+&SYSTEM
+  ibrav = 0
+  nat = 3, ntyp = 2
+  occupations = 'smearing', smearing = 'gauss', degauss = 1.0d-11
+  ecutwfc = 100, ecutrho = 1000
+/
+
+&ELECTRONS
+  electron_maxstep = 10000
+  conv_thr = 1.0d-12
+  mixing_mode = 'plain'
+  mixing_beta = 0.3d0
+  diagonalization = 'david'
+/
+
+ATOMIC_SPECIES
+Mo  95.950000 Mo.pz-spn-rrkjus_psl.0.2.UPF
+S  32.060000 S.pz-n-rrkjus_psl.0.1.UPF
+
+CELL_PARAMETERS angstrom
+  3.191235825784896  0.000000000000000  -0.000000000000000
+  -1.595617912892448  2.763691294499712  0.000000000000000
+  -0.000000000000000  -0.000000000000000  18.104741560000001
+
+ATOMIC_POSITIONS crystal
+Mo  0.000000000000000  0.000000000000000  0.500000000000000  0 0 0
+S  0.666666666700000  0.333333333300000  0.586420923696185  0 0 1
+S  0.666666666700000  0.333333333300000  0.413579076513154  0 0 1
+
+K_POINTS {automatic}
+30 30 1 0 0 0

@@ -1,6 +1,6 @@
 # GGA-PBE reference for WS₂, MoS₂ and WSe₂
 
-This is the **current DFT comparison** for the public TECE/Prophet/EquiformerV3 Stage1 + MatterSim Stage2 workflow. The old PZ-LDA [MoS₂/WSe₂ comparison](MODEL_DFT_COMPARISON.md) and [WS₂ supplement](WS2_DFT_COMPARISON.md) remain historical records, not the reference used below. The [23-page illustrated report](../output/pdf/tmd_gga_pbe_mlff_latex_report.pdf) contains the complete per-channel tables, phonon and PES figures, residuals, convergence checks and measured cost.
+This is the **current DFT comparison** for the public TECE/Prophet/EquiformerV3 Stage1 + MatterSim Stage2 workflow. The old PZ-LDA [MoS₂/WSe₂ comparison](MODEL_DFT_COMPARISON.md) and [WS₂ supplement](WS2_DFT_COMPARISON.md) remain historical records, not the reference used below. The [31-page illustrated report](../output/pdf/tmd_gga_pbe_mlff_latex_report.pdf) contains the complete per-channel tables, phonon and PES figures, residuals, convergence checks and measured cost.
 
 ## Scope and provenance
 
@@ -73,3 +73,13 @@ The existing PBE geometry and DFPT modes were preserved and all 15 matched chann
 Three CPU jobs allocated 8 threads each completed in 57 Slurm seconds per job; Stage2 including loading took about 46 seconds and process peak RSS was 710-722MiB. The account used 3 nodes during this run and the jobs have finished.
 
 See [DFT handoff](DFT_STAGE1.md) and [machine-readable comparison](reference_data/pbe_20260925/pbe_dft_mattersim_comparison.json). The three pbe_dft_mattersim materialJSON files include energy and atomic-force grids and source hashes.
+
+## Same-model full workflows
+
+The report now also includes TECE+TECE, Prophet+Prophet and EquiformerV3+EquiformerV3 on the same fifteen matched physical channels. Each material/model has 405 own-relaxed PES points and a separate 181-point fixed-PBE-DFT diagnostic: 5,274 new finite E/F points in nine completed Slurm jobs. [Raw grids and comparison](reference_data/pbe_20260925/full_model_comparison.json), [resource audit](reference_data/pbe_20260925/full_model_resource_audit.json), and [benchmark entry point](FULL_MODEL_BENCHMARK.md) preserve provenance and comparison limits. No new QE calculations occurred.
+
+TECE full-flow cubic MAE is 1.468/1.546/0.157 and signed quartic MAE 0.911/1.626/0.145 for WS2/MoS2/WSe2. EquiformerV3 has lower selected cubic errors in WS2/MoS2, while Prophet is not uniformly improved. On identical PBE WS2 Gamma8-M6 inputs, TECE reproduces negative quartic -1.4250 (QE -1.4141); Prophet is negative but too strong (-5.3944), and EquiformerV3 is weakly negative (-0.1993). This narrows the earlier sign issue to model-specific nonlinear response. Full flows retain their own structures/modes; only fixed-DFT diagnostic points receive direct energy/force errors. New Stage2 models have not had the full 324-candidate screening or 17x17 density test in this benchmark.
+
+## Small-model check
+
+Three shortlisted small Stage2 models add 1,629 same-PBE-input energies and forces. GRACE restores the WS₂ M6 negative quartic sign but overestimates its amplitude; DPA and Eqnorm also predict the wrong positive sign. The report contains per-material signed derivative errors, pointwise energy/force errors and unfitted mixed-energy contrasts. See [SMALL_MODEL_BENCHMARK.md](SMALL_MODEL_BENCHMARK.md); these fixed-DFT diagnostics do not replace the own-relaxed full workflows or imply a new full-candidate ranking.

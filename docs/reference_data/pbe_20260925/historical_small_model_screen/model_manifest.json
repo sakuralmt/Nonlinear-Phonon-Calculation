@@ -1,0 +1,37 @@
+{
+  "mattersim": {
+    "path": "/Users/lmtsakura/.local/mattersim/pretrained_models/mattersim-v1.0.0-5M.pth",
+    "size_bytes": 91176875,
+    "sha256": "e3df9fa708725e3d453140646c7d1838324b347a3d1214cf1440522146f872b5"
+  },
+  "nequix-mp-1-pft": {
+    "path": "/Users/lmtsakura/.cache/nequix/models/nequix-mp-1-pft.nqx",
+    "size_bytes": 2842840,
+    "sha256": "a88aeaed71fd447572dc57af21d469207d7737b85a6dbb66f8c38156f175c5f1"
+  },
+  "nequix-mp-1": {
+    "path": "/Users/lmtsakura/.cache/nequix/models/nequix-mp-1.nqx",
+    "size_bytes": 2842366,
+    "sha256": "1647af8e627e1afa11e2bfadeab0797326513a521afd7dd01606a96f56783eee"
+  },
+  "sevennet-l3i5": {
+    "path": "/Users/lmtsakura/Documents/ChatGPT/dp/work/prophet-env/lib/python3.12/site-packages/sevenn/pretrained_potentials/SevenNet_l3i5/checkpoint_l3i5.pth",
+    "size_bytes": 14345754,
+    "sha256": "a7ff190d41efe5b8317a03d20a468e4036a1a3e64e0b14fdbab64ac3f4bfc09d"
+  },
+  "eqnorm-mptrj": {
+    "path": "/Users/lmtsakura/.cache/eqnorm/eqnorm-mptrj.pt",
+    "size_bytes": 21620384,
+    "sha256": "9fd5b97a069e03697e41d2e4c468c5c9b487fc42a2842861ea171a23b9706de5"
+  },
+  "dpa-3.1-3m-ft": {
+    "path": "/Users/lmtsakura/Documents/ChatGPT/dp/work/stage2-small-model-benchmark-20260925/models/dpa-3.1-3m-ft.pth",
+    "size_bytes": 18005091,
+    "sha256": "5ffb78b8e0c675b2cd73b343d56a6a3b7eeb972db85fe80bc0846b0df5d16106"
+  },
+  "grace-1l-oam": {
+    "path": "/Users/lmtsakura/.cache/grace/GRACE-1L-OAM/variables/variables.data-00000-of-00001",
+    "size_bytes": 27588684,
+    "sha256": "9baea82baf7de73af825993bede62f58ab5588c72c6900f2a901f0a1c50a9962"
+  }
+}

@@ -1,0 +1,950 @@
+{
+  "material": "mos2",
+  "model": "grace-1l-oam",
+  "units": {
+    "length": "Angstrom",
+    "mass": "amu",
+    "energy": "eV/supercell",
+    "force": "eV/Angstrom",
+    "force_constant": "eV/Angstrom^2",
+    "frequency": "THz",
+    "normal_coordinate": "Angstrom*sqrt(amu)",
+    "third_order": "meV/(Angstrom^3*amu^(3/2))",
+    "fourth_order": "meV/(Angstrom^4*amu^2)",
+    "eigenvector": "dimensionless mass-weighted Cartesian"
+  },
+  "normalization_version": "real_mass_weighted_unit_v2",
+  "source_matched_manifest_sha256": "6968cbeca8bb5a802cc03430d8a53ed5d634c68ef7d25f1134361d7f34f410a3",
+  "tasks": [
+    {
+      "task_id": "dft-01",
+      "scope": "fixed_pbe_dft_diagnostic",
+      "rank": 1,
+      "physical_channel": "Gamma8-M9",
+      "qe_pair": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m9",
+      "structure": "/home/lmtsakura/qiyan_shared/testing/full-model-benchmark-20260930/data/structures/mos2.scf.inp",
+      "structure_sha256": "c193080bc60f62897fcb2bed0b989b7c66dd8159c07bfb23c251de25f6b18b72",
+      "pair": {
+        "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m9",
+        "coupling_type": "Q_gamma*Q_q^2",
+        "q_orbit_number": null,
+        "gamma_mode": {
+          "mode_code": "Gamma_p0_m8",
+          "point_index": 0,
+          "point_label": "Gamma",
+          "q_frac": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mode_index_zero_based": 7,
+          "mode_number_one_based": 8,
+          "freq_thz": 11.902891,
+          "eigenvector": [
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ]
+            ],
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                0.7071067811865476,
+                -0.0
+              ]
+            ],
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.7071067811865476,
+                0.0
+              ]
+            ]
+          ]
+        },
+        "target_mode": {
+          "mode_code": "M_q3_0_m9",
+          "point_index": 18,
+          "point_label": "M",
+          "q_frac": [
+            0.5,
+            0.0,
+            0.0
+          ],
+          "qbar_frac": [
+            0.5,
+            0.0,
+            0.0
+          ],
+          "self_conjugate": true,
+          "mode_index_zero_based": 8,
+          "mode_number_one_based": 9,
+          "freq_thz": 11.88522,
+          "eigenvector_q": [
+            [
+              [
+                -0.427181923660034,
+                0.0
+              ],
+              [
+                -0.24663395592503623,
+                0.0
+              ],
+              [
+                0.0,
+                0.0
+              ]
+            ],
+            [
+              [
+                -0.10050598203897958,
+                0.0
+              ],
+              [
+                -0.058026989630229724,
+                0.0
+              ],
+              [
+                0.6040488920528483,
+                0.0
+              ]
+            ],
+            [
+              [
+                -0.10050598203897958,
+                0.0
+              ],
+              [
+                -0.058026989630229724,
+                0.0
+              ],
+              [
+                -0.6040488920528483,
+                0.0
+              ]
+            ]
+          ],
+          "eigenvector_qbar_by_conjugation": [
+            [
+              [
+                -0.427181923660034,
+                -0.0
+              ],
+              [
+                -0.24663395592503623,
+                -0.0
+              ],
+              [
+                0.0,
+                -0.0
+              ]
+            ],
+            [
+              [
+                -0.10050598203897958,
+                -0.0
+              ],
+              [
+                -0.058026989630229724,
+                -0.0
+              ],
+              [
+                0.6040488920528483,
+                -0.0
+              ]
+            ],
+            [
+              [
+                -0.10050598203897958,
+                -0.0
+              ],
+              [
+                -0.058026989630229724,
+                -0.0
+              ],
+              [
+                -0.6040488920528483,
+                -0.0
+              ]
+            ]
+          ]
+        }
+      },
+      "axis": [
+        -2,
+        -1.5,
+        -1,
+        -0.5,
+        0,
+        0.5,
+        1,
+        1.5,
+        2
+      ]
+    },
+    {
+      "task_id": "dft-02",
+      "scope": "fixed_pbe_dft_diagnostic",
+      "rank": 2,
+      "physical_channel": "Gamma8-M8",
+      "qe_pair": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m8",
+      "structure": "/home/lmtsakura/qiyan_shared/testing/full-model-benchmark-20260930/data/structures/mos2.scf.inp",
+      "structure_sha256": "c193080bc60f62897fcb2bed0b989b7c66dd8159c07bfb23c251de25f6b18b72",
+      "pair": {
+        "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m8",
+        "coupling_type": "Q_gamma*Q_q^2",
+        "q_orbit_number": null,
+        "gamma_mode": {
+          "mode_code": "Gamma_p0_m8",
+          "point_index": 0,
+          "point_label": "Gamma",
+          "q_frac": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mode_index_zero_based": 7,
+          "mode_number_one_based": 8,
+          "freq_thz": 11.902891,
+          "eigenvector": [
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ]
+            ],
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                0.7071067811865476,
+                -0.0
+              ]
+            ],
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.7071067811865476,
+                0.0
+              ]
+            ]
+          ]
+        },
+        "target_mode": {
+          "mode_code": "M_q3_0_m8",
+          "point_index": 18,
+          "point_label": "M",
+          "q_frac": [
+            0.5,
+            0.0,
+            0.0
+          ],
+          "qbar_frac": [
+            0.5,
+            0.0,
+            0.0
+          ],
+          "self_conjugate": true,
+          "mode_index_zero_based": 7,
+          "mode_number_one_based": 8,
+          "freq_thz": 11.254584,
+          "eigenvector_q": [
+            [
+              [
+                0.0,
+                -0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                0.6043565703742474,
+                -0.0
+              ]
+            ],
+            [
+              [
+                -0.44023568704470567,
+                0.0
+              ],
+              [
+                -0.2541698193154418,
+                0.0
+              ],
+              [
+                0.24283082737611852,
+                -0.0
+              ]
+            ],
+            [
+              [
+                0.44023568704470567,
+                -0.0
+              ],
+              [
+                0.2541698193154418,
+                -0.0
+              ],
+              [
+                0.24283082737611852,
+                -0.0
+              ]
+            ]
+          ],
+          "eigenvector_qbar_by_conjugation": [
+            [
+              [
+                0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                -0.0
+              ],
+              [
+                0.6043565703742474,
+                0.0
+              ]
+            ],
+            [
+              [
+                -0.44023568704470567,
+                -0.0
+              ],
+              [
+                -0.2541698193154418,
+                -0.0
+              ],
+              [
+                0.24283082737611852,
+                0.0
+              ]
+            ],
+            [
+              [
+                0.44023568704470567,
+                0.0
+              ],
+              [
+                0.2541698193154418,
+                0.0
+              ],
+              [
+                0.24283082737611852,
+                0.0
+              ]
+            ]
+          ]
+        }
+      },
+      "axis": [
+        -1,
+        -0.5,
+        0,
+        0.5,
+        1
+      ]
+    },
+    {
+      "task_id": "dft-03",
+      "scope": "fixed_pbe_dft_diagnostic",
+      "rank": 3,
+      "physical_channel": "Gamma8-M7",
+      "qe_pair": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m7",
+      "structure": "/home/lmtsakura/qiyan_shared/testing/full-model-benchmark-20260930/data/structures/mos2.scf.inp",
+      "structure_sha256": "c193080bc60f62897fcb2bed0b989b7c66dd8159c07bfb23c251de25f6b18b72",
+      "pair": {
+        "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m7",
+        "coupling_type": "Q_gamma*Q_q^2",
+        "q_orbit_number": null,
+        "gamma_mode": {
+          "mode_code": "Gamma_p0_m8",
+          "point_index": 0,
+          "point_label": "Gamma",
+          "q_frac": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mode_index_zero_based": 7,
+          "mode_number_one_based": 8,
+          "freq_thz": 11.902891,
+          "eigenvector": [
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ]
+            ],
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                0.7071067811865476,
+                -0.0
+              ]
+            ],
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.7071067811865476,
+                0.0
+              ]
+            ]
+          ]
+        },
+        "target_mode": {
+          "mode_code": "M_q3_0_m7",
+          "point_index": 18,
+          "point_label": "M",
+          "q_frac": [
+            0.5,
+            0.0,
+            0.0
+          ],
+          "qbar_frac": [
+            0.5,
+            0.0,
+            0.0
+          ],
+          "self_conjugate": true,
+          "mode_index_zero_based": 6,
+          "mode_number_one_based": 7,
+          "freq_thz": 10.617489,
+          "eigenvector_q": [
+            [
+              [
+                -0.3303140418958796,
+                0.0
+              ],
+              [
+                0.5721210725658389,
+                0.0
+              ],
+              [
+                0.0,
+                0.0
+              ]
+            ],
+            [
+              [
+                -0.2654170336645697,
+                0.0
+              ],
+              [
+                0.4597160583087795,
+                0.0
+              ],
+              [
+                0.0,
+                0.0
+              ]
+            ],
+            [
+              [
+                -0.2654170336645697,
+                0.0
+              ],
+              [
+                0.4597160583087795,
+                0.0
+              ],
+              [
+                0.0,
+                0.0
+              ]
+            ]
+          ],
+          "eigenvector_qbar_by_conjugation": [
+            [
+              [
+                -0.3303140418958796,
+                -0.0
+              ],
+              [
+                0.5721210725658389,
+                -0.0
+              ],
+              [
+                0.0,
+                -0.0
+              ]
+            ],
+            [
+              [
+                -0.2654170336645697,
+                -0.0
+              ],
+              [
+                0.4597160583087795,
+                -0.0
+              ],
+              [
+                0.0,
+                -0.0
+              ]
+            ],
+            [
+              [
+                -0.2654170336645697,
+                -0.0
+              ],
+              [
+                0.4597160583087795,
+                -0.0
+              ],
+              [
+                0.0,
+                -0.0
+              ]
+            ]
+          ]
+        }
+      },
+      "axis": [
+        -1,
+        -0.5,
+        0,
+        0.5,
+        1
+      ]
+    },
+    {
+      "task_id": "dft-04",
+      "scope": "fixed_pbe_dft_diagnostic",
+      "rank": 4,
+      "physical_channel": "Gamma8-K9",
+      "qe_pair": "Gamma_p0_m8__K_q_0.333_0.333_0.000_m9",
+      "structure": "/home/lmtsakura/qiyan_shared/testing/full-model-benchmark-20260930/data/structures/mos2.scf.inp",
+      "structure_sha256": "c193080bc60f62897fcb2bed0b989b7c66dd8159c07bfb23c251de25f6b18b72",
+      "pair": {
+        "pair_code": "Gamma_p0_m8__K_q_0.333_0.333_0.000_m9",
+        "coupling_type": "Q_gamma*Q_q*Q_-q",
+        "q_orbit_number": null,
+        "gamma_mode": {
+          "mode_code": "Gamma_p0_m8",
+          "point_index": 0,
+          "point_label": "Gamma",
+          "q_frac": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mode_index_zero_based": 7,
+          "mode_number_one_based": 8,
+          "freq_thz": 11.902891,
+          "eigenvector": [
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ]
+            ],
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                0.7071067811865476,
+                -0.0
+              ]
+            ],
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.7071067811865476,
+                0.0
+              ]
+            ]
+          ]
+        },
+        "target_mode": {
+          "mode_code": "K_q2_2_m9",
+          "point_index": 14,
+          "point_label": "K",
+          "q_frac": [
+            0.3333333333333333,
+            0.3333333333333333,
+            0.0
+          ],
+          "qbar_frac": [
+            0.6666666666666667,
+            0.6666666666666667,
+            0.0
+          ],
+          "self_conjugate": false,
+          "mode_index_zero_based": 8,
+          "mode_number_one_based": 9,
+          "freq_thz": 11.473729,
+          "eigenvector_q": [
+            [
+              [
+                -0.28733388959772077,
+                -0.16589293625896934
+              ],
+              [
+                -0.16589293625896934,
+                0.28733388959772077
+              ],
+              [
+                -0.0,
+                0.0
+              ]
+            ],
+            [
+              [
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                -0.0
+              ],
+              [
+                0.6244347600734781,
+                -0.0
+              ]
+            ],
+            [
+              [
+                0.0,
+                0.0
+              ],
+              [
+                0.0,
+                -0.0
+              ],
+              [
+                -0.6244347600734781,
+                0.0
+              ]
+            ]
+          ],
+          "eigenvector_qbar_by_conjugation": [
+            [
+              [
+                -0.28733388959772077,
+                0.16589293625896934
+              ],
+              [
+                -0.16589293625896934,
+                -0.28733388959772077
+              ],
+              [
+                -0.0,
+                -0.0
+              ]
+            ],
+            [
+              [
+                0.0,
+                -0.0
+              ],
+              [
+                0.0,
+                0.0
+              ],
+              [
+                0.6244347600734781,
+                0.0
+              ]
+            ],
+            [
+              [
+                0.0,
+                -0.0
+              ],
+              [
+                0.0,
+                0.0
+              ],
+              [
+                -0.6244347600734781,
+                -0.0
+              ]
+            ]
+          ]
+        }
+      },
+      "axis": [
+        -1,
+        -0.5,
+        0,
+        0.5,
+        1
+      ]
+    },
+    {
+      "task_id": "dft-05",
+      "scope": "fixed_pbe_dft_diagnostic",
+      "rank": 5,
+      "physical_channel": "Gamma8-L8",
+      "qe_pair": "Gamma_p0_m8__line_q_0.333_0.667_0.000_m8",
+      "structure": "/home/lmtsakura/qiyan_shared/testing/full-model-benchmark-20260930/data/structures/mos2.scf.inp",
+      "structure_sha256": "c193080bc60f62897fcb2bed0b989b7c66dd8159c07bfb23c251de25f6b18b72",
+      "pair": {
+        "pair_code": "Gamma_p0_m8__line_q_0.333_0.667_0.000_m8",
+        "coupling_type": "Q_gamma*Q_q*Q_-q",
+        "q_orbit_number": null,
+        "gamma_mode": {
+          "mode_code": "Gamma_p0_m8",
+          "point_index": 0,
+          "point_label": "Gamma",
+          "q_frac": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "mode_index_zero_based": 7,
+          "mode_number_one_based": 8,
+          "freq_thz": 11.902891,
+          "eigenvector": [
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ]
+            ],
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                0.7071067811865476,
+                -0.0
+              ]
+            ],
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                -0.7071067811865476,
+                0.0
+              ]
+            ]
+          ]
+        },
+        "target_mode": {
+          "mode_code": "line_q2_4_m8",
+          "point_index": 16,
+          "point_label": "line",
+          "q_frac": [
+            0.3333333333333333,
+            0.6666666666666666,
+            0.0
+          ],
+          "qbar_frac": [
+            0.6666666666666667,
+            0.33333333333333337,
+            0.0
+          ],
+          "self_conjugate": false,
+          "mode_index_zero_based": 7,
+          "mode_number_one_based": 8,
+          "freq_thz": 11.722339,
+          "eigenvector_q": [
+            [
+              [
+                -0.0,
+                0.0
+              ],
+              [
+                0.0,
+                0.0
+              ],
+              [
+                0.6516856214795678,
+                -4.4425402249467986e-17
+              ]
+            ],
+            [
+              [
+                -0.20698729563920001,
+                0.1273399236343134
+              ],
+              [
+                0.11950430283862808,
+                -0.07351990437108723
+              ],
+              [
+                -0.3961510174653518,
+                -0.2279729047423371
+              ]
+            ],
+            [
+              [
+                0.20698729563920001,
+                -0.1273399236343134
+              ],
+              [
+                -0.11950430283862808,
+                0.07351990437108723
+              ],
+              [
+                -0.3961510174653518,
+                -0.2279729047423371
+              ]
+            ]
+          ],
+          "eigenvector_qbar_by_conjugation": [
+            [
+              [
+                -0.0,
+                -0.0
+              ],
+              [
+                0.0,
+                -0.0
+              ],
+              [
+                0.6516856214795678,
+                4.4425402249467986e-17
+              ]
+            ],
+            [
+              [
+                -0.20698729563920001,
+                -0.1273399236343134
+              ],
+              [
+                0.11950430283862808,
+                0.07351990437108723
+              ],
+              [
+                -0.3961510174653518,
+                0.2279729047423371
+              ]
+            ],
+            [
+              [
+                0.20698729563920001,
+                0.1273399236343134
+              ],
+              [
+                -0.11950430283862808,
+                -0.07351990437108723
+              ],
+              [
+                -0.3961510174653518,
+                0.2279729047423371
+              ]
+            ]
+          ]
+        }
+      },
+      "axis": [
+        -1,
+        -0.5,
+        0,
+        0.5,
+        1
+      ]
+    }
+  ],
+  "external_adapter_sha256": "f3599e92bad375c8d459c94ad46cce346e4578888268827110e6bdee0eff1700"
+}

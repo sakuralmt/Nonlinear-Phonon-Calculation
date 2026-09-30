@@ -67,3 +67,13 @@ Stage1 的 `phonon_dataset.json` 记录全网格与 ASR 诊断，`mode_pairs.sel
 长度 Å、质量 amu、超胞能量 eV、力 eV/Å、频率 THz，实模坐标 Å√amu。Γ 简并态以完整耦合向量范数排序，单支编号不是唯一的物理方向。有限 q 的 `Φ112` 违反动量守恒，只作为拟合诊断。Phonopy 此处处理平移 ASR，**不代表**二维 ZA 转动求和已满足；不含非解析修正、SOC、外场和 MD。
 
 各 Stage1 模型自行弛豫，跨模型差异同时包含结构变化；比较耦合前须可靠地匹配模式或简并子空间。PBE-USPP 比 LDA 更接近 MLFF 训练泛函，但不完全复制训练标签设置。公开包位于 `nonlinear_phonon_calculation/` 与 `mlff_modepair_workflow/`；`tests/` 是软件测试。PBE 报告代码不进入安装包。权重、原始 QE 输出和 Slurm 控制器不随仓库发布。
+
+## 同模型全流程基准
+
+已补入三材料各五个匹配通道的 TECE＋TECE、Prophet＋Prophet、EquiformerV3＋EquiformerV3，共5274个新增MLFF构型。每路线包括自行弛豫结构下的405点全流程PES，以及固定PBE DFT模式和结构下的181点能量／力诊断。TECE全流程的三阶MAE为1.468／1.546／0.157，四阶MAE为0.911／1.626／0.145（WS₂／MoS₂／WSe₂）；这仅是既定五通道的误差。固定DFT构型的WS₂ Γ8–M6为QE −1.414、TECE −1.425、MatterSim +1.930，符号问题有明显模型依赖。
+
+[基准入口和边界](docs/FULL_MODEL_BENCHMARK.md) · [完整图表报告](output/pdf/tmd_gga_pbe_mlff_latex_report.pdf)。常规 `npc stage2 screen/refine/audit` 仍默认MatterSim；同模型详细基准使用独立的可续算入口。
+
+### Small-model Stage2 diagnostics / 小模型同构型复测
+
+GRACE、DPA-3.1-3M-FT、Eqnorm 已在三种材料的相同 PBE DFT 构型上完成 1,629 点能量/力复测。GRACE 改善所选通道四阶误差；DPA、Eqnorm 也出现 WS₂ M6 符号错误，因此偏差并非 MatterSim 独有。此项为隔离 Stage2 的研究对照，不改变默认后端；本机和服务器耗时不混排。见 [方法、结果及复现](docs/SMALL_MODEL_BENCHMARK.md)。

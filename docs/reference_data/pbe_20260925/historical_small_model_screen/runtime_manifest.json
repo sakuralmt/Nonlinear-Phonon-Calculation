@@ -1,0 +1,60 @@
+{
+  "platform": "macOS-15.5-arm64-arm-64bit",
+  "machine": "arm64",
+  "python_envs": {
+    "matter_seven": {
+      "python": "/Users/lmtsakura/Documents/ChatGPT/dp/work/prophet-env/bin/python",
+      "packages": {
+        "numpy": "1.26.4",
+        "ase": "3.29.0",
+        "torch": "2.10.0",
+        "mattersim": "1.2.1",
+        "sevenn": "0.13.0",
+        "nequix": null,
+        "eqnorm": null,
+        "torch-scatter": null,
+        "deepmd-kit": null,
+        "tensorflow": null,
+        "tensorpotential": null,
+        "jax": null,
+        "pandas": "2.2.2"
+      }
+    },
+    "nequix_eqnorm_dpa": {
+      "python": "/Users/lmtsakura/Documents/ChatGPT/dp/work/stage2-small-model-benchmark-20260925/env/bin/python",
+      "packages": {
+        "numpy": "2.4.4",
+        "ase": "3.29.0",
+        "torch": "2.10.0",
+        "mattersim": "1.2.1",
+        "sevenn": "0.13.0",
+        "nequix": "0.4.5",
+        "eqnorm": "0.1.0",
+        "torch-scatter": "2.1.2",
+        "deepmd-kit": "3.1.3",
+        "tensorflow": null,
+        "tensorpotential": null,
+        "jax": "0.11.2",
+        "pandas": "3.0.6"
+      }
+    },
+    "grace": {
+      "python": "/Users/lmtsakura/Documents/ChatGPT/dp/work/stage2-small-model-benchmark-20260925/env-grace/bin/python",
+      "packages": {
+        "numpy": "1.26.4",
+        "ase": "3.25.0",
+        "torch": "2.10.0",
+        "mattersim": "1.2.1",
+        "sevenn": null,
+        "nequix": null,
+        "eqnorm": null,
+        "torch-scatter": null,
+        "deepmd-kit": null,
+        "tensorflow": "2.20.0",
+        "tensorpotential": "0.6.1",
+        "jax": null,
+        "pandas": "2.3.3"
+      }
+    }
+  }
+}

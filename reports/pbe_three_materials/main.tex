@@ -48,7 +48,7 @@
 \end{titlepage}
 
 \begin{abstract}
-延续本科论文与此前测试报告的“声子谱及本征矢—模式对—二维势能面—非线性系数—数值可靠性—计算成本”分析顺序，本报告定量比较三种 1H 二维过渡金属二硫化物中 QE PZ--LDA、重新计算的 QE GGA--PBE、以及 TECE、Prophet、EquiformerV3 三条 Stage1 + MatterSim Stage2 路线。三种材料的 PBE 弛豫和 6$\times$6$\times$1 DFPT 均完成；各取原有筛选的五个 $\Gamma$--$q$--$(-q)$ 物理通道，计算中心 5$\times$5 高精度势能面，并对每种材料最强通道计算 9$\times$9 窗口。全部 579 个 QE 单点具有完整能量、原子力与来源校验。五通道三阶强度 $|\PhiC|$ 的 TECE+MatterSim 平均绝对误差从 LDA 参考的 10.33、12.54、3.94 降为 PBE 参考的 6.10、4.33、1.18 $\cubunit$；但 WS$_2$、MoS$_2$ 的四阶有符号误差略增。WS$_2$ $\Gamma8$--M6 在同一 PBE 结构、同一模式位移的 25 个构型上仍为 QE $-1.414$、MatterSim $+1.930$ $\quartunit$。新增的 WS$_2$ $\Gamma8$--M9 同构型 17$\times$17 位移网格表明：在固定宽窗口下，QE 四阶从 9$\times$9 到 17$\times$17 仅变动 $+0.152\%$，MatterSim 变动 $+4.917\%$；在固定中心窗口下分别变动 $+0.025\%$、$-0.392\%$。本结果支持以 PBE 参考开展后续筛选验证，同时要求对四阶物理量单独校准；不能用谐波频率精度替代高阶势能面验证。
+延续本科论文与此前测试报告的“声子谱及本征矢—模式对—二维势能面—非线性系数—数值可靠性—计算成本”分析顺序，本报告定量比较三种 1H 二维过渡金属二硫化物中 QE PZ--LDA、重新计算的 QE GGA--PBE、以及 TECE、Prophet、EquiformerV3 三条 Stage1 + MatterSim Stage2 路线。三种材料的 PBE 弛豫和 6$\times$6$\times$1 DFPT 均完成；各取原有筛选的五个 $\Gamma$--$q$--$(-q)$ 物理通道，计算中心 5$\times$5 高精度势能面，并对每种材料最强通道计算 9$\times$9 窗口。全部 579 个 QE 单点具有完整能量、原子力与来源校验。五通道三阶强度 $|\PhiC|$ 的 TECE+MatterSim 平均绝对误差从 LDA 参考的 10.33、12.54、3.94 降为 PBE 参考的 6.10、4.33、1.18 $\cubunit$；但 WS$_2$、MoS$_2$ 的四阶有符号误差略增。WS$_2$ $\Gamma8$--M6 在同一 PBE 结构、同一模式位移的 25 个构型上仍为 QE $-1.414$、MatterSim $+1.930$ $\quartunit$。新增的 WS$_2$ $\Gamma8$--M9 同构型 17$\times$17 位移网格表明：在固定宽窗口下，QE 四阶从 9$\times$9 到 17$\times$17 仅变动 $+0.152\%$，MatterSim 变动 $+4.917\%$；在固定中心窗口下分别变动 $+0.025\%$、$-0.392\%$。新增三条同模型全流程及固定DFT基诊断共完成5274个MLFF构型：TECE全流程五通道四阶MAE在WS$_2$、MoS$_2$和WSe$_2$中分别为0.911、1.626和0.145；固定PBE构型下TECE复现WS$_2$ M6的负四阶（$-1.425$）。另以GRACE、DPA和Eqnorm完成1629个相同PBE构型的Stage2复测：GRACE恢复WS$_2$ M6负号但高估幅度，DPA和Eqnorm同样给出错误正号，因此问题不是MatterSim独有。本结果支持以 PBE 参考开展后续筛选验证，同时要求对四阶物理量单独校准；不能用谐波频率精度替代高阶势能面验证。
 \end{abstract}
 
 \tableofcontents
@@ -116,10 +116,10 @@ MAE/RMSE 在每种材料的五个固定通道上计算，三阶先取绝对值�
 
 \section{三阶非线性耦合：参考泛函改变了多少}
 
-表~\ref{tab:cubic-all} 与图~\ref{fig:cubic_channels}采用论文中逐模式对并列比较的形式，分别列出旧 LDA、新 PBE、新PBE DFT模式+MatterSim、旧LDA DFT模式+MatterSim与三条全MLFF 路线的五个 $|\PhiC|$。WS$_2$ 的 $\Gamma8$--M9 从旧 LDA 103.143 变为新 PBE 94.853，三条 MLFF 在 85.757--86.718；MoS$_2$ 同一通道从 106.134 降到 94.809，MLFF 在 88.725--89.423。参考改变明显缩小两者差距。WSe$_2$ 更接近，首通道 PBE 27.253、MLFF 25.945--26.152。
+表~\ref{tab:cubic-all} 与图~\ref{fig:cubic_channels}采用论文中逐模式对并列比较的形式，分别列出旧 LDA、新 PBE、新PBE DFT模式+MatterSim、旧LDA DFT模式+MatterSim与三条Stage1+MatterSim、三条同模型全流程路线的五个 $|\PhiC|$。WS$_2$ 的 $\Gamma8$--M9 从旧 LDA 103.143 变为新 PBE 94.853，三条 MLFF 在 85.757--86.718；MoS$_2$ 同一通道从 106.134 降到 94.809，MLFF 在 88.725--89.423。参考改变明显缩小两者差距。WSe$_2$ 更接近，首通道 PBE 27.253、MLFF 25.945--26.152。
 
 \begin{table}[!htbp]\centering\small
-\caption{逐通道的三阶强度 $|\PhiC|$；单位 $\cubunit$。通道编号经本征矢匹配，而非直接按序号假定。PBE DFT+MS采用本次PBE结构与DFPT模式；旧QE+MS采用LDA结构与模式，WS$_2$旧基线缺失。}\label{tab:cubic-all}
+\caption{逐通道的三阶强度 $|\PhiC|$；单位 $\cubunit$；T、P、E3分别表示TECE、Prophet、EquiformerV3，MS表示MatterSim。通道编号经本征矢匹配，而非直接按序号假定。PBE DFT+MS采用本次PBE结构与DFPT模式；旧QE+MS采用LDA结构与模式，WS$_2$旧基线缺失。}\label{tab:cubic-all}
 \begin{minipage}{\textwidth}\centering\textbf{(a) WS$_2$}\par\allwidthtable{cubic_ws2}\vspace{3mm}
 \textbf{(b) MoS$_2$}\par\allwidthtable{cubic_mos2}\vspace{3mm}
 \textbf{(c) WSe$_2$}\par\allwidthtable{cubic_wse2}\end{minipage}
@@ -131,7 +131,7 @@ MAE/RMSE 在每种材料的五个固定通道上计算，三阶先取绝对值�
 量化结果见表~\ref{tab:metrics-pbe}、\ref{tab:metrics-lda}。TECE+MatterSim 的五对三阶 MAE 在 WS$_2$/MoS$_2$/WSe$_2$ 分别由旧 LDA 的 10.327/12.539/3.936 降为 PBE 的 6.104/4.328/1.180 $\cubunit$。Prophet+MatterSim 对 PBE 的三阶 MAE 在三材料均略低于 TECE，但三种模型间差异小于 DFT 参考切换的效应；这主要比较了不同 Stage1 模式/结构在同一 MatterSim Stage2 下的最终结果，不能据此推出 Prophet 谐波频率更准。
 
 \begin{table}[!htbp]\centering\small
-\caption{各Stage1+MatterSim路线对新PBE的误差。$n_3,n_4$ 为可比较通道数，三、四阶单位分别见式~\eqref{eq:derivative}。}\label{tab:metrics-pbe}
+\caption{各Stage1+MatterSim及同模型全流程路线对新PBE的误差。$n_3,n_4$ 为可比较通道数，三、四阶单位分别见式~\eqref{eq:derivative}。}\label{tab:metrics-pbe}
 \allwidthtable{metrics_pbe}
 \end{table}
 \begin{table}[!htbp]\centering\small
@@ -164,13 +164,15 @@ MoS$_2$论文式旧坐标MAE/RMSE为3.7665/4.4249，统一坐标后为5.1122/5.9
 \FloatBarrier
 
 \input{pbe_dft_baseline.tex}
+\input{full_model_benchmark.tex}
+\input{small_model_benchmark.tex}
 
 \section{四阶耦合、排序与关键异常}
 
 表~\ref{tab:quartic-all} 与图~\ref{fig:quartic_channels}保留四阶导数的符号。最突出的 WS$_2$ $\Gamma8$--M6：旧 LDA 为 $-1.533$，新 PBE 为 $-1.414$，但三条自行弛豫的 MatterSim 路线均为 $+1.89$ 至 $+1.93$ $\quartunit$。WS$_2$ 与 MoS$_2$ 的五对四阶 MAE 在 PBE 参考下未下降；因此三阶改进不能延伸为“高阶势能面已整体准确”。WSe$_2$ 新 PBE 四阶五对有结果、TECE+MatterSim MAE 为 0.628，但旧数据只支持一对，不作改善百分比声明。
 
 \begin{table}[!htbp]\centering\small
-\caption{逐通道有符号四阶 $\PhiD$，单位 $\quartunit$；破折号表示旧档案没有可用标签。}\label{tab:quartic-all}
+\caption{逐通道有符号四阶 $\PhiD$，单位 $\quartunit$；T、P、E3分别表示TECE、Prophet、EquiformerV3，MS表示MatterSim；破折号表示旧档案没有可用标签。}\label{tab:quartic-all}
 \begin{minipage}{\textwidth}\centering\textbf{(a) WS$_2$}\par\allwidthtable{quartic_ws2}\vspace{3mm}
 \textbf{(b) MoS$_2$}\par\allwidthtable{quartic_mos2}\vspace{3mm}
 \textbf{(c) WSe$_2$}\par\allwidthtable{quartic_wse2}\end{minipage}
@@ -179,9 +181,9 @@ MoS$_2$论文式旧坐标MAE/RMSE为3.7665/4.4249，统一坐标后为5.1122/5.9
 \begin{figure}[!htbp]\centering\includegraphics[width=0.92\textwidth]{figures/quartic_channels.pdf}
 \caption{有符号四阶导数对比；WS$_2$ 的 M6 通道显示参考和 MLFF 势能面的实质性变号。}\label{fig:quartic_channels}\end{figure}
 
-图~\ref{fig:coupling_scatter}将 45 个“材料--通道--Stage1 路线”点与 PBE 比较。三阶散点总体沿对角线，但较强通道多被 MLFF 低估；四阶散点的系统性上移和 WS$_2$ M6 变号同时可见。三个 Stage1 的散点彼此紧邻，表明目前仅更换 Stage1 对四阶偏差的改善有限；这也是后续需要考虑 Stage2 校准的依据。
+图~\ref{fig:coupling_scatter}将新增全流程路线一并纳入，共90个“材料--通道--Stage1 路线”点与 PBE 比较。原三条MatterSim Stage2路线的三阶散点总体沿对角线，四阶散点系统性上移且WS$_2$ M6变号。新增同模型Stage2路线使散点分布明显改变，具体模型和材料差异见前节。三个Stage1在相同MatterSim下彼此紧邻，只能说明更换Stage1的改善有限，不能代表其他Stage2模型。
 
-\figwide{coupling_scatter}{三阶强度（左）与有符号四阶（右）相对 PBE 的散点。每种材料五对、每对三条 Stage1 路线；虚线为完全一致。}
+\figwide{coupling_scatter}{三阶强度（左）与有符号四阶（右），包含MatterSim混合路线和三条同模型全流程相对 PBE 的散点。每种材料五对、每对三条 Stage1 路线；虚线为完全一致。}
 
 在五对内部，$|\PhiC|$ 的 Spearman 排名相关系数见表~\ref{tab:rank}。MoS$_2$ 的三条路线均为 0.90，WSe$_2$ 均为 1.00；WS$_2$ 的 TECE/EquiformerV3 为 0.30，Prophet 为 0.70。该指标描述\emph{已选五对}内部的排序稳定性，不能替代全候选粗筛的遗漏率。
 
@@ -280,7 +282,7 @@ MoS$_2$论文式旧坐标MAE/RMSE为3.7665/4.4249，统一坐标后为5.1122/5.9
 
 \noindent\textbf{方法学结论。} 以 TECE/Prophet/EquiformerV3 进行 Stage1、MatterSim 做 Stage2 的筛选路线在谐波模式识别和五对三阶强度上有用；PBE 参考比旧 LDA 更适合本轮数值对照。但三种 Stage1 更换后，某些四阶偏差仍共同存在，WS$_2$ M6 在完全相同输入上证实存在 PES 差异。因此下一轮优先级是：在统一 PBE--USPP 标签与相同几何上，对可疑的四阶通道做少量 DFT 校准；用保留的混合偶差和窗口敏感性作为主动选点指标；然后才评估不同 Stage2 或知识蒸馏是否保留这些高阶导数。扩大材料和候选数时，必须同时报告全候选粗筛召回率，而不仅是当前前五名内部相关系数。
 
-\noindent\textbf{解释边界。} 从 LDA 到 PBE 同时更换交换相关近似、赝势族和弛豫结构，不能把三阶 MAE 下降单独归因于泛函。MLFF 路线使用自行弛豫的各自模式；只有专门的 WS$_2$ M6 测试严格比较同构型能量与力。平移 ASR 不确保 ZA 的二维转动约束。所有结果限于静态局域 PES，不能直接证明长时间 MD 的稳定性或动力学性质。
+\noindent\textbf{解释边界。} 从 LDA 到 PBE 同时更换交换相关近似、赝势族和弛豫结构，不能把三阶 MAE 下降单独归因于泛函。MLFF 路线使用自行弛豫的各自模式；新增PBE DFT模式基线及三种同模型Stage2诊断均严格比较同构型能量与力，全流程不同结构之间则只比较匹配通道的最终耦合。平移 ASR 不确保 ZA 的二维转动约束。所有结果限于静态局域 PES，不能直接证明长时间 MD 的稳定性或动力学性质。
 
 \clearpage
 \appendix
@@ -288,6 +290,10 @@ MoS$_2$论文式旧坐标MAE/RMSE为3.7665/4.4249，统一坐标后为5.1122/5.9
 
 本报告的所有数字、表格和图由同一套机器可读结果直接生成。原始 PBE 点位于独立研究归档，主要综合文件为：
 \begin{itemize}\setlength{\itemsep}{0pt}
+\item 小模型复测 \texttt{small\_model\_*.json}，含9组1629点同构型能量／力、预检、资源记录与独立重拟合；
+\item 同模型全流程 \texttt{full\_model\_*.json}、\texttt{full\_model\_comparison.json}，含9组5274点能量／力和独立重拟合；
+\item 相应 \texttt{full\_model\_manifests/}、\texttt{full\_model\_structures/}及
+\newline\texttt{full\_model\_resource\_audit.json}、\texttt{full\_model\_preflight.json}；
 \item 新DFT模式基线 \texttt{pbe\_dft\_mattersim\_*.json}（完整能量／力网格及来源）；
 \item 并列误差 \texttt{pbe\_dft\_mattersim\_comparison.json}；
 \item 历史基线 \texttt{historical\_qe\_mattersim.json}（包含坐标转换与来源哈希）；
@@ -297,7 +303,7 @@ MoS$_2$论文式旧坐标MAE/RMSE为3.7665/4.4249，统一坐标后为5.1122/5.9
 \item 新增密网格的 \texttt{ws2\_17x17\_qe.json}、\texttt{ws2\_17x17\_mattersim.json}，以及
 \newline\texttt{ws2\_17x17\_resource\_audit.json}，包含 289 点能量和力、拟合、偶混合检验及 208 个新点的 Slurm 资源记录。
 \end{itemize}
-旧模型参考只读取 Git 稳定仓库的验收数据目录，没有修改稳定代码。基线报表输入文件的 SHA256 保存在本目录的 \texttt{sources.json}；新增 WS$_2$ 密网格输入哈希见 \texttt{dense\_ws2\_sources.json}。运行 \texttt{generate\_assets.py} 可重建图表，随后用 XeLaTeX 编译本文件。主比较按五对物理通道对应，旧 WSe$_2$ 未恢复的四阶值如实显示为缺失。
+旧模型参考只读取 Git 稳定仓库的验收数据目录，没有修改稳定代码。基线报表输入文件的 SHA256 保存在本目录的 \texttt{sources.json}；新增 WS$_2$ 密网格输入哈希见 \texttt{dense\_ws2\_sources.json}。先运行 \texttt{full\_model\_assets.py}及\texttt{small\_model\_assets.py}，再运行 \texttt{generate\_assets.py} 可重建图表，随后用 XeLaTeX 编译本文件。主比较按五对物理通道对应，旧 WSe$_2$ 未恢复的四阶值如实显示为缺失。
 
 \begin{thebibliography}{9}
 \bibitem{thesis} 本科毕业论文（最终版），第 3--4 章：声子模式、二维势能面与非线性耦合的报告形式及旧 DFT 结果。

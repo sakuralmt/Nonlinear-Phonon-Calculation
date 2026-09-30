@@ -69,3 +69,13 @@ Lengths are Å, masses amu, total supercell energies eV, forces eV/Å, frequenci
 Phonopy enforces translational ASR here, not the 2D ZA rotational sum rule. There is no non-analytic correction, SOC, external field or MD. Each model relaxes its own geometry, so cross-model comparisons require mode/subspace matching. QE PBE-USPP does not reproduce every MLFF training-label detail.
 
 The installable package is in `nonlinear_phonon_calculation/` and `mlff_modepair_workflow/`; software tests are in `tests/`. PBE report scripts are outside the package. Model weights, raw QE output and Slurm controllers are not bundled. See [validation](docs/VALIDATION.md).
+
+## Same-model end-to-end benchmark
+
+TECE+TECE, Prophet+Prophet and EquiformerV3+EquiformerV3 now have 5,274 additional MLFF configurations across WS2, MoS2 and WSe2. Each material/model includes five 9x9 own-relaxed PES grids plus 181 identical-PBE-DFT-input diagnostic points. TECE full-flow cubic MAE is 1.468/1.546/0.157 and signed quartic MAE is 0.911/1.626/0.145, respectively; these errors describe the fixed five-channel sets. On identical WS2 Gamma8-M6 configurations, QE/TECE/MatterSim quartic values are -1.414/-1.425/+1.930.
+
+See the [benchmark interface and comparison limits](docs/FULL_MODEL_BENCHMARK.md) and [complete report](output/pdf/tmd_gga_pbe_mlff_latex_report.pdf). Standard `npc stage2 screen/refine/audit` retains MatterSim; detailed same-model benchmarks have a separate checkpointed entry point.
+
+### Small-model Stage2 diagnostics
+
+GRACE, DPA-3.1-3M-FT and Eqnorm completed 1,629 energy/force evaluations on identical PBE DFT configurations across three materials. GRACE improves selected-channel quartic errors; DPA and Eqnorm also give the wrong WS2 M6 sign, so the issue is not unique to MatterSim. These isolate Stage2 and do not change the default backend. Local and server timings are not ranked together. See [methods, results and reproduction](docs/SMALL_MODEL_BENCHMARK.md).

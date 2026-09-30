@@ -7,6 +7,8 @@ Run from the repository root after installing the package dependencies and a XeL
 ```bash
 python reports/pbe_three_materials/density_audit.py
 python reports/pbe_three_materials/dft_mattersim_assets.py
+python reports/pbe_three_materials/full_model_assets.py
+python reports/pbe_three_materials/small_model_assets.py
 python reports/pbe_three_materials/generate_assets.py
 python reports/pbe_three_materials/dense_ws2_assets.py
 xelatex -interaction=nonstopmode -output-directory=reports/pbe_three_materials/build reports/pbe_three_materials/main.tex
@@ -17,3 +19,7 @@ For reliable cross-references, run XeLaTeX twice or use latexmk -xelatex. The ou
 Historical QE Stage1 + MatterSim Stage2 results for MoS₂/WSe₂ are bundled in `historical_qe_mattersim.json`. The report includes this LDA-geometry/mode baseline in the cubic channel tables and plots, normalized LDA error comparison, and an old-coordinate vs unit-norm audit. WS₂ and historical quartic entries remain missing. These are not newly computed PBE-mode MatterSim grids.
 
 The new PBE DFT Stage1 + MatterSim Stage2 baseline contains 543 identical-QE configurations. `dft_mattersim_assets.py` re-fits all grids and independently recomputes aligned energy/force errors before adding the baseline to the channel tables and error plots. No new DFT calculations or model relaxation occur.
+
+The same-model benchmark adds 5,274 E/F configurations in nine completed CPU jobs: TECE+TECE, Prophet+Prophet and EquiformerV3+EquiformerV3. It reuses each Stage1, so the existing 6x6 phonon comparison is shared. All per-channel cubic/quartic tables, selected-set ranking, PBE/LDA metrics, scatter and residual comparisons include the added workflows. Separate figures and tables show fixed-DFT E/F errors, Stage2 curvature frequencies, fit windows and raw WS2 M6 even-mixed signs. `full_model_assets.py` independently reconstructs the 13-term fits and errors from raw data.
+
+The additional small-model section independently checks 1,629 fixed-PBE configurations, including raw mixed contrasts and signed quartic errors. GRACE server timings and local Eqnorm/DPA timings are explicitly separated.

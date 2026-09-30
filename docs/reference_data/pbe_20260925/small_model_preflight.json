@@ -1,0 +1,299 @@
+{
+  "ws2-grace-1l-oam": {
+    "natoms": 3,
+    "symbols": [
+      "W",
+      "S",
+      "S"
+    ],
+    "energy_eV": -23.66786355133603,
+    "force_shape": [
+      3,
+      3
+    ],
+    "repeat_energy_difference_eV": 0.0,
+    "repeat_force_max_difference_eV_per_A": 0.0,
+    "force_energy_difference_eV_per_A": 1.941144151751395e-05,
+    "force_energy_difference_step_A": 0.005,
+    "force_energy_probe_displacement_A": 0.03,
+    "force_energy_probe_force_eV_per_A": -0.527013016211878,
+    "force_energy_probe_slope_eV_per_A": 0.5270324276533955,
+    "force_energy_probe_energy_span_eV": 0.005270324276533955,
+    "preflight_limits": {
+      "repeat_energy_eV": 0.001,
+      "repeat_force_eV_per_A": 0.001,
+      "force_energy_eV_per_A": 0.1054026032423756
+    },
+    "passed": true,
+    "elapsed_seconds": 1.933617067988962,
+    "resources": {
+      "peak_process_rss_mb": 852.1640625,
+      "peak_gpu_allocated_mb": null,
+      "peak_gpu_reserved_mb": null
+    }
+  },
+  "ws2-eqnorm-mptrj": {
+    "natoms": 3,
+    "symbols": [
+      "W",
+      "S",
+      "S"
+    ],
+    "energy_eV": -23.67367935180664,
+    "force_shape": [
+      3,
+      3
+    ],
+    "repeat_energy_difference_eV": 0.0,
+    "repeat_force_max_difference_eV_per_A": 0.0,
+    "force_energy_difference_eV_per_A": 7.152557373046875e-05,
+    "force_energy_difference_step_A": 0.005,
+    "force_energy_probe_displacement_A": 0.03,
+    "force_energy_probe_force_eV_per_A": -0.3552675247192383,
+    "force_energy_probe_slope_eV_per_A": 0.35533905029296875,
+    "force_energy_probe_energy_span_eV": 0.0035533905029296875,
+    "preflight_limits": {
+      "repeat_energy_eV": 0.001,
+      "repeat_force_eV_per_A": 0.001,
+      "force_energy_eV_per_A": 0.07105350494384766
+    },
+    "passed": true,
+    "elapsed_seconds": 0.3238902499433607,
+    "resources": {
+      "peak_process_rss_mb": 593.609375,
+      "peak_gpu_allocated_mb": null,
+      "peak_gpu_reserved_mb": null
+    }
+  },
+  "ws2-dpa-3.1-3m-ft": {
+    "natoms": 3,
+    "symbols": [
+      "W",
+      "S",
+      "S"
+    ],
+    "energy_eV": -23.68726098537445,
+    "force_shape": [
+      3,
+      3
+    ],
+    "repeat_energy_difference_eV": 0.0,
+    "repeat_force_max_difference_eV_per_A": 0.0,
+    "force_energy_difference_eV_per_A": 3.3089634484895214e-05,
+    "force_energy_difference_step_A": 0.005,
+    "force_energy_probe_displacement_A": 0.03,
+    "force_energy_probe_force_eV_per_A": -0.5986717252764038,
+    "force_energy_probe_slope_eV_per_A": 0.5987048149108887,
+    "force_energy_probe_energy_span_eV": 0.005987048149108887,
+    "preflight_limits": {
+      "repeat_energy_eV": 0.001,
+      "repeat_force_eV_per_A": 0.001,
+      "force_energy_eV_per_A": 0.11973434505528076
+    },
+    "passed": true,
+    "elapsed_seconds": 14.93601716705598,
+    "resources": {
+      "peak_process_rss_mb": 2206.46875,
+      "peak_gpu_allocated_mb": null,
+      "peak_gpu_reserved_mb": null
+    }
+  },
+  "mos2-grace-1l-oam": {
+    "natoms": 3,
+    "symbols": [
+      "Mo",
+      "S",
+      "S"
+    ],
+    "energy_eV": -21.699277058341153,
+    "force_shape": [
+      3,
+      3
+    ],
+    "repeat_energy_difference_eV": 0.0,
+    "repeat_force_max_difference_eV_per_A": 0.0,
+    "force_energy_difference_eV_per_A": 1.1493696538966702e-06,
+    "force_energy_difference_step_A": 0.005,
+    "force_energy_probe_displacement_A": 0.03,
+    "force_energy_probe_force_eV_per_A": -0.5381349654573719,
+    "force_energy_probe_slope_eV_per_A": 0.5381361148270258,
+    "force_energy_probe_energy_span_eV": 0.005381361148270258,
+    "preflight_limits": {
+      "repeat_energy_eV": 0.001,
+      "repeat_force_eV_per_A": 0.001,
+      "force_energy_eV_per_A": 0.10762699309147439
+    },
+    "passed": true,
+    "elapsed_seconds": 1.9217622301075608,
+    "resources": {
+      "peak_process_rss_mb": 851.84765625,
+      "peak_gpu_allocated_mb": null,
+      "peak_gpu_reserved_mb": null
+    }
+  },
+  "mos2-eqnorm-mptrj": {
+    "natoms": 3,
+    "symbols": [
+      "Mo",
+      "S",
+      "S"
+    ],
+    "energy_eV": -21.699045181274414,
+    "force_shape": [
+      3,
+      3
+    ],
+    "repeat_energy_difference_eV": 0.0,
+    "repeat_force_max_difference_eV_per_A": 0.0,
+    "force_energy_difference_eV_per_A": 0.0004730820655822754,
+    "force_energy_difference_step_A": 0.005,
+    "force_energy_probe_displacement_A": 0.03,
+    "force_energy_probe_force_eV_per_A": -0.3451384902000427,
+    "force_energy_probe_slope_eV_per_A": 0.345611572265625,
+    "force_energy_probe_energy_span_eV": 0.00345611572265625,
+    "preflight_limits": {
+      "repeat_energy_eV": 0.001,
+      "repeat_force_eV_per_A": 0.001,
+      "force_energy_eV_per_A": 0.06902769804000855
+    },
+    "passed": true,
+    "elapsed_seconds": 0.18393883318640292,
+    "resources": {
+      "peak_process_rss_mb": 582.25,
+      "peak_gpu_allocated_mb": null,
+      "peak_gpu_reserved_mb": null
+    }
+  },
+  "mos2-dpa-3.1-3m-ft": {
+    "natoms": 3,
+    "symbols": [
+      "Mo",
+      "S",
+      "S"
+    ],
+    "energy_eV": -21.717098772525787,
+    "force_shape": [
+      3,
+      3
+    ],
+    "repeat_energy_difference_eV": 0.0,
+    "repeat_force_max_difference_eV_per_A": 0.0,
+    "force_energy_difference_eV_per_A": 7.683781177547644e-05,
+    "force_energy_difference_step_A": 0.005,
+    "force_energy_probe_displacement_A": 0.03,
+    "force_energy_probe_force_eV_per_A": -0.5880064294001386,
+    "force_energy_probe_slope_eV_per_A": 0.5880832672119141,
+    "force_energy_probe_energy_span_eV": 0.005880832672119141,
+    "preflight_limits": {
+      "repeat_energy_eV": 0.001,
+      "repeat_force_eV_per_A": 0.001,
+      "force_energy_eV_per_A": 0.11760128588002772
+    },
+    "passed": true,
+    "elapsed_seconds": 14.808048042003065,
+    "resources": {
+      "peak_process_rss_mb": 2284.25,
+      "peak_gpu_allocated_mb": null,
+      "peak_gpu_reserved_mb": null
+    }
+  },
+  "wse2-grace-1l-oam": {
+    "natoms": 3,
+    "symbols": [
+      "W",
+      "Se",
+      "Se"
+    ],
+    "energy_eV": -21.607624819523327,
+    "force_shape": [
+      3,
+      3
+    ],
+    "repeat_energy_difference_eV": 0.0,
+    "repeat_force_max_difference_eV_per_A": 0.0,
+    "force_energy_difference_eV_per_A": 8.251956390981086e-06,
+    "force_energy_difference_step_A": 0.005,
+    "force_energy_probe_displacement_A": 0.03,
+    "force_energy_probe_force_eV_per_A": -0.4647945668053205,
+    "force_energy_probe_slope_eV_per_A": 0.4648028187617115,
+    "force_energy_probe_energy_span_eV": 0.004648028187617115,
+    "preflight_limits": {
+      "repeat_energy_eV": 0.001,
+      "repeat_force_eV_per_A": 0.001,
+      "force_energy_eV_per_A": 0.0929589133610641
+    },
+    "passed": true,
+    "elapsed_seconds": 1.936128618195653,
+    "resources": {
+      "peak_process_rss_mb": 852.6171875,
+      "peak_gpu_allocated_mb": null,
+      "peak_gpu_reserved_mb": null
+    }
+  },
+  "wse2-eqnorm-mptrj": {
+    "natoms": 3,
+    "symbols": [
+      "W",
+      "Se",
+      "Se"
+    ],
+    "energy_eV": -21.6065731048584,
+    "force_shape": [
+      3,
+      3
+    ],
+    "repeat_energy_difference_eV": 0.0,
+    "repeat_force_max_difference_eV_per_A": 0.0,
+    "force_energy_difference_eV_per_A": 0.00011646747589111328,
+    "force_energy_difference_step_A": 0.005,
+    "force_energy_probe_displacement_A": 0.03,
+    "force_energy_probe_force_eV_per_A": -0.28602802753448486,
+    "force_energy_probe_slope_eV_per_A": 0.28591156005859375,
+    "force_energy_probe_energy_span_eV": 0.0028591156005859375,
+    "preflight_limits": {
+      "repeat_energy_eV": 0.001,
+      "repeat_force_eV_per_A": 0.001,
+      "force_energy_eV_per_A": 0.057205605506896975
+    },
+    "passed": true,
+    "elapsed_seconds": 0.17547208303585649,
+    "resources": {
+      "peak_process_rss_mb": 551.28125,
+      "peak_gpu_allocated_mb": null,
+      "peak_gpu_reserved_mb": null
+    }
+  },
+  "wse2-dpa-3.1-3m-ft": {
+    "natoms": 3,
+    "symbols": [
+      "W",
+      "Se",
+      "Se"
+    ],
+    "energy_eV": -21.63102900981903,
+    "force_shape": [
+      3,
+      3
+    ],
+    "repeat_energy_difference_eV": 0.0,
+    "repeat_force_max_difference_eV_per_A": 0.0,
+    "force_energy_difference_eV_per_A": 6.299218078886781e-05,
+    "force_energy_difference_step_A": 0.005,
+    "force_energy_probe_displacement_A": 0.03,
+    "force_energy_probe_force_eV_per_A": -0.49589533606628144,
+    "force_energy_probe_slope_eV_per_A": 0.4959583282470703,
+    "force_energy_probe_energy_span_eV": 0.004959583282470703,
+    "preflight_limits": {
+      "repeat_energy_eV": 0.001,
+      "repeat_force_eV_per_A": 0.001,
+      "force_energy_eV_per_A": 0.0991790672132563
+    },
+    "passed": true,
+    "elapsed_seconds": 15.072254959028214,
+    "resources": {
+      "peak_process_rss_mb": 2166.03125,
+      "peak_gpu_allocated_mb": null,
+      "peak_gpu_reserved_mb": null
+    }
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "kind": "one_pair_local_stage2_9x9_model_comparison",
+  "input_signature": {
+    "pair_code": "Gamma_p0_m8__M_q_0.500_0.000_0.000_m9",
+    "structure_sha256": "e1bac29284dbd23a43efa043e321e6344c43da3fb09ced93ed91de021c5ab89a",
+    "mode_sha256": "6f94899efbea8e652614724cd1577cd6c105cfdc0da760c667ed04b63baf4a22",
+    "qe_reference_sha256": "d3fbfebdcd247c0ac8484500459901c1a2b07a0f9a117c1883b349cade022c85",
+    "qe_phi122_mev": 106.13401497830645,
+    "axes": [
+      -2.0,
+      -1.5,
+      -1.0,
+      -0.5,
+      0.0,
+      0.5,
+      1.0,
+      1.5,
+      2.0
+    ]
+  },
+  "fit_window": 1.0,
+  "n_atoms_supercell": 12,
+  "models": [
+    {
+      "model": "mattersim",
+      "phi122_mev_per_A3amu32": 98.42790876116077,
+      "qe_phi122_mev_per_A3amu32": 106.13401497830645,
+      "abs_error_mev_per_A3amu32": 7.706106217145688,
+      "load_seconds": 4.880232125055045,
+      "grid_81_seconds": 2.142503880779259,
+      "load_plus_grid_seconds": 7.022736005834304,
+      "first_point_seconds": 0.121640499914065,
+      "median_point_seconds_excl_first": 0.02509549999376759,
+      "fit_r2_9x9": 0.9998638462390294,
+      "fit_rmse_ev_supercell_9x9": 0.010056672592584531,
+      "unique_grid_energies": 67
+    },
+    {
+      "model": "nequix-mp-1-pft",
+      "phi122_mev_per_A3amu32": 128.77022879464556,
+      "qe_phi122_mev_per_A3amu32": 106.13401497830645,
+      "abs_error_mev_per_A3amu32": 22.636213816339108,
+      "load_seconds": 3.8392947500105947,
+      "grid_81_seconds": 2.7125997450202703,
+      "load_plus_grid_seconds": 6.551894495030865,
+      "first_point_seconds": 1.5631847500335425,
+      "median_point_seconds_excl_first": 0.014326521079055965,
+      "fit_r2_9x9": 0.9997549145946131,
+      "fit_rmse_ev_supercell_9x9": 0.013170063312058866,
+      "unique_grid_energies": 65
+    },
+    {
+      "model": "nequix-mp-1",
+      "phi122_mev_per_A3amu32": 123.40698242187754,
+      "qe_phi122_mev_per_A3amu32": 106.13401497830645,
+      "abs_error_mev_per_A3amu32": 17.27296744357109,
+      "load_seconds": 2.9196928340243176,
+      "grid_81_seconds": 2.6372201238991693,
+      "load_plus_grid_seconds": 5.556912957923487,
+      "first_point_seconds": 1.5253522499697283,
+      "median_point_seconds_excl_first": 0.013861145998816937,
+      "fit_r2_9x9": 0.999771920758515,
+      "fit_rmse_ev_supercell_9x9": 0.013034919889132815,
+      "unique_grid_energies": 68
+    },
+    {
+      "model": "sevennet-l3i5",
+      "phi122_mev_per_A3amu32": 137.48430524553632,
+      "qe_phi122_mev_per_A3amu32": 106.13401497830645,
+      "abs_error_mev_per_A3amu32": 31.350290267229866,
+      "load_seconds": 3.193539333064109,
+      "grid_81_seconds": 7.539893756853417,
+      "load_plus_grid_seconds": 10.733433089917526,
+      "first_point_seconds": 0.10593724995851517,
+      "median_point_seconds_excl_first": 0.09095400053774938,
+      "fit_r2_9x9": 0.9995822896287031,
+      "fit_rmse_ev_supercell_9x9": 0.018371723803618078,
+      "unique_grid_energies": 58
+    },
+    {
+      "model": "eqnorm-mptrj",
+      "phi122_mev_per_A3amu32": 109.05674525669902,
+      "qe_phi122_mev_per_A3amu32": 106.13401497830645,
+      "abs_error_mev_per_A3amu32": 2.9227302783925637,
+      "load_seconds": 2.1873294580727816,
+      "grid_81_seconds": 8.717966743162833,
+      "load_plus_grid_seconds": 10.905296201235615,
+      "first_point_seconds": 0.13129391602706164,
+      "median_point_seconds_excl_first": 0.10701252100989223,
+      "fit_r2_9x9": 0.9997256972110863,
+      "fit_rmse_ev_supercell_9x9": 0.013792001430178159,
+      "unique_grid_energies": 71
+    },
+    {
+      "model": "dpa-3.1-3m-ft",
+      "phi122_mev_per_A3amu32": 103.7772178649934,
+      "qe_phi122_mev_per_A3amu32": 106.13401497830645,
+      "abs_error_mev_per_A3amu32": 2.35679711331305,
+      "load_seconds": 2.7774223750457168,
+      "grid_81_seconds": 26.462377781863324,
+      "load_plus_grid_seconds": 29.23980015690904,
+      "first_point_seconds": 5.040152124944143,
+      "median_point_seconds_excl_first": 0.14095006248680875,
+      "fit_r2_9x9": 0.999703603793781,
+      "fit_rmse_ev_supercell_9x9": 0.015351012767414752,
+      "unique_grid_energies": 81
+    },
+    {
+      "model": "grace-1l-oam",
+      "phi122_mev_per_A3amu32": 111.54728802309567,
+      "qe_phi122_mev_per_A3amu32": 106.13401497830645,
+      "abs_error_mev_per_A3amu32": 5.4132730447892214,
+      "load_seconds": 6.568661582889035,
+      "grid_81_seconds": 1.3808309989981353,
+      "load_plus_grid_seconds": 7.949492581887171,
+      "first_point_seconds": 0.8279069580603391,
+      "median_point_seconds_excl_first": 0.006886749994009733,
+      "fit_r2_9x9": 0.9999756044936641,
+      "fit_rmse_ev_supercell_9x9": 0.00432535052155849,
+      "unique_grid_energies": 65
+    }
+  ]
+}

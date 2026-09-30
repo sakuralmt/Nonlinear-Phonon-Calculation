@@ -1,6 +1,6 @@
 # Published PBE reference data
 
-The current interpretation and units are in [PBE_REFERENCE.md](../../PBE_REFERENCE.md). This directory contains the complete **derived, machine-readable** comparison used in the 17-page report. Raw QE output directories and server job controllers remain in the isolated research campaign.
+The current interpretation and units are in [PBE_REFERENCE.md](../../PBE_REFERENCE.md). This directory contains the complete **derived, machine-readable** comparison used in the updated report. Raw QE output directories and server job controllers remain in the isolated research campaign.
 
 - `campaign_audit.json`: 579 QE jobs, convergence/hash checks and measured node-hours.
 - `coupling_comparison.json`: the fifteen matched channels, final three-/fourth-order coefficients and error metrics for TECE, Prophet and EquiformerV3 Stage1 with MatterSim Stage2.
@@ -14,3 +14,10 @@ The current interpretation and units are in [PBE_REFERENCE.md](../../PBE_REFEREN
 - ws2_17x17_resource_audit.json: Slurm identities and elapsed times for the 208 new QE point jobs and one cancelled attempt.
 
 Run `python validation/check_pbe_reference.py` from the repository root to verify channel counts, grid completeness and published MAEs. The report generator in `reports/pbe_three_materials/` records SHA256 hashes of its inputs in `sources.json`. Old LDA labels under `docs/acceptance_data/` are read only for historical report columns.
+
+- `full_model_{material}_{model}.json`: nine complete same-model Stage2 results, each with 405 own-relaxed plus 181 fixed-PBE-input energy/force points.
+- `full_model_comparison.json`: independently recomputed signed quartic/cubic metrics, fixed-input E/F errors, residuals and fit-independent contrasts.
+- `full_model_manifests/`, `full_model_structures/`: original matched-mode inputs and exact own-relaxed geometries; absolute server paths describe provenance.
+- `full_model_resource_audit.json`, `full_model_preflight.json`: completed/cancelled Slurm attempts, allocations and repeat-inference/force-energy checks.
+
+`small_model_*` publishes nine completed small-model runs (1,629 energy/force configurations), manifests, preflights, resource records, and independently recomputed metrics. `historical_small_model_screen/` preserves the older single-channel screen used to shortlist models; its old QE labels and local timing are not the new PBE comparison.

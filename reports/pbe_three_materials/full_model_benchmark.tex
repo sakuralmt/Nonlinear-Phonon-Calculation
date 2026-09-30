@@ -1,0 +1,28 @@
+\subsection{同模型全流程：TECE、Prophet、EquiformerV3}
+本轮加入TECE Stage1 + TECE Stage2、Prophet Stage1 + Prophet Stage2、EquiformerV3 Stage1 + EquiformerV3 Stage2三条路线。每条路线直接复用原来已匹配的自行弛豫结构、本征矢和五个物理通道，仅更换Stage2计算器；因此与相应Stage1+MatterSim的差异可以归因于Stage2。三个材料、三个模型各完成五对9$\times$9网格，共3645个全流程构型；中心5$\times$5仍为主要13项拟合，宽窗用于诊断。Stage1声子频率、本征矢和弛豫结构沿用此前表格，不能把重复使用的同一Stage1列当作新的独立声子测试。
+
+另增加1629个固定PBE DFT结构和模式的诊断点，即每材料每模型181点。只有这部分才与QE构型逐点重合，允许报告相对中心能量和原子力MAE/RMSE；不同自行弛豫结构的全流程只比较已匹配物理通道的最终系数，不能据此计算同构型能量或力误差。全部新点保存原子力、权重与输入哈希、断点及实际Slurm资源。所有路线均不重算DFT或重新弛豫结构。
+
+\begin{table}[!htbp]\centering\small
+\caption{同模型全流程和固定DFT模式诊断的五通道误差。三阶用强度，四阶保留符号，单位分别为$\cubunit$和$\quartunit$。墙钟包含模型加载、预检及两种基底上的所有586点。}\label{tab:full-model-metrics}
+\allwidthtable{full_model_metrics}
+\end{table}
+\begin{figure}[!htbp]\centering\includegraphics[width=0.98\textwidth]{figures/full_model_metrics.pdf}
+\caption{复用完全相同的Stage1结构和模式后，更换Stage2对三四阶MAE的影响。每材料仅五个既定强通道，不能推广为未筛选的全部材料误差。}\label{fig:full-model-metrics}
+\end{figure}
+\begin{table}[!htbp]\centering\small
+\caption{固定PBE DFT构型的能量／力误差：能量单位meV/超胞，力单位eV/\AA；完整181点与中心125点分开报告。}\label{tab:full-model-ef}
+\allwidthtable{full_model_ef}
+\end{table}
+\begin{table}[!htbp]\centering\small
+\caption{全流程Stage2曲率频率、中心拟合残差及首通道窗口诊断；曲率频率与匹配的PBE DFPT模式频率比较，五个Gamma和五个有限q项均保留。}
+\allwidthtable{full_model_diagnostics}
+\end{table}
+\begin{figure}[!htbp]\centering\includegraphics[width=0.98\textwidth]{figures/full_model_diagnostics.pdf}
+\caption{全流程Stage2曲率频率误差、中心拟合残差及首通道四阶窗口变化。对应Stage1频率已由此前完整6$\times$6比较给出。}\label{fig:full-model-diagnostics}
+\end{figure}
+\begin{figure}[!htbp]\centering\includegraphics[width=0.9\textwidth]{figures/full_model_m6.pdf}
+\caption{WS$_2$ $\Gamma8$--M6固定PBE构型的偶混合能量差。直接由原始能量消去轴向项及奇次项，不经多项式拟合。}\label{fig:full-model-m6}
+\end{figure}
+\input{full_model_conclusions.tex}
+\FloatBarrier

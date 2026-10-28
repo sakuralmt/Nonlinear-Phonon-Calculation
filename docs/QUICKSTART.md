@@ -2,6 +2,7 @@
 
 [中文](QUICKSTART_zh.md) · [Install dependencies and weights](INSTALL.md) · [DFT contract](DFT_STAGE1.md)
 
+These examples use TMDCs, the main detailed validation set. Screening of other hexagonal materials has not been tested as extensively; see [the scope note](SYMMETRY_SCOPE.md).
 Run these examples from a source checkout or unpacked source distribution. The MLFF examples use explicit-cell (`ibrav=0`) MoS₂ starting geometries and still relax them with the selected model; the DFT-import examples preserve the original DFT structure. The wheel does not bundle that data directory. No checkpoint is provided by the core installation.
 
 ## 1. Check the installation without a calculation

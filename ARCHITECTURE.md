@@ -2,6 +2,10 @@
 
 [README](README.md) · [安装与权重](docs/INSTALL.md) · [Migration](docs/MIGRATION.md)
 
+The physical calculation starts with a Γ-point optical displacement and asks how it changes a finite-q mode's energy and restoring force. Harmonic modes define the displacement directions; a two-coordinate PES supplies the anharmonic coefficients.
+
+The implementation was developed and tested most extensively on hexagonal TMDC monolayers. Detailed screening validation for other hexagonal materials remains limited. Selected-pair PES studies and synthetic symmetry tests cover narrower questions; [SYMMETRY_SCOPE.md](docs/SYMMETRY_SCOPE.md) lists the evidence for each.
+
 ## Public interfaces and model roles
 
 The public commands are:
@@ -12,13 +16,13 @@ The public commands are:
 - `npc status`: read saved completion counts.
 - `npc --version` and `npc --help`: installation/command inspection without model loading.
 
-`pyproject.toml` maps `npc` to `nonlinear_phonon_calculation.cli:main`. The equivalent module is `python -m nonlinear_phonon_calculation.cli`. Core data and calculators are separated from report generation. The optional `full_model_benchmark` and `small_model_benchmark` modules are published diagnostic interfaces, with their own manifest contracts; they are not additional default Stage2 CLI backends. QE submission, account-wide cluster control, MD and other isolated research orchestration are outside the public CLI.
+`pyproject.toml` maps `npc` to `nonlinear_phonon_calculation.cli:main`. The equivalent module is `python -m nonlinear_phonon_calculation.cli`. Core calculations, report generation and cluster execution have separate modules. The optional `full_model_benchmark` and `small_model_benchmark` runners read their own manifests. They provide archived model comparisons, while the main Stage2 CLI uses MatterSim. QE submission and cluster control are handled by the research execution layer.
 
 Stage1 defaults to TECE-OAM-RRA-1.0; Prophet OAME-MBD and EquiformerV3+DeNS-OAM are alternatives. Stage2 uses MatterSim-v1.0.0-5M with package 1.2.1. Model environments can remain separate because files, not in-memory model objects, cross the Stage1/Stage2 boundary. [INSTALL.md](docs/INSTALL.md) records the source and weight identities.
 
 ## Geometry and harmonic calculation
 
-An MLFF Stage1 run first relaxes its explicit-cell (`ibrav=0` plus `CELL_PARAMETERS`) QE input with its own calculator. The DFT import has a separate reader supporting the archived `ibrav=4` representation; these input examples are not interchangeable. The protocol preserves the input's atomic constraints, vacuum length and hexagonal shape. It optimizes permitted ionic coordinates with BFGS (`fmax=0.02 eV/Å`) and searches an isotropic in-plane scale in `[0.94,1.06]`. A failed ionic optimization or a lattice optimum at a search boundary stops the run. This is a constrained monolayer procedure, not general 3D variable-cell relaxation.
+An MLFF Stage1 run first relaxes its explicit-cell (`ibrav=0` plus `CELL_PARAMETERS`) QE input with its own calculator. The DFT import has a separate reader supporting the archived `ibrav=4` representation; these input examples are not interchangeable. Developed for the TMDC calculations, this protocol preserves the input's atomic constraints, vacuum length and hexagonal shape. It optimizes permitted ionic coordinates with BFGS (`fmax=0.02 eV/Å`) and searches an isotropic in-plane scale in `[0.94,1.06]`. A failed ionic optimization or a lattice optimum at a search boundary stops the run. The fixed-vacuum and fixed-shape constraints are part of the calculation protocol.
 
 The **qe-dft route is different**: it imports the original DFT-relaxed structure and audited frequencies/complex eigenvectors without another relaxation, QE call, phonon calculation or ASR modification. It validates the published JSON export contract; it does not parse every arbitrary QE output format. DFT-source and model-relaxation provenance remain distinct.
 
@@ -30,7 +34,7 @@ The primitive cell fixes the branch count, `3N` per q. A two-atom primitive cell
 
 `structure_symmetry.py` verifies spglib's atom permutations and lattice translations, rejects operations that fail the layer/mesh requirements, and tests phonon covariance with transformed complex eigenvectors at Γ and finite q. Frequencies must agree. Degenerate groups use overlap-matrix singular values rather than identical branch numbers. Γ covariance is required for each retained spatial operation and its time-reversed partner. Failed spatial covariance falls back to conservative q/−q grouping; failed time reversal stops the run.
 
-The workflow assumes a nonmagnetic scalar potential without external fields. Corresponding modes from different relaxed structures still need a reliable physical/subspace mapping; matching the integer branch index alone is insufficient.
+These checks assume a nonmagnetic scalar potential without external fields. For the real-material validation, the main screening and equivalent-displacement campaigns use TMDCs. Passing harmonic covariance checks in another material does not by itself establish finite-amplitude PES equivalence. Corresponding modes from different relaxed structures are matched by eigenvector or subspace overlap, with their frequencies checked as well.
 
 Only Γ optical directions enter candidates. The three translation directions are identified by normalized mass-weighted vectors:
 
@@ -38,7 +42,7 @@ Only Γ optical directions enter candidates. The three translation directions ar
 t_alpha(i,beta) = sqrt(m_i / sum(m)) * delta_alpha,beta
 ```
 
-An excluded mode needs at least 0.9 squared overlap with the translation subspace; a retained mode needs at most 0.1. Ambiguous translation/optical mixing stops the run. This handles an unstable optical mode that sorts below translations. “Γ optical” is a displacement classification, not proof of IR activity or experimental pump access.
+An excluded mode needs at least 0.9 squared overlap with the translation subspace; a retained mode needs at most 0.1. Ambiguous translation/optical mixing stops the run. This handles an unstable optical mode that sorts below translations. Optical activity and the coupling to a chosen pump require effective charges or Raman tensors in addition to this displacement classification.
 
 For `N` primitive atoms and `C` verified finite-q orbits, the candidate count is `C × (3N−3) × 3N`. The archived three-atom TMD case has `C=6`, hence 324 pairs. The count is not hard coded; a one-atom primitive cell has no Γ optical candidates. Finite-q acoustic and optical branches remain eligible.
 
@@ -77,7 +81,7 @@ Phi1122 = 4*d1122
 Phi1111 = 24*d1111       Phi2222 = 24*d2222
 ```
 
-Standard screen/refine/audit point checkpoints store energies. Stage1 force checks and the reference/benchmark interfaces that store complete energy/force labels are separate paths; they must not be generalized to all checkpoints. Forces are not part of this energy-only fit. A full-rank, low-residual fit demonstrates interpolation within its model/window, not agreement of the force field with DFT or exact zero-amplitude high-order derivatives. Unknown or unidentifiable quantities must not be filled with zeros.
+Standard screen/refine/audit point checkpoints store energies. Stage1 force checks and the reference/benchmark interfaces that store complete energy/force labels are separate paths; they must not be generalized to all checkpoints. Forces are not part of this energy-only fit. A full-rank fit determines the coefficients of this finite-window model; the residual measures interpolation error. DFT comparisons assess the potential, and window comparisons assess the sensitivity of its effective derivatives. Unidentifiable quantities are left unspecified.
 
 `momentum_diagnostics` checks translation allowance. In a real q/−q coordinate, `y^n` contains harmonics `(2k−n)q`; a term is potentially translation-allowed when one is reciprocal. This is not a point-group selection-rule calculation. At genuinely finite q, `Phi112` is forbidden and remains a diagnostic, while `Phi122` and `Phi1122` are momentum-allowed. Diagnostic forbidden coefficients are not ranking targets.
 
@@ -91,7 +95,7 @@ For the stated fit, the target-axis curvature at `y=0` is:
 kappa_q(x) = 2*a02 + 2*c122*x + 2*d1122*x²
 ```
 
-It describes a static frozen-direction response. It is not automatically an eigenfrequency of the complete displaced Hessian, a pump instability threshold, a mode population, or a phonon lifetime. The finite-q mean displacement and the two-phonon correlation are also different observables. Drive coupling, IR/Raman selection, Born effective charges/Raman tensors, damping, phases and dynamics need separate inputs and validation.
+This is the static curvature along the frozen target direction. Its relation to a displaced-system eigenfrequency requires the full Hessian. Optical driving, damping and mode mixing enter a subsequent dynamical calculation. Finite-q mean displacement and two-phonon correlations also describe different observables.
 
 Compare signed fourth-order coefficients together with their actual energy or restoring-force contribution over the stated amplitude range. A large percentage error near a zero DFT coefficient may be physically small. Cross-structure total energies or pointwise force errors are not meaningful same-configuration benchmarks; those require identical geometry, modes and displacement positions.
 

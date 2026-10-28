@@ -9,7 +9,7 @@ This page records maintenance-release checks, not a new materials-accuracy study
 ## Checks
 
 - Baseline stable/public comparison: 299 tracked files, identical content, clean stable checkout.
-- Synthetic science: real-mode normalization, primitive branches, phonon gauge, actual-structure symmetry, acoustic/optical separation, momentum diagnostics, 13-column fits and factorial conversion.
+- Numerical unit tests: real-mode normalization, primitive branches, phonon gauge, actual-structure symmetry, acoustic/optical separation, momentum diagnostics, 13-column fits and factorial conversion.
 - Run recovery: interrupted screen/refine/audit and matched-channel benchmarks, byte-identical checkpoint reuse, changed-input refusal and complete-grid checks.
 - New rejection cases: non-Γ imported Γ mode, invalid branch indices, nonfinite or incomplete reference labels, invalid CLI arguments.
 - Distribution: build wheel/sdist; inspect their actual contents; import and run the wheel outside the source checkout; execute the complete tests from an extracted sdist.
@@ -19,7 +19,7 @@ This page records maintenance-release checks, not a new materials-accuracy study
 
 ## Interpretation
 
-Passing these checks supports release stability within the tested interfaces. It does not establish arbitrary hardware/model-stack compatibility, fresh inference on every optional model, or universal DFT accuracy. Base-only test environments skip the small Torch autograd diagnostic when Torch is not installed; the Torch-enabled validation covers that diagnostic separately.
+The checks exercise the documented interfaces, input validation, packaging and restart. Material validation remains concentrated on TMDC screening and the listed DFT benchmarks. Analytic potentials and spring models test numerical behaviour rather than real-material accuracy; see [the symmetry scope note](SYMMETRY_SCOPE.md). Base-only test environments skip the small Torch autograd diagnostic when Torch is not installed; the Torch-enabled validation covers that diagnostic separately.
 
 The wheel deliberately excludes source-tree report scripts and scientific regression data. The full archived-data tests belong to the repository/sdist. Base installation alone does not install model stacks, provide checkpoints or start a cluster job.
 
@@ -35,7 +35,7 @@ Historical scientific JSON and PDF records remain unchanged. They may retain ori
 | Final candidate, separate test venv reusing installed Torch | **84 passed** | No model inference or weight download; includes the small tensor/autograd control. |
 | Candidate wheel | Installed and checked outside the checkout | Core imports, CLI version/help/status; no run directory created by status. |
 | Extracted candidate source distribution | **83 passed, 1 skipped** | Separately installed environment; includes archived reference inputs and report/validation code. |
-| Linux CI, Python 3.10 and 3.12 | Required before publication | Same source tests plus outside-checkout wheel and extracted-sdist installation/tests. Successful run URLs are in the Release. |
+| Linux CI, Python 3.10 and 3.12 | Passed on the release commit | Source tests: **83 passed, 1 skipped** on each version; outside-checkout wheel checks and extracted-sdist tests also passed. [CI run](https://github.com/sakuralmt/Nonlinear-Phonon-Calculation/actions/runs/40744574073). |
 | Static and source checks | Passed | Critical Ruff checks, compileall, whitespace checks, unchanged scientific-core hashes, model-free imports, documentation routes and local links. |
 
 The clean base environment uses the currently resolved base dependencies, including NumPy 2.5.4 and Phonopy 2.38.0. Third-party deprecation warnings from ASE/spglib are retained in the logs; they are not hidden test failures. The separate Torch environment reuses an existing installation, so it is not described as a fresh all-model environment.

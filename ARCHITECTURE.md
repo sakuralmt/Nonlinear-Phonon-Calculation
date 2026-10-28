@@ -1,92 +1,122 @@
-# Two-stage workflow and contract v5
+# Numerical method and public architecture
 
-The public interface is `npc stage1`, `npc stage2 screen|refine|audit`, and `npc status`.
-Stage1 defaults to TECE, with Prophet and EquiformerV3 alternatives. Stage2 uses
-the pinned MatterSim 5M calculator. Model environments remain separate.
+[README](README.md) · [安装与权重](docs/INSTALL.md) · [Migration](docs/MIGRATION.md)
 
-## Structure and harmonic calculation
+## Public interfaces and model roles
 
-Each Stage1 model first relaxes the input with its own calculator. The current
-protocol preserves the QE-format input's atomic constraints and vacuum length,
-optimizes the permitted atomic coordinates with BFGS (`fmax=0.02 eV/Å`), and
-searches an isotropic in-plane scale in `[0.94, 1.06]`. It preserves the hexagonal
-cell shape. A failed ionic optimization or a lattice optimum at the search bound
-stops the run. This is a constrained monolayer relaxation, not a general 3D
-variable-cell optimizer. Reading a QE-format structure does not run QE.
+The public commands are:
 
-Phonopy 2.38 constructs force constants from Cartesian central differences on a
-commensurate supercell. The default mesh is 6×6×1, and the two displacement sizes
-are 0.01 and 0.005 Å. Raw and ASR-corrected force constants are both retained.
-Phonopy's translational/index-exchange symmetrization is distinct from spatial
-point-group symmetry and from the rotational sum rule required for ideal 2D ZA.
+- `npc stage1`: MLFF structure/modes, or import of audited existing DFT modes.
+- `npc stage2 screen|refine|audit`: checkpointed **MatterSim** PES sampling.
+- `npc stage2 reference`: MatterSim on a supplied, matched existing QE grid.
+- `npc status`: read saved completion counts.
+- `npc --version` and `npc --help`: installation/command inspection without model loading.
 
-`structure_symmetry.py` verifies spglib's atomic permutations and translations,
-rejects operations that do not preserve the layer/mesh, and checks phonon
-covariance with transformed complex eigenvectors at Γ and finite q. Γ covariance is required for every retained spatial operation and its time-reversed partner. Matched frequencies must also
-agree. Degenerate groups use singular values of the overlap matrix. Failed
-spatial covariance falls back to q/−q; failed time reversal stops the run.
-The workflow assumes a nonmagnetic scalar potential without external fields.
+`pyproject.toml` maps `npc` to `nonlinear_phonon_calculation.cli:main`. The equivalent module is `python -m nonlinear_phonon_calculation.cli`. Core data and calculators are separated from report generation. The optional `full_model_benchmark` and `small_model_benchmark` modules are published diagnostic interfaces, with their own manifest contracts; they are not additional default Stage2 CLI backends. QE submission, account-wide cluster control, MD and other isolated research orchestration are outside the public CLI.
 
-## Gamma optical candidates
+Stage1 defaults to TECE-OAM-RRA-1.0; Prophet OAME-MBD and EquiformerV3+DeNS-OAM are alternatives. Stage2 uses MatterSim-v1.0.0-5M with package 1.2.1. Model environments can remain separate because files, not in-memory model objects, cross the Stage1/Stage2 boundary. [INSTALL.md](docs/INSTALL.md) records the source and weight identities.
 
-Only Γ optical modes enter coupling candidates. The three translations are
-identified using the normalized mass-weighted vectors
-`t_alpha(i,beta) = sqrt(m_i / sum(m)) delta_alpha,beta`. Each excluded mode must
-have at least 0.9 squared overlap with the translation subspace; each retained
-mode must have at most 0.1. Ambiguous acoustic/optical mixing stops the run.
-This also handles an unstable optical mode sorted before the acoustic modes.
+## Geometry and harmonic calculation
 
-For N atoms and C verified finite-q orbits, the candidate count is
-`C × (3N−3) × 3N`. The validated three-atom TMD cells have C=6 and 324 candidates;
-this count is not hard coded. A one-atom primitive cell has no Γ optical
-candidates. Finite-q acoustic and optical branches are all retained.
+An MLFF Stage1 run first relaxes its explicit-cell (`ibrav=0` plus `CELL_PARAMETERS`) QE input with its own calculator. The DFT import has a separate reader supporting the archived `ibrav=4` representation; these input examples are not interchangeable. The protocol preserves the input's atomic constraints, vacuum length and hexagonal shape. It optimizes permitted ionic coordinates with BFGS (`fmax=0.02 eV/Å`) and searches an isotropic in-plane scale in `[0.94,1.06]`. A failed ionic optimization or a lattice optimum at a search boundary stops the run. This is a constrained monolayer procedure, not general 3D variable-cell relaxation.
 
-Stage1 groups near-degenerate Γ optical modes (default 0.01 THz) into channels.
-Stage2 ranks the norm of the complete Γ component vector. Finite-q degenerate
-branches are marked basis dependent and selection expands their sibling
-channels. These diagonal projections do not reconstruct the full finite-q
-degenerate coupling tensor and must not be described as that tensor's invariant.
+The **qe-dft route is different**: it imports the original DFT-relaxed structure and audited frequencies/complex eigenvectors without another relaxation, QE call, phonon calculation or ASR modification. It validates the published JSON export contract; it does not parse every arbitrary QE output format. DFT-source and model-relaxation provenance remain distinct.
 
-## Energies, fitting and restart
+Phonopy 2.38.0 constructs force constants from Cartesian central differences on a commensurate supercell. The default q mesh is 6×6×1, with displacement steps 0.01 and 0.005 Å. Raw and ASR-corrected force constants are retained. Translational/index-exchange symmetrization does not enforce the rotational sum rule needed for ideal long-wavelength 2D ZA behavior. There is no non-analytic long-range correction in this implementation.
 
-The six-point proxy uses `QΓ=±1` and `Qq=−1,0,+1` Å√amu. All candidates are
-screened. The default top 20 channels, including required sibling components,
-receive the central 5×5 grid; `audit` extends the strongest five refined channels
-to 9×9. A 13-column polynomial fit supplies explicitly factorial-scaled third
-and fourth derivatives. The 13 terms are the documented fitting ansatz, not the
-full set of all symmetry-allowed quartic monomials for every possible q.
+The primitive cell fixes the branch count, `3N` per q. A two-atom primitive cell has six branches; a three-atom primitive cell has nine. Sampling supercells have more atoms so the chosen q fits periodic boundaries, not because extra primitive-cell branches have been introduced.
 
-`core.py` normalizes each real supercell mode to unit mass-weighted norm,
-including q/−q standing waves and self-conjugate q points. Energies are eV per
-supercell; frequencies are THz. `units.py` defines all coordinate and derivative
-units. Energy conversion always requires a declared source unit.
+## Mode identity, spatial symmetry and translations
 
-Run identity includes the pair-file hash, structure hash, MatterSim checkpoint
-hash, contract, normalization, grids, top-channel count and the energy-accumulation protocol. Stage2 additionally
-verifies the model-relaxation summary. An atomic JSON replacement after each
-energy evaluation and a per-pair file lock provide interruption recovery and
-prevent duplicate concurrent writes. Shards partition complete pairs. A phase
-is finalized only after every required point is finite and every fit has rank 13.
-Per-worker timing, process peak memory, host and Slurm identifiers are retained.
+`structure_symmetry.py` verifies spglib's atom permutations and lattice translations, rejects operations that fail the layer/mesh requirements, and tests phonon covariance with transformed complex eigenvectors at Γ and finite q. Frequencies must agree. Degenerate groups use overlap-matrix singular values rather than identical branch numbers. Γ covariance is required for each retained spatial operation and its time-reversed partner. Failed spatial covariance falls back to conservative q/−q grouping; failed time reversal stops the run.
+
+The workflow assumes a nonmagnetic scalar potential without external fields. Corresponding modes from different relaxed structures still need a reliable physical/subspace mapping; matching the integer branch index alone is insufficient.
+
+Only Γ optical directions enter candidates. The three translation directions are identified by normalized mass-weighted vectors:
+
+```text
+t_alpha(i,beta) = sqrt(m_i / sum(m)) * delta_alpha,beta
+```
+
+An excluded mode needs at least 0.9 squared overlap with the translation subspace; a retained mode needs at most 0.1. Ambiguous translation/optical mixing stops the run. This handles an unstable optical mode that sorts below translations. “Γ optical” is a displacement classification, not proof of IR activity or experimental pump access.
+
+For `N` primitive atoms and `C` verified finite-q orbits, the candidate count is `C × (3N−3) × 3N`. The archived three-atom TMD case has `C=6`, hence 324 pairs. The count is not hard coded; a one-atom primitive cell has no Γ optical candidates. Finite-q acoustic and optical branches remain eligible.
+
+## A pair, a coupling group and a complete tensor are different
+
+A pair is one Γ direction and one finite-q direction in a stated basis. Near-degenerate Γ optical modes are grouped with a default 0.01 THz threshold. Stage2 ranks the norm of the **complete Γ component vector** for a fixed target direction. Required finite-q degenerate siblings are included in selected groups.
+
+That Γ norm does not recover missing off-diagonal components of a finite-q degenerate tensor. Individual directions and their rankings can change with a rotation of the degenerate basis. Therefore a selected group may contain several pairs, and a sum of computed diagonal projections is not a general basis-invariant full tensor.
+
+`core.py` constructs a real q/−q standing wave and normalizes the actual supercell displacement direction to unit mass-weighted norm. Self-conjugate q points and a general q/−q pair have different real-part norms; a universal factor of √2 is not valid. The coordinate describes a fixed real direction, not the complete complex Bloch three-phonon vertex.
+
+Whole-supercell normalization also sets the scale of a bare coefficient. For the same primitive mode, q, gauge and periodically repeated displacement pattern, total energy is extensive while a unit-mass coordinate gives atomic amplitudes proportional to `N_c^(-1/2)`. Thus bare `Phi3 ∝ N_c^(-1/2)` and `Phi4 ∝ N_c^(-1)`. Comparing raw scores across supercell conventions is not a size-independent intrinsic-coupling ranking. Keep the supercell and coordinate convention with each result; do not apply an undocumented rescaling or infer a full Bloch vertex from these numbers.
+
+## Sampling grids and fitted quantities
+
+The six-point screen uses `QΓ=±1`, `Qq=−1,0,+1` Å√amu. It measures a finite-step proxy for the change in target curvature with Γ displacement; it is not a fourth-order fit.
+
+For selected complete groups, refine uses `Q∈{-1,-0.5,0,0.5,1}` on each axis. Optional audit uses `Q∈{-2,-1.5,…,1.5,2}` on each axis for the strongest five refined groups. The step stays 0.5, so audit tests a wider window rather than a denser sample of the same interval. Neither operation changes the harmonic q mesh.
+
+The energy-only linear least-squares fit has 13 columns:
+
+```text
+V(x,y) = a00 + a10*x + a01*y + a20*x² + a02*y² + a11*x*y
+       + c111*x³ + c222*y³ + c112*x²*y + c122*x*y²
+       + d1111*x⁴ + d2222*y⁴ + d1122*x²*y²
+```
+
+This omits `x³y` and `xy³`; it is a defined finite-window ansatz, not the full two-variable quartic Taylor model for all wavevectors. In particular, `3q=G` can make `xy³` translation-allowed; point-group analysis is still required. Added sample points can stabilize coefficients within this ansatz without establishing that every omitted term is negligible.
+
+Reported Taylor derivatives use factorial factors:
+
+```text
+Phi122 = 2*c122          Phi112 = 2*c112
+Phi111 = 6*c111          Phi222 = 6*c222
+Phi1122 = 4*d1122
+Phi1111 = 24*d1111       Phi2222 = 24*d2222
+```
+
+Standard screen/refine/audit point checkpoints store energies. Stage1 force checks and the reference/benchmark interfaces that store complete energy/force labels are separate paths; they must not be generalized to all checkpoints. Forces are not part of this energy-only fit. A full-rank, low-residual fit demonstrates interpolation within its model/window, not agreement of the force field with DFT or exact zero-amplitude high-order derivatives. Unknown or unidentifiable quantities must not be filled with zeros.
+
+`momentum_diagnostics` checks translation allowance. In a real q/−q coordinate, `y^n` contains harmonics `(2k−n)q`; a term is potentially translation-allowed when one is reciprocal. This is not a point-group selection-rule calculation. At genuinely finite q, `Phi112` is forbidden and remains a diagnostic, while `Phi122` and `Phi1122` are momentum-allowed. Diagnostic forbidden coefficients are not ranking targets.
+
+## Units, curvature and physical interpretation
+
+Lengths are Å; masses amu; energies eV per supercell; forces eV/Å; frequencies THz; real normal coordinates Å√amu. Cubic and quartic derivative units are eV/(Å³ amu^(3/2)) and eV/(Å⁴ amu²), or their explicitly converted meV forms. Energy conversion requires a declared source unit.
+
+For the stated fit, the target-axis curvature at `y=0` is:
+
+```text
+kappa_q(x) = 2*a02 + 2*c122*x + 2*d1122*x²
+```
+
+It describes a static frozen-direction response. It is not automatically an eigenfrequency of the complete displaced Hessian, a pump instability threshold, a mode population, or a phonon lifetime. The finite-q mean displacement and the two-phonon correlation are also different observables. Drive coupling, IR/Raman selection, Born effective charges/Raman tensors, damping, phases and dynamics need separate inputs and validation.
+
+Compare signed fourth-order coefficients together with their actual energy or restoring-force contribution over the stated amplitude range. A large percentage error near a zero DFT coefficient may be physically small. Cross-structure total energies or pointwise force errors are not meaningful same-configuration benchmarks; those require identical geometry, modes and displacement positions.
+
+## Floating-point protocol and run identity
+
+The pinned MatterSim adapter uses an instance-local hook to promote atomic energies to float64 **before** their final sum. Network features and weights stay float32, and autograd remains connected. This is `atomic_float32_sum_float64_v2`, not a full-double network. Casting the final scalar alone would not undo earlier rounding. No global scatter function or installed model source is patched by that hook.
+
+A Stage2 identity includes mode-pair and structure hashes, checkpoint, contract, normalization, grids, selected-group count and energy-accumulation protocol. MLFF runs also verify the relaxation summary; DFT imports verify their own frozen source information. Identical weight bytes alone do not justify mixing old float32-summed points with the corrected protocol.
+
+Atomic JSON replacement and per-pair locking protect point checkpoints. Shards partition complete pairs; finishing one shard does not finalize a phase. Finalization checks required finite points and, for fitted phases, rank 13 before writing phase rankings. The reference phase uses one checkpointed process per material; it does not support normal Stage2 sharding or `--finalize-only`.
+
+Saved timing, process peak RSS, host and optional Slurm identifiers describe the execution process. They do not measure whole-node peak memory or enforce a cluster-wide job budget. Repeat a run with unchanged inputs to resume; changed identities need a separate output directory. See [MIGRATION.md](docs/MIGRATION.md).
 
 ## Source layout
 
-- `nonlinear_phonon_calculation/cli.py`: public command dispatch.
-- `mlff_modepair_workflow/advanced_stage1.py`, `prophet_stage1.py`: model Stage1.
-- `model_relaxation.py`, `phonopy_bridge.py`, `structure_symmetry.py`: geometry,
-  force constants and verified reciprocal equivalence.
-- `screening_stage2.py`, `core.py`, `units.py`: staged sampling and numerical contract.
-- `tests/`: analytic, symmetry, displacement, checkpoint and provenance checks.
+| Location | Responsibility |
+| --- | --- |
+| `nonlinear_phonon_calculation/cli.py` | Public command parsing and dispatch |
+| `mlff_modepair_workflow/advanced_stage1.py`, `prophet_stage1.py` | Model-specific Stage1 paths |
+| `model_relaxation.py`, `phonopy_bridge.py` | Constrained geometry optimization and Phonopy interface |
+| `structure_symmetry.py`, `phonon_eigenvectors.py` | Primitive modes, covariance and reciprocal equivalence |
+| `core.py`, `units.py`, `screening_stage2.py` | Real displacements, units, sampling, fit and restart contract |
+| `dft_reference.py` | Existing DFT mode import and same-configuration MatterSim comparison |
+| `full_model_benchmark.py`, `small_model_benchmark.py` | Separate optional archived benchmark runners |
+| `tests/` | Software/contract regression tests; no substitute for scientific convergence |
+| `reports/`, `docs/reference_data/` | Public report sources and archived reference data, outside the wheel |
 
-Historical v3/v4 results are diagnostic references, not v5 restart inputs.
-QE/GPTFF/EquFlash and Stage3 recomputation code are outside this release tree.
-
-## Precision and forbidden-term diagnostics
-
-Version 1.0.1 registers an instance-local forward hook on the pinned MatterSim M3GNet atomic-energy normalizer. It casts atomic energies to float64 before the final scatter sum; model weights/features stay float32 and autograd remains connected. No installed package or global scatter function is patched. The same weight hash alone does not authorize mixing old float32-summed and corrected checkpoints.
-
-`momentum_diagnostics` records translation allowance for each polynomial coefficient. For the real q/−q coordinate, y^n contains harmonics (2k−n)q; a term is potentially allowed when at least one is reciprocal. This does not apply point-group selection rules. In particular, Φ112 is forbidden for all finite q, whereas Φ122 and Φ1122 are momentum-allowed. Forbidden fits remain visible, never ranked.
-
-## DFT geometry and modes at the Stage2 boundary
-
-`dft_reference.py` imports an existing audited QE-DFPT export and freezes the original DFT-relaxed geometry. Complete exports use the same symmetry/mode-pair functions and Stage2 screen/refine/audit as MLFF Stage1. Selected reference channels use the shared frozen-phonon builder and 13-column fit on the exact existing QE coordinates, with point-level energy/force recovery. DFT provenance is distinct from model-relaxation provenance; accepting DFT does not remove the existing model-relaxation checks.
+Historical v3/v4 results remain diagnostic references, not v5 restart inputs. The default calculator and the scientific sampling rules are not changed merely by a maintenance-version increment.

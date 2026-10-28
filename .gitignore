@@ -8,3 +8,8 @@ build/
 dist/
 *.egg-info/
 .runtime/
+.venv/
+.venv-*/
+weights/
+model-sources/
+runs/

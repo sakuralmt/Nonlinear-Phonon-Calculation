@@ -1,7 +1,12 @@
-include README.md README_zh.md
+include README.md README_zh.md CHANGELOG.md CONTRIBUTING.md LICENSE install.sh npc
 include ARCHITECTURE.md
-recursive-include docs *.md *.json
+recursive-include docs *.md *.json *.csv *.inp *.txt *.png
 recursive-include scripts *.py *.sbatch
+recursive-include validation *.py
+recursive-include tests *.py
+recursive-include reports *.py *.md *.tex *.json *.png *.pdf
+recursive-include output *.pdf
+recursive-include .github/workflows *.yml
 recursive-include nonlinear_phonon_calculation *.py
 recursive-include mlff_modepair_workflow *.py
 global-exclude __pycache__ *.py[cod] .DS_Store

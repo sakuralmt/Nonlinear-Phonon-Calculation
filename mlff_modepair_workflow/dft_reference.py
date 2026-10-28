@@ -134,13 +134,29 @@ def import_dft_stage1(
     channels = []
     for item in selection["selected"]:
         pair = item["pair"]
+        gamma_q = np.asarray(pair["gamma_mode"]["q_frac"], dtype=float)
+        if (
+            gamma_q.shape != (3,)
+            or not np.isfinite(gamma_q).all()
+            or np.max(abs(gamma_q - np.rint(gamma_q))) > 1e-8
+        ):
+            raise ValueError("Reference Gamma mode must be at Gamma")
         if pair["gamma_mode"]["mode_number_one_based"] not in optical:
             raise ValueError("Gamma acoustic modes are not reference channels")
         for mode, vector_key in (
             (pair["gamma_mode"], "eigenvector"),
             (pair["target_mode"], "eigenvector_q"),
         ):
+            number = mode["mode_number_one_based"]
+            if (
+                isinstance(number, bool)
+                or not isinstance(number, int)
+                or not 1 <= number <= 3 * len(atoms)
+            ):
+                raise ValueError("DFT mode number must be a valid one-based branch")
             q = np.asarray(mode["q_frac"], float)
+            if q.shape != (3,) or not np.isfinite(q).all():
+                raise ValueError("DFT mode q point must be a finite three-vector")
             matches = [
                 p
                 for p in points
@@ -149,12 +165,16 @@ def import_dft_stage1(
             if len(matches) != 1:
                 raise ValueError("Selected mode q point is missing or ambiguous")
             point = matches[0]
-            index = mode["mode_number_one_based"] - 1
+            index = number - 1
             vector = decode_complex_mode(mode[vector_key])
             expected = decode_complex_mode(point["eigenvectors"][index])
             if (
                 vector.shape != (len(atoms), 3)
                 or not np.isfinite(vector).all()
+                or expected.shape != vector.shape
+                or not np.isfinite(expected).all()
+                or not np.isfinite(mode["freq_thz"])
+                or not np.isfinite(point["freqs_thz"][index])
                 or not np.isclose(np.linalg.norm(vector), 1, atol=1e-7)
                 or abs(np.vdot(vector, expected)) ** 2 < 1 - 1e-7
                 or abs(mode["freq_thz"] - point["freqs_thz"][index]) > 1e-5
@@ -163,7 +183,9 @@ def import_dft_stage1(
         q = np.asarray(pair["target_mode"]["q_frac"])
         qbar = np.asarray(pair["target_mode"]["qbar_frac"])
         if (
-            np.max(abs(q - np.rint(q))) < 1e-8
+            qbar.shape != (3,)
+            or not np.isfinite(qbar).all()
+            or np.max(abs(q - np.rint(q))) < 1e-8
             or np.max(abs(q + qbar - np.rint(q + qbar))) > 1e-7
         ):
             raise ValueError("Reference pair must be Gamma-q-minus-q with finite q")
@@ -309,6 +331,20 @@ def run_reference(
             builder = ModePairFrozenPhononBuilder(pair, atoms)
             ref = rows[pair["pair_code"]]
             points = ref["source_points"]
+            # Reject malformed QE labels before NumPy can broadcast a single
+            # force vector over every atom and report a plausible error metric.
+            for point in points:
+                qe_energy = np.asarray(point["energy_ev"], dtype=float)
+                qe_forces = np.asarray(point["forces_ev_per_A"], dtype=float)
+                if (
+                    qe_energy.shape != ()
+                    or not np.isfinite(qe_energy)
+                    or qe_forces.shape != (builder.nat_super, 3)
+                    or not np.isfinite(qe_forces).all()
+                ):
+                    raise ValueError(
+                        "QE reference requires finite energy and all atomic forces"
+                    )
             coordinates = [(float(p["q_gamma"]), float(p["q_finite"])) for p in points]
             if (
                 len(set(coordinates)) != len(points)

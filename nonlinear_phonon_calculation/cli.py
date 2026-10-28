@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 from pathlib import Path
 
+from . import __version__
 
 STAGE1_MODELS = {
     "qe-dft": "qe-dfpt",
@@ -17,6 +19,7 @@ STAGE1_MODELS = {
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(prog="npc", description=__doc__)
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     commands = parser.add_subparsers(dest="command", required=True)
     stage1 = commands.add_parser(
         "stage1", help="Phonopy modes and complete Gamma-q candidates"
@@ -63,6 +66,13 @@ def main(argv=None) -> int:
     status.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args(argv)
     if args.command == "stage1":
+        if args.mesh_n < 1:
+            parser.error("Phonon mesh size must be positive")
+        if any(
+            not math.isfinite(value) or value <= 0
+            for value in (args.step, args.convergence_step)
+        ):
+            parser.error("Harmonic displacement steps must be finite and positive")
         if not 0 < args.gamma_degeneracy_thz < float("inf"):
             parser.error("Gamma degeneracy threshold must be finite and positive")
         if args.model == "qe-dft":
@@ -126,12 +136,18 @@ def main(argv=None) -> int:
         print(json.dumps({"stage1_outputs": [str(path) for path in output]}))
         return 0
     if args.command == "stage2":
+        if (
+            args.top_channels < 1
+            or args.shard_count < 1
+            or not 0 <= args.shard_index < args.shard_count
+        ):
+            parser.error("Invalid top-channels or shard assignment")
         if args.phase == "reference":
             from mlff_modepair_workflow.dft_reference import run_reference
 
             if args.reference_results is None:
                 parser.error("Reference Stage2 needs --reference-results")
-            if args.shard_count != 1 or args.finalize_only:
+            if args.shard_count != 1 or args.shard_index != 0 or args.finalize_only:
                 parser.error(
                     "Reference Stage2 uses one checkpointed process per material"
                 )

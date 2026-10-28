@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=69", "wheel"]
+requires = ["setuptools>=77", "wheel", "packaging>=24.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "nonlinear-phonon-calculation"
-version = "1.0.3"
+version = "1.0.4"
 description = "Structure-aware hexagonal 2D phonon and MLFF coupling screening."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -17,7 +17,8 @@ dependencies = [
   "spglib>=2.0,<3",
 ]
 
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [
   { name = "qiyan Codex packaging workflow" }
 ]
@@ -34,6 +35,13 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
+test = [
+  "pytest>=7,<9",
+  "build>=1,<2",
+  "setuptools>=77",
+  "wheel>=0.42",
+  "packaging>=24.2",
+]
 prophet = [
   "prophet-mlip @ git+https://github.com/kairosmaterial/prophet.git@c4fda8251d8a7c90c7cb7842aea4d2f57e5fc3bd",
 ]

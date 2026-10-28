@@ -1,0 +1,58 @@
+name: Package and scientific-contract tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0, Node 24
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install base package and lightweight test tools
+        run: python -m pip install ".[test]"
+      - name: Build wheel and source distribution
+        run: python -m build
+      - name: Run synthetic and archived-data tests
+        env:
+          MPLBACKEND: Agg
+        run: python -m pytest -q tests
+      - name: Install and check the wheel outside the checkout
+        shell: bash
+        run: |
+          python -m venv "$RUNNER_TEMP/npc-wheel-env"
+          "$RUNNER_TEMP/npc-wheel-env/bin/python" -m pip install dist/*.whl
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/npc-wheel-env/bin/python" -I -m nonlinear_phonon_calculation.cli --help
+          "$RUNNER_TEMP/npc-wheel-env/bin/python" -I -m nonlinear_phonon_calculation.cli --version
+          "$RUNNER_TEMP/npc-wheel-env/bin/python" -I -m nonlinear_phonon_calculation.cli status --output-dir "$RUNNER_TEMP/missing-run"
+      - name: Install and test the source distribution in a separate environment
+        shell: bash
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python -m venv "$RUNNER_TEMP/npc-sdist-env"
+          archive=$(realpath dist/*.tar.gz)
+          "$RUNNER_TEMP/npc-sdist-env/bin/python" -m pip install "${archive}[test]"
+          mkdir "$RUNNER_TEMP/npc-sdist-source"
+          tar -xzf "$archive" -C "$RUNNER_TEMP/npc-sdist-source"
+          cd "$RUNNER_TEMP/npc-sdist-source"/*
+          "$RUNNER_TEMP/npc-sdist-env/bin/python" -m pytest -q tests
+      - name: Keep tested distributions
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, Node 24
+        with:
+          name: npc-dist-python-${{ matrix.python-version }}
+          path: dist/*
